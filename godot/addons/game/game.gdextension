@@ -1,0 +1,8 @@
+[configuration]
+entry_symbol = "game_init"
+compatibility_minimum = "4.1"
+reloadable = true
+
+[libraries]
+linux.debug.x86_64 = "res://addons/game/bin/libgame.so"
+linux.release.x86_64 = "res://addons/game/bin/libgame.so"

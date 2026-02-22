@@ -1,0 +1,36 @@
+[gd_scene load_steps=3 format=3 uid="uid://bu55xvw7ffhtr"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_jaeev"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ewcy1"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.98956615, 0.14407986, 0, -0.14407986, 0.98956615, 0.26045382, -0.092062235, 2.1341085)
+
+[node name="RigidBody3D" type="RigidBody3D" parent="."]
+transform = Transform3D(0.9999206, 0, 0.012600943, 0, 1, 0, -0.012600943, 0, 0.9999206, -0.10395855, 3.478939, -0.5010016)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D"]
+mesh = SubResource("BoxMesh_jaeev")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
+shape = SubResource("BoxShape3D_ewcy1")
+
+[node name="PlanetNode" type="PlanetNode" parent="."]
+
+[node name="SpotLight3D" type="SpotLight3D" parent="."]
+transform = Transform3D(0.78165114, 0.2647081, -0.56475765, 0, 0.9054725, 0.4244049, 0.62371594, -0.33173656, 0.7077636, -8.134035, 5.698913, 9.648727)
+light_color = Color(0.4366271, 0.5189479, 0.881864, 1)
+light_energy = 9.081
+spot_range = 18.194582
+
+[node name="SpotLight3D" type="SpotLight3D" parent="SpotLight3D"]
+transform = Transform3D(0.40936577, -0.70122397, 0.58369917, 0.38721427, 0.71281576, 0.58477247, -0.82612634, -0.013369203, 0.5633263, 8.234122, 7.5000196, -2.0265827)
+light_color = Color(1, 0, 0, 1)
+light_energy = 9.081
+spot_range = 18.194582
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.0039793905, -0.27810037, -0.9605438, 0, 0.96055144, -0.27810258, 0.9999921, 0.0011066787, 0.0038224093, 0, 0, 0)

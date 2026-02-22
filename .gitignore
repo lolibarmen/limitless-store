@@ -1,0 +1,43 @@
+# Игнорировать сгенерированные объектные файлы
+*.o
+*.os
+*.obj
+*.d
+*.dll
+*.so
+*.dylib
+*.lib
+*.a
+*.exp
+*.pdb
+
+# Сгенерированный заголовочный файл со списком классов (автоматически создаётся при сборке)
+game/objects/classes.h
+
+# Директория с выходной библиотекой GDExtension
+godot/bin/
+!godot/bin/.gdignore  # Опционально: можно оставить пустой файл, чтобы папка была в git
+
+# Директория сборки godot-cpp (там создаётся статическая библиотека)
+godot-cpp/bin/
+godot-cpp/godot-cpp/
+
+# Файлы SCons
+.sconsign.dblite
+.sconsign
+.scons-option-cache
+
+# Директории IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.temp
+
+# Кэш SCons (если используется переменная SCONS_CACHE)
+scons_cache/
