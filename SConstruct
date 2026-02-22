@@ -33,7 +33,7 @@ def discover_cpp_classes(base_dir):
     global includes, registrations, all_sources
     for root, dirs, files in os.walk(base_dir):
         cpp_files = [f for f in files if f.endswith(".cpp")]
-        header_files = [f for f in files if f.endswith(".h")]
+        header_files = [f for f in files if f.endswith(".hpp")]
 
         if not cpp_files:
             continue

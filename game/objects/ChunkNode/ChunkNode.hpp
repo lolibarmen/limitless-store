@@ -8,7 +8,7 @@
 #include <godot_cpp/classes/concave_polygon_shape3d.hpp>
 #include <godot_cpp/classes/surface_tool.hpp>
 
-#include <PlanetData/PlanetData.h>
+#include <PlanetData/PlanetData.hpp>
 
 namespace godot {
 
@@ -17,10 +17,6 @@ class ChunkNode : public Node3D {
 
 private:
     Ref<PlanetData> planet_data;
-
-    // Параметры чанка (не используются в логике, но оставлены для совместимости)
-    float HALF_CHUNK_SIZE = 4;
-    int BLOCK_IN_CHUNK = 2;
     
     StaticBody3D *static_body;
     MeshInstance3D *mesh_instance;
@@ -31,6 +27,7 @@ private:
 
     // Вспомогательные методы для генерации поверхности
     float get_density(const Vector3i &p_index) const;
+    void build_mesh();
     void create_surface_mesh(int p_size = 6);
     void create_surface_mesh_quad(const Vector3i &p_index);
     void add_quad(const Vector3i &p_index, int p_axis_index);
@@ -43,6 +40,10 @@ protected:
     static void _bind_methods();
 
 public:
+    static constexpr float CHUNK_SIZE = 16.0f;
+    static constexpr int BLOCKS_IN_CHUNK = 16;
+    static constexpr float BLOCK_SIZE = 1.0f;
+
     ChunkNode();
     ~ChunkNode();
 

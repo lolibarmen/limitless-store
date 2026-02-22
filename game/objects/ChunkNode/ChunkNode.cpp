@@ -1,62 +1,11 @@
-#include "ChunkNode.h"
+#include "ChunkNode.hpp"
 
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
-namespace {
-    // Направления осей (положительные)
-    const Vector3i AXIS[] = {
-        Vector3i(1, 0, 0),
-        Vector3i(0, 1, 0),
-        Vector3i(0, 0, 1)
-    };
-
-    // Углы квадрата для каждой оси
-    const Vector3i QUAD_POINTS[3][4] = {
-        // Ось X
-        {
-            Vector3i(0, 0, -1),
-            Vector3i(0, -1, -1),
-            Vector3i(0, -1, 0),
-            Vector3i(0, 0, 0)
-        },
-        // Ось Y
-        {
-            Vector3i(0, 0, -1),
-            Vector3i(0, 0, 0),
-            Vector3i(-1, 0, 0),
-            Vector3i(-1, 0, -1)
-        },
-        // Ось Z
-        {
-            Vector3i(0, 0, 0),
-            Vector3i(0, -1, 0),
-            Vector3i(-1, -1, 0),
-            Vector3i(-1, 0, 0)
-        }
-    };
-
-    // 12 рёбер куба (пары точек)
-    const Vector3i EDGE_OFFSETS[12][2] = {
-        // Рёбра на min Z
-        { Vector3i(0, 0, 0), Vector3i(1, 0, 0) },
-        { Vector3i(1, 0, 0), Vector3i(1, 1, 0) },
-        { Vector3i(1, 1, 0), Vector3i(0, 1, 0) },
-        { Vector3i(0, 1, 0), Vector3i(0, 0, 0) },
-        // Рёбра на max Z
-        { Vector3i(0, 0, 1), Vector3i(1, 0, 1) },
-        { Vector3i(1, 0, 1), Vector3i(1, 1, 1) },
-        { Vector3i(1, 1, 1), Vector3i(0, 1, 1) },
-        { Vector3i(0, 1, 1), Vector3i(0, 0, 1) },
-        // Рёбра, соединяющие min Z и max Z
-        { Vector3i(0, 0, 0), Vector3i(0, 0, 1) },
-        { Vector3i(1, 0, 0), Vector3i(1, 0, 1) },
-        { Vector3i(1, 1, 0), Vector3i(1, 1, 1) },
-        { Vector3i(0, 1, 0), Vector3i(0, 1, 1) }
-    };
-}
+#include "cube_vertex.h"
 
 ChunkNode::ChunkNode() :
         mesh_instance(nullptr),
@@ -83,11 +32,21 @@ void ChunkNode::_ready() {
     static_body->add_child(collision_shape);
 
     // Генерация меша
+    build_mesh();
+}
+
+void ChunkNode::set_planet_data(Ref<PlanetData> p_data) {
+    planet_data = p_data;
+}
+
+void ChunkNode::build_mesh() {
+    if(!planet_data.is_null()) return;
+
     surface_tool.instantiate();
     surface_tool->begin(Mesh::PRIMITIVE_TRIANGLES);
-
-    create_surface_mesh(2); // размер области = 6
-
+    
+    create_surface_mesh(BLOCKS_IN_CHUNK);
+    
     surface_tool->generate_normals();
     Ref<ArrayMesh> mesh = surface_tool->commit();
     mesh_instance->set_mesh(mesh);
@@ -99,20 +58,8 @@ void ChunkNode::_ready() {
         shape->set_faces(mesh->get_faces());
         collision_shape->set_shape(shape);
     }
-
+    
     surface_tool.unref();
-}
-
-void ChunkNode::set_planet_data(Ref<PlanetData> p_data) {
-    planet_data = p_data;
-}
-
-float ChunkNode::get_density(const Vector3i &p_index) const {
-    float dens = planet_data->get_block(p_index);
-    return planet_data->get_block(p_index);
-
-    // Vector3 pos(p_index.x, p_index.y, p_index.z);
-    // return pos.distance_to(Vector3(0.0, 0.0, 0.0)) - 2.0;
 }
 
 void ChunkNode::create_surface_mesh(int p_size) {
@@ -124,6 +71,14 @@ void ChunkNode::create_surface_mesh(int p_size) {
             }
         }
     }
+}
+
+float ChunkNode::get_density(const Vector3i &p_index) const {
+    float dens = planet_data->get_block(p_index);
+    return planet_data->get_block(p_index);
+
+    // Vector3 pos(p_index.x, p_index.y, p_index.z);
+    // return pos.distance_to(Vector3(0.0, 0.0, 0.0)) - 2.0;
 }
 
 void ChunkNode::create_surface_mesh_quad(const Vector3i &p_index) {

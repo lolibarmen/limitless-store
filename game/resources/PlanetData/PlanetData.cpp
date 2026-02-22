@@ -1,4 +1,4 @@
-#include "PlanetData.h"
+#include "PlanetData.hpp"
 #include <algorithm>
 
 using namespace godot;

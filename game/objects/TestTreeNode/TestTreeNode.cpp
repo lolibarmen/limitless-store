@@ -1,4 +1,4 @@
-#include "TestTreeNode.h"
+#include "TestTreeNode.hpp"
 
 #include <godot_cpp/classes/standard_material3d.hpp>
 #include <godot_cpp/classes/box_mesh.hpp>

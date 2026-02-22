@@ -1,16 +1,24 @@
-[gd_scene load_steps=3 format=3 uid="uid://bu55xvw7ffhtr"]
+[gd_scene load_steps=6 format=3 uid="uid://bu55xvw7ffhtr"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_jaeev"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ewcy1"]
 
+[sub_resource type="Environment" id="Environment_ewcy1"]
+background_mode = 2
+ssao_enabled = true
+fog_density = 0.0
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_ewcy1"]
+dof_blur_far_distance = 3095.23
+dof_blur_far_transition = -1.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ewcy1"]
+
 [node name="Node3D" type="Node3D"]
 
-[node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.98956615, 0.14407986, 0, -0.14407986, 0.98956615, 0.26045382, -0.092062235, 2.1341085)
-
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
-transform = Transform3D(0.9999206, 0, 0.012600943, 0, 1, 0, -0.012600943, 0, 0.9999206, -0.10395855, 3.478939, -0.5010016)
+transform = Transform3D(0.9999206, 0, 0.012600943, 0, 1, 0, -0.012600943, 0, 0.9999206, 0.41708142, 1.8625696, -0.27108073)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D"]
 mesh = SubResource("BoxMesh_jaeev")
@@ -20,17 +28,18 @@ shape = SubResource("BoxShape3D_ewcy1")
 
 [node name="PlanetNode" type="PlanetNode" parent="."]
 
-[node name="SpotLight3D" type="SpotLight3D" parent="."]
-transform = Transform3D(0.78165114, 0.2647081, -0.56475765, 0, 0.9054725, 0.4244049, 0.62371594, -0.33173656, 0.7077636, -8.134035, 5.698913, 9.648727)
-light_color = Color(0.4366271, 0.5189479, 0.881864, 1)
-light_energy = 9.081
-spot_range = 18.194582
-
-[node name="SpotLight3D" type="SpotLight3D" parent="SpotLight3D"]
-transform = Transform3D(0.40936577, -0.70122397, 0.58369917, 0.38721427, 0.71281576, 0.58477247, -0.82612634, -0.013369203, 0.5633263, 8.234122, 7.5000196, -2.0265827)
-light_color = Color(1, 0, 0, 1)
-light_energy = 9.081
-spot_range = 18.194582
-
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.0039793905, -0.27810037, -0.9605438, 0, 0.96055144, -0.27810258, 0.9999921, 0.0011066787, 0.0038224093, 0, 0, 0)
+transform = Transform3D(-0.0010493838, 0.99988765, -0.014958725, -0.69781435, 0.009982423, 0.7162092, 0.71627796, 0.011189991, 0.6977254, 0, 2.5839553, 3.5778387)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_ewcy1")
+camera_attributes = SubResource("CameraAttributesPractical_ewcy1")
+
+[node name="RigidBody3D2" type="RigidBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.2838345)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D2"]
+shape = SubResource("CapsuleShape3D_ewcy1")
+
+[node name="Camera3D" type="Camera3D" parent="RigidBody3D2"]
+transform = Transform3D(1, 0, 0, 0, 0.98956615, 0.14407986, 0, -0.14407986, 0.98956615, 0, 1.123, -0.185)

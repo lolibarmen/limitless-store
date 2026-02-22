@@ -3,8 +3,8 @@
 #include <godot_cpp/classes/node3d.hpp>
 #include <vector>
 
-#include <PlanetData/PlanetData.h>
-#include <ChunkNode/ChunkNode.h>
+#include <PlanetData/PlanetData.hpp>
+#include <ChunkNode/ChunkNode.hpp>
 
 
 namespace godot {
