@@ -18,7 +18,19 @@ ChunkNode::~ChunkNode() {
 void ChunkNode::_bind_methods() {
 }
 
-void ChunkNode::_ready() {    
+void ChunkNode::configure(
+    Ref<PlanetData> p_data,
+    const Vector3i &p_origin,
+    int p_voxel_count,
+    int p_sample_step)
+{
+    planet_data = p_data;
+    origin = p_origin;
+    voxel_count = p_voxel_count;
+    sample_step = p_sample_step;
+}
+
+void ChunkNode::_ready() {
     // Создаём StaticBody3D как дочерний узел
     static_body = memnew(StaticBody3D);
     add_child(static_body);
@@ -35,19 +47,15 @@ void ChunkNode::_ready() {
     build_mesh();
 }
 
-void ChunkNode::set_planet_data(Ref<PlanetData> p_data) {
-    planet_data = p_data;
-}
-
 void ChunkNode::build_mesh() {
-    if(!planet_data.is_null()) return;
+    if(!planet_data.is_valid()) return;
 
     surface_tool.instantiate();
     surface_tool->begin(Mesh::PRIMITIVE_TRIANGLES);
     
-    create_surface_mesh(BLOCKS_IN_CHUNK);
+    create_surface_mesh(voxel_count / 2);
     
-    surface_tool->generate_normals();
+    // surface_tool->generate_normals();
     Ref<ArrayMesh> mesh = surface_tool->commit();
     mesh_instance->set_mesh(mesh);
     
@@ -74,11 +82,8 @@ void ChunkNode::create_surface_mesh(int p_size) {
 }
 
 float ChunkNode::get_density(const Vector3i &p_index) const {
-    float dens = planet_data->get_block(p_index);
-    return planet_data->get_block(p_index);
-
-    // Vector3 pos(p_index.x, p_index.y, p_index.z);
-    // return pos.distance_to(Vector3(0.0, 0.0, 0.0)) - 2.0;
+    Vector3i world_pos = origin + p_index * sample_step;
+    return planet_data->get_density(world_pos, sample_step);
 }
 
 void ChunkNode::create_surface_mesh_quad(const Vector3i &p_index) {
@@ -164,10 +169,45 @@ Vector3 ChunkNode::get_surface_gradient(const Vector3i &p_index, float p_sample_
 }
 
 void ChunkNode::add_vertex(const Vector3i &p_index) {
-    float val = get_density(p_index);
-    Vector3 pos = get_surface_position(p_index);
-    // Vector3 normal = get_surface_gradient(p_index, val);
+    Vector3 pos_sum(0, 0, 0);
+    Vector3 normal_sum(0, 0, 0);
+    int count = 0;
 
-    // surface_tool->set_normal(normal);
-    surface_tool->add_vertex(pos);
+    // Проходим по всем 12 рёбрам вокселя
+    for (int i = 0; i < 12; ++i) {
+        Vector3i a = p_index + EDGE_OFFSETS[i][0];
+        Vector3i b = p_index + EDGE_OFFSETS[i][1];
+        float va = get_density(a);
+        float vb = get_density(b);
+
+        // Если знаки разные — пересечение
+        if (va * vb < 0) {
+            count++;
+            float t = Math::abs(va) / (Math::abs(va) + Math::abs(vb));
+            Vector3 pos_a(a.x, a.y, a.z);
+            Vector3 pos_b(b.x, b.y, b.z);
+            Vector3 pos_edge = pos_a.lerp(pos_b, t);
+            pos_sum += pos_edge;
+
+            // Нормали в вершинах ребра (используем градиент в узлах)
+            Vector3 normal_a = get_surface_gradient(a, va);
+            Vector3 normal_b = get_surface_gradient(b, vb);
+            // Интерполируем нормаль вдоль ребра и нормализуем
+            Vector3 normal_edge = normal_a.lerp(normal_b, t).normalized();
+            normal_sum += normal_edge;
+        }
+    }
+
+    // Если пересечений нет (редкий случай), берём центр вокселя
+    if (count == 0) {
+        pos_sum = Vector3(p_index.x, p_index.y, p_index.z) + Vector3(0.5f, 0.5f, 0.5f);
+        normal_sum = get_surface_gradient(p_index, get_density(p_index));
+        count = 1;
+    }
+
+    Vector3 final_pos = pos_sum / count;
+    Vector3 final_normal = normal_sum.normalized();
+
+    surface_tool->set_normal(final_normal);
+    surface_tool->add_vertex(final_pos);
 }

@@ -1,14 +1,14 @@
-CollisionShape3D
+MeshInstance3D
+OmniLight3D
+SpotLight3D
 RigidBody3D
+Camera3D
+CollisionShape3D
+CharacterBody3D
+PlanetNode
 WorldEnvironment      - Matches the "sky" keyword.
 DirectionalLight3D
 LightmapProbe
 ChunkNode
-SpotLight3D
-PlanetNode
-MeshInstance3D
 VehicleBody3D
-Camera3D
-OmniLight3D
 PointLight2D
-Node3D

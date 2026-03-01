@@ -1,24 +1,28 @@
-[gd_scene load_steps=6 format=3 uid="uid://bu55xvw7ffhtr"]
+[gd_scene load_steps=7 format=3 uid="uid://bu55xvw7ffhtr"]
+
+[ext_resource type="Script" uid="uid://civg8rtoquiq2" path="res://objects/rigid_body_3d_2.gd" id="1_jaeev"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_jaeev"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ewcy1"]
 
 [sub_resource type="Environment" id="Environment_ewcy1"]
-background_mode = 2
-ssao_enabled = true
-fog_density = 0.0
+background_mode = 1
+background_color = Color(0.16470589, 0.16470589, 0.20784314, 1)
+ssao_intensity = 13.96
+glow_intensity = 3.49
+fog_mode = 1
+fog_density = 1.0
+volumetric_fog_density = 0.6395
 
-[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_ewcy1"]
-dof_blur_far_distance = 3095.23
-dof_blur_far_transition = -1.0
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_jaeev"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ewcy1"]
 
 [node name="Node3D" type="Node3D"]
 
 [node name="RigidBody3D" type="RigidBody3D" parent="."]
-transform = Transform3D(0.9999206, 0, 0.012600943, 0, 1, 0, -0.012600943, 0, 0.9999206, 0.41708142, 1.8625696, -0.27108073)
+transform = Transform3D(0.9999206, 0, 0.012600943, 0, 1, 0, -0.012600943, 0, 0.9999206, 0.41708142, 2.0271103, -0.27108073)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D"]
 mesh = SubResource("BoxMesh_jaeev")
@@ -29,17 +33,18 @@ shape = SubResource("BoxShape3D_ewcy1")
 [node name="PlanetNode" type="PlanetNode" parent="."]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-0.0010493838, 0.99988765, -0.014958725, -0.69781435, 0.009982423, 0.7162092, 0.71627796, 0.011189991, 0.6977254, 0, 2.5839553, 3.5778387)
+transform = Transform3D(0.6489436, -4.890994e-09, 0.76083654, -0.7608366, -6.1623446e-08, 0.6489436, 4.3711385e-08, -1, -4.3711385e-08, 0, 2.5839553, 3.5778387)
+light_color = Color(0.9647059, 0.94509804, 0.8352941, 1)
+light_energy = 0.5
+shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_ewcy1")
-camera_attributes = SubResource("CameraAttributesPractical_ewcy1")
+camera_attributes = SubResource("CameraAttributesPractical_jaeev")
 
-[node name="RigidBody3D2" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.2838345)
+[node name="CharacterBody3D" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1173477, 3.19882, 0.9805131)
+script = ExtResource("1_jaeev")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D"]
 shape = SubResource("CapsuleShape3D_ewcy1")
-
-[node name="Camera3D" type="Camera3D" parent="RigidBody3D2"]
-transform = Transform3D(1, 0, 0, 0, 0.98956615, 0.14407986, 0, -0.14407986, 0.98956615, 0, 1.123, -0.185)

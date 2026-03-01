@@ -4,33 +4,55 @@ using namespace godot;
 
 void PlanetNode::_bind_methods() {}
 
-PlanetNode::PlanetNode() {
-    
-}
+PlanetNode::PlanetNode() {}
 
 void PlanetNode::_ready() {
+
     planet_data.instantiate();
 
-    Vector3i world_size = planet_data->get_world_size();
-    int chunks_size = ChunkNode::CHUNK_SIZE;
+    spawn_initial_chunks();
+}
 
-    Vector3 planet_size = ChunkNode::BLOCK_SIZE * world_size;
+void PlanetNode::spawn_initial_chunks() {
 
-    Vector3i chunks_count = world_size / chunks_size;
-
-    for(int x = 0; x < chunks_count.x; x++)
-    for(int y = 0; y < chunks_count.y; y++)
-    for(int z = 0; z < chunks_count.z; z++)
+    // создаём чанки вокруг центра
+    for (int x = -render_radius; x <= render_radius; x++)
+    for (int y = -render_radius; y <= render_radius; y++)
+    for (int z = -render_radius; z <= render_radius; z++)
     {
-        ChunkNode* new_chunk = memnew(ChunkNode);
+        ChunkNode* chunk = memnew(ChunkNode);
+        
+        // 🌍 мировая позиция чанка
+        Vector3 world_pos =
+            Vector3(x, y, z) * base_chunk_size;
+            
+        // 🔥 простой LOD
+        // float distance = world_pos.length();
+        
+        int lod = 1;
+        
+        // if (distance > 32) lod = 8;
+        // else if (distance > 16) lod = 4;
+        // else if (distance > 8) lod = 2;
 
-        Vector3 chunk_pos = Vector3(x,y,z) * chunks_size - planet_size / 2;
+        int voxel_count = 8;
 
-        new_chunk->set_position(chunk_pos);
-        new_chunk->set_planet_data(planet_data);
+        // Позиция чанка в блоках 
+        Vector3i chunk_coord =
+            Vector3i(x, y, z) * voxel_count;
+            
+        chunk->configure(
+            planet_data,
+            chunk_coord,
+            voxel_count,
+            lod
+        );
+        chunk->set_position(
+            world_pos
+        );
 
-        add_child(new_chunk);
+        add_child(chunk);
 
-        chunks.push_back(new_chunk);
+        chunks.push_back(chunk);
     }
 }
