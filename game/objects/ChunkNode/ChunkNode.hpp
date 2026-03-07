@@ -10,8 +10,11 @@
 
 #include <PlanetData/PlanetData.hpp>
 #include <ChunkMesh/ChunkMesh.hpp>
+#include <ChunkCollider/ChunkCollider.hpp>
 
 namespace godot {
+
+class PlanetNode;
 
 class ChunkNode : public Node3D {
     GDCLASS(ChunkNode, Node3D)
@@ -22,26 +25,20 @@ private:
 
     Ref<PlanetData> planet_data;
 
-    // начало области в координатах планеты (voxel space)
-    Vector3i origin;
-
-    // сколько вокселей генерируем по оси
-    int voxel_count = 8;
-
-    // шаг выборки (LOD)
-    int sample_step = 1;
-
+    Vector3i origin; // начало области в координатах планеты (voxel space)
+    int voxel_count = 8; // сколько вокселей генерируем по оси
+    int sample_step = 1; // шаг выборки (LOD)
 
     // === GODOT NODES ===
 
-    StaticBody3D *static_body = nullptr;
+    ChunkCollider *chunk_collider = nullptr;
     MeshInstance3D *mesh_instance = nullptr;
-    CollisionShape3D *collision_shape = nullptr;
+
+    PlanetNode *planet_node = nullptr;
+    
+    // === MESH GENERATION ===
 
     Ref<ChunkMesh> chunk_mesh;
-
-
-    // === MESH GENERATION ===
 
     void build_mesh();
 
@@ -57,6 +54,7 @@ public:
 
     // 🔥 ЕДИНСТВЕННАЯ настройка чанка
     void configure(
+        PlanetNode* p_planet,
         Ref<PlanetData> p_data,
         const Vector3i &p_origin,
         int p_voxel_count,
@@ -64,13 +62,18 @@ public:
     );
 
     const Vector3i& get_origin() const { return origin; }
-    // void set_origin(const Vector3i& new_origin) { origin = new_origin; }
+    void set_origin(const Vector3i& new_origin) { origin = new_origin; }
 
     int get_voxel_count() const { return voxel_count; }
-    // void set_voxel_count(int new_count) { voxel_count = new_count; }
+    void set_voxel_count(int new_count) { voxel_count = new_count; }
 
     int get_sample_step() const { return sample_step; }
-    // void set_sample_step(int new_step) { sample_step = new_step; }
+    void set_sample_step(int new_step) { sample_step = new_step; }
+
+    void on_ray_hit(const Dictionary &result);
+    void on_ray_enter();
+    void on_ray_exit();
+    void on_ray_hover(const Vector3 &position);
 };
 
 } // namespace godot

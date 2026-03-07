@@ -48,10 +48,10 @@ public:
 
     void initialize_default();
 
-    void set_block(const Vector3& pos, uint8_t type);
-    float get_block(const Vector3& pos) const;
+    void set_block(const Vector3i &p_index, float density);
+    float get_block(const Vector3i &pop_indexs) const;
 
-    float get_density(const Vector3i& pos, int step) const;
+    float get_density(const Vector3i &p_index, int step) const;
 };
 
 } // namespace godot

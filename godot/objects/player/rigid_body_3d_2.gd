@@ -13,8 +13,7 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 func _ready():
 	# Создаем и настраиваем камеру
-	camera = Camera3D.new()
-	add_child(camera)
+	camera = get_child(0)
 	
 	# Захватываем мышь
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -43,7 +42,7 @@ func _physics_process(delta):
 		velocity.y -= gravity * delta
 	
 	# Handle Jump (используем KEY_SPACE)
-	if Input.is_key_pressed(KEY_SPACE) and is_on_floor():
+	if Input.is_key_pressed(KEY_SPACE):
 		velocity.y = jump_velocity
 	
 	# Получаем вектор движения напрямую с клавиатуры

@@ -26,7 +26,12 @@ PlanetData::~PlanetData() {
     delete root;
 }
 
-void PlanetData::_bind_methods() {}
+void PlanetData::_bind_methods() {
+
+    ClassDB::bind_method(D_METHOD("set_block", "index", "density"), &PlanetData::set_block);
+    ClassDB::bind_method(D_METHOD("get_block", "index"), &PlanetData::get_block);
+
+}
 
 void PlanetData::expand_root_to_fit(const Vector3& pos) {
 
@@ -62,14 +67,14 @@ void PlanetData::expand_root_to_fit(const Vector3& pos) {
     }
 }
 
-void PlanetData::set_block(const Vector3& pos, uint8_t type) {
+void PlanetData::set_block(const Vector3i& p_index, float density) {
 
-    expand_root_to_fit(pos);
+    expand_root_to_fit(p_index);
 
-    set_block_recursive(root, pos, (float)type);
+    set_block_recursive(root, p_index, density);
 }
 
-float PlanetData::get_block(const Vector3& pos) const {
+float PlanetData::get_block(const Vector3i& pos) const {
     return get_block_recursive(root, pos);
 }
 
@@ -99,7 +104,26 @@ void PlanetData::set_block_recursive(
     }
 
     if (node->is_leaf) {
+        float old_value = node->value;
+
         node->is_leaf = false;
+
+        float child_half = node->half_size * 0.5f;
+
+        for (int i = 0; i < 8; i++) {
+
+            Vector3 offset(
+                (i & 1) ? child_half : -child_half,
+                (i & 2) ? child_half : -child_half,
+                (i & 4) ? child_half : -child_half
+            );
+
+            node->children[i] =
+                new OctreeNode(node->center + offset, child_half);
+
+            node->children[i]->is_leaf = true;
+            node->children[i]->value = old_value;
+        }
     }
 
     int index = 0;
@@ -172,9 +196,9 @@ float PlanetData::get_density_recursive(
 }
 
 void PlanetData::initialize_default() {
-    for(int i=-4; i<4; i++)
-    for(int j=-4; j<4; j++)
-    {
-        set_block(Vector3(i,0,j), 1.0);
-    }
+    // for(int i=-4; i<4; i++)
+    // for(int j=-4; j<4; j++)
+    // {
+    //     set_block(Vector3i(i,0,j), 1.0);
+    // }
 }

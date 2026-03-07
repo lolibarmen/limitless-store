@@ -22,14 +22,19 @@ private:
 
 protected:
     static void _bind_methods();
-
-    void spawn_initial_chunks();
-
-public:
+    
+    public:
     PlanetNode();
     ~PlanetNode() override = default;
-
+    
     void _ready() override;
+    
+    void on_block_hit(Vector3i planet_voxel);
+    
+    Ref<PlanetData> get_planet_data() { return planet_data; }
+    void set_planet_data(Ref<PlanetData> p_data) { planet_data = p_data; }
+
+    void spawn_initial_chunks();
 };
 
 } // namespace godot
