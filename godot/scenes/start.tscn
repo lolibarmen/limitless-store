@@ -18,6 +18,8 @@ volumetric_fog_density = 0.6395
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_jaeev"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ewcy1"]
+radius = 0.65185547
+height = 1.9455941
 
 [node name="Node3D" type="Node3D"]
 
@@ -47,4 +49,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1173477, 3.19882, 0.9805131
 script = ExtResource("1_jaeev")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.41379452, 0)
 shape = SubResource("CapsuleShape3D_ewcy1")

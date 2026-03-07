@@ -9,6 +9,7 @@
 #include <godot_cpp/classes/surface_tool.hpp>
 
 #include <PlanetData/PlanetData.hpp>
+#include <ChunkMesh/ChunkMesh.hpp>
 
 namespace godot {
 
@@ -37,24 +38,12 @@ private:
     MeshInstance3D *mesh_instance = nullptr;
     CollisionShape3D *collision_shape = nullptr;
 
-    Ref<SurfaceTool> surface_tool;
+    Ref<ChunkMesh> chunk_mesh;
 
 
     // === MESH GENERATION ===
 
-    float get_density(const Vector3i &p_index) const;
-
     void build_mesh();
-    void create_surface_mesh(int p_size);
-    void create_surface_mesh_quad(const Vector3i &p_index);
-
-    void add_quad(const Vector3i &p_index, int p_axis_index);
-    void add_reversed_quad(const Vector3i &p_index, int p_axis_index);
-
-    Vector3 get_surface_position(const Vector3i &p_index) const;
-    Vector3 get_surface_gradient(const Vector3i &p_index, float p_sample_value) const;
-
-    void add_vertex(const Vector3i &p_index);
 
 protected:
     static void _bind_methods();
@@ -73,6 +62,15 @@ public:
         int p_voxel_count,
         int p_sample_step
     );
+
+    const Vector3i& get_origin() const { return origin; }
+    // void set_origin(const Vector3i& new_origin) { origin = new_origin; }
+
+    int get_voxel_count() const { return voxel_count; }
+    // void set_voxel_count(int new_count) { voxel_count = new_count; }
+
+    int get_sample_step() const { return sample_step; }
+    // void set_sample_step(int new_step) { sample_step = new_step; }
 };
 
 } // namespace godot
