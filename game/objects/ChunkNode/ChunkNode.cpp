@@ -4,6 +4,8 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
+#include <godot_cpp/classes/standard_material3d.hpp>
+
 using namespace godot;
 
 ChunkNode::ChunkNode() {
@@ -20,13 +22,13 @@ void ChunkNode::configure(
     Ref<PlanetData> p_data,
     const Vector3i &p_origin,
     int p_voxel_count,
-    int p_sample_step)
+    int p_lod)
 {
     planet_node = p_planet,
     planet_data = p_data;
     origin = p_origin;
     voxel_count = p_voxel_count;
-    sample_step = p_sample_step;
+    lod = p_lod;
 }
 
 void ChunkNode::_ready() {
@@ -43,17 +45,17 @@ void ChunkNode::_ready() {
     build_mesh();
 }
 
+
 void ChunkNode::build_mesh() {
     if(!planet_data.is_valid()) return;
 
     chunk_mesh.instantiate();
-
     Ref<ArrayMesh> mesh = chunk_mesh->build(planet_data, this);
-    
     mesh_instance->set_mesh(mesh);
     chunk_collider->set_mesh(mesh);
-    
     chunk_mesh.unref();
+
+    apply_debug_material();
 }
 
 void ChunkNode::on_ray_hit(const Dictionary &result) {
@@ -73,4 +75,22 @@ void ChunkNode::on_ray_hit(const Dictionary &result) {
     planet_node->on_block_hit(planet_voxel);
 
     build_mesh();
+}
+
+void ChunkNode::apply_debug_material() {
+    if (!mesh_instance || !mesh_instance->get_mesh().is_valid()) return;
+    if (mesh_instance->get_mesh()->get_surface_count() == 0) return;
+
+    Ref<StandardMaterial3D> mat;
+    mat.instantiate();
+
+    switch (lod) {
+        case 1: mat->set_albedo(Color(0.0f, 1.0f, 0.0f)); break; // Зелёный   — LOD 1 (близко)
+        case 2: mat->set_albedo(Color(1.0f, 1.0f, 0.0f)); break; // Жёлтый    — LOD 2
+        case 4: mat->set_albedo(Color(1.0f, 0.5f, 0.0f)); break; // Оранжевый — LOD 4
+        case 8: mat->set_albedo(Color(1.0f, 0.0f, 0.0f)); break; // Красный   — LOD 8 (далеко)
+        default: mat->set_albedo(Color(1.0f, 1.0f, 1.0f)); break; // Белый    — неизвестный
+    }
+
+    mesh_instance->set_surface_override_material(0, mat);
 }

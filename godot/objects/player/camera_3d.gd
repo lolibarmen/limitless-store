@@ -1,7 +1,7 @@
 extends Camera3D
 
 func _process(delta):
-	if Input.is_action_just_pressed("ui_accept"):
+	if Input.is_action_just_pressed("ui_text_caret_line_end"):
 		cast_ray()
 
 func cast_ray():

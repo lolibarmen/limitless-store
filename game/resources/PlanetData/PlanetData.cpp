@@ -28,9 +28,15 @@ PlanetData::~PlanetData() {
 
 void PlanetData::_bind_methods() {
 
-    ClassDB::bind_method(D_METHOD("set_block", "index", "density"), &PlanetData::set_block);
-    ClassDB::bind_method(D_METHOD("get_block", "index"), &PlanetData::get_block);
+    ClassDB::bind_method(
+        D_METHOD("set_block", "index", "lod", "density"),
+        &PlanetData::set_block
+    );
 
+    ClassDB::bind_method(
+        D_METHOD("get_block", "index", "lod"),
+        &PlanetData::get_block
+    );
 }
 
 void PlanetData::expand_root_to_fit(const Vector3& pos) {
@@ -67,43 +73,35 @@ void PlanetData::expand_root_to_fit(const Vector3& pos) {
     }
 }
 
-void PlanetData::set_block(const Vector3i& p_index, float density) {
+void PlanetData::set_block(const Vector3i& pos, int lod, float density) {
 
-    expand_root_to_fit(p_index);
+    expand_root_to_fit(pos);
 
-    set_block_recursive(root, p_index, density);
+    set_block_recursive(root, pos, lod, density);
 }
 
-float PlanetData::get_block(const Vector3i& pos) const {
-    return get_block_recursive(root, pos);
-}
+float PlanetData::get_block(const Vector3i& pos, int lod) const {
 
-float PlanetData::get_density(
-    const Vector3i& pos,
-    int step) const
-{
-    if (!root)
-        return -1.0f;
-
-    Vector3 p((float)pos.x, (float)pos.y, (float)pos.z);
-
-    float target_size = (float)step;
-
-    return get_density_recursive(root, p, target_size);
+    return get_block_recursive(root, pos, lod);
 }
 
 void PlanetData::set_block_recursive(
     OctreeNode* node,
     const Vector3& pos,
+    int lod,
     float value)
 {
-    if (node->half_size <= MIN_NODE_SIZE) {
+
+    if (node->half_size * 2 <= lod) {
+
         node->is_leaf = true;
         node->value = value;
+
         return;
     }
 
     if (node->is_leaf) {
+
         float old_value = node->value;
 
         node->is_leaf = false;
@@ -121,12 +119,12 @@ void PlanetData::set_block_recursive(
             node->children[i] =
                 new OctreeNode(node->center + offset, child_half);
 
-            node->children[i]->is_leaf = true;
             node->children[i]->value = old_value;
         }
     }
 
     int index = 0;
+
     if (pos.x >= node->center.x) index |= 1;
     if (pos.y >= node->center.y) index |= 2;
     if (pos.z >= node->center.z) index |= 4;
@@ -145,41 +143,22 @@ void PlanetData::set_block_recursive(
             new OctreeNode(node->center + offset, child_half);
     }
 
-    set_block_recursive(node->children[index], pos, value);
+    set_block_recursive(node->children[index], pos, lod, value);
 }
 
 float PlanetData::get_block_recursive(
     const OctreeNode* node,
-    const Vector3& pos) const
-{
-    if (!node)
-        return -1.0f;
-
-    if (node->is_leaf)
-        return node->value;
-
-    int index = 0;
-    if (pos.x >= node->center.x) index |= 1;
-    if (pos.y >= node->center.y) index |= 2;
-    if (pos.z >= node->center.z) index |= 4;
-
-    return get_block_recursive(node->children[index], pos);
-}
-
-float PlanetData::get_density_recursive(
-    const OctreeNode* node,
     const Vector3& pos,
-    float target_size) const
+    int lod) const
 {
+
     if (!node)
         return -1.0f;
 
-    // ✅ если дошли до листа
     if (node->is_leaf)
         return node->value;
 
-    // ✅ если узел уже соответствует нужному LOD
-    if (node->half_size * 2.0f <= target_size)
+    if (node->half_size * 2 <= lod)
         return node->value;
 
     int index = 0;
@@ -188,17 +167,14 @@ float PlanetData::get_density_recursive(
     if (pos.y >= node->center.y) index |= 2;
     if (pos.z >= node->center.z) index |= 4;
 
-    return get_density_recursive(
-        node->children[index],
-        pos,
-        target_size
-    );
+    return get_block_recursive(node->children[index], pos, lod);
 }
 
 void PlanetData::initialize_default() {
-    // for(int i=-4; i<4; i++)
-    // for(int j=-4; j<4; j++)
-    // {
-    //     set_block(Vector3i(i,0,j), 1.0);
-    // }
+
+    for(int i=-16;i<-8;i++)
+    for(int j=-16;j<-8;j++)
+    {
+        set_block(Vector3i(i,0,j),1,1.0f);
+    }
 }

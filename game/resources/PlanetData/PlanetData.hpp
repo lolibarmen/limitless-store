@@ -28,14 +28,8 @@ private:
 
     OctreeNode* root;
 
-    float get_block_recursive(const OctreeNode* node, const Vector3& pos) const;
-    void set_block_recursive(OctreeNode* node, const Vector3& pos, float value);
-
-    float get_density_recursive(
-        const OctreeNode* node,
-        const Vector3& pos,
-        float target_size
-    ) const;
+    float get_block_recursive(const OctreeNode* node, const Vector3& pos, int lod) const;
+    void set_block_recursive(OctreeNode* node, const Vector3& pos, int lod, float value);
 
     void expand_root_to_fit(const Vector3& pos);
 
@@ -48,10 +42,9 @@ public:
 
     void initialize_default();
 
-    void set_block(const Vector3i &p_index, float density);
-    float get_block(const Vector3i &pop_indexs) const;
+    void set_block(const Vector3i &pos, int lod, float density);
+    float get_block(const Vector3i &pos, int lod) const;
 
-    float get_density(const Vector3i &p_index, int step) const;
 };
 
 } // namespace godot

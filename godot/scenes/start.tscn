@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bu55xvw7ffhtr"]
+[gd_scene load_steps=10 format=3 uid="uid://bu55xvw7ffhtr"]
 
 [ext_resource type="Script" uid="uid://b62iwab28xnnu" path="res://objects/planet/planet_node.gd" id="1_bodal"]
 [ext_resource type="Script" uid="uid://civg8rtoquiq2" path="res://objects/player/rigid_body_3d_2.gd" id="1_jaeev"]
@@ -7,6 +7,8 @@
 [sub_resource type="BoxMesh" id="BoxMesh_jaeev"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ewcy1"]
+
+[sub_resource type="PlanetData" id="PlanetData_kdmts"]
 
 [sub_resource type="Environment" id="Environment_ewcy1"]
 background_mode = 1
@@ -35,6 +37,7 @@ mesh = SubResource("BoxMesh_jaeev")
 shape = SubResource("BoxShape3D_ewcy1")
 
 [node name="PlanetNode" type="PlanetNode" parent="."]
+planet_data = SubResource("PlanetData_kdmts")
 script = ExtResource("1_bodal")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]

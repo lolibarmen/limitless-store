@@ -27,7 +27,7 @@ private:
 
     Vector3i origin; // начало области в координатах планеты (voxel space)
     int voxel_count = 8; // сколько вокселей генерируем по оси
-    int sample_step = 1; // шаг выборки (LOD)
+    int lod = 1; // шаг выборки (LOD)
 
     // === GODOT NODES ===
 
@@ -41,6 +41,8 @@ private:
     Ref<ChunkMesh> chunk_mesh;
 
     void build_mesh();
+
+    void apply_debug_material();
 
 protected:
     static void _bind_methods();
@@ -67,8 +69,8 @@ public:
     int get_voxel_count() const { return voxel_count; }
     void set_voxel_count(int new_count) { voxel_count = new_count; }
 
-    int get_sample_step() const { return sample_step; }
-    void set_sample_step(int new_step) { sample_step = new_step; }
+    int get_lod() const { return lod; }
+    void set_lod(int new_lod) { lod = new_lod; }
 
     void on_ray_hit(const Dictionary &result);
     void on_ray_enter();
