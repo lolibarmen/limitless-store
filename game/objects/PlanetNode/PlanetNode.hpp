@@ -33,10 +33,11 @@ protected:
     
     void update_chunks();
     
-    void on_block_hit(Vector3i planet_voxel);
-    
     Ref<PlanetData> get_planet_data() { return planet_data; }
     void set_planet_data(Ref<PlanetData> p_data) { planet_data = p_data; }
+
+    ChunkNode* get_chunk_by_origin(const Vector3i& origin) const;
+
 };
 
 } // namespace godot

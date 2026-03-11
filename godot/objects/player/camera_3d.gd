@@ -1,20 +1,31 @@
 extends Camera3D
+var flashlight: bool = true
 
-func _process(delta):
-	if Input.is_action_just_pressed("ui_text_caret_line_end"):
-		cast_ray()
+func _input(event):
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			var result = cast_ray()
+			if result:
+				result.collider.on_ray_hit(result, 1.0)
+		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+			var result = cast_ray()
+			if result:
+				result.collider.on_ray_hit(result, -1.0)
+	if event is InputEventKey:
+		if event.physical_keycode == KEY_F and event.pressed:
+			flashlight_action()
 
 func cast_ray():
 	var space = get_world_3d().direct_space_state
-	var from = project_ray_origin(get_viewport().size/2)
-	var to = from + project_ray_normal(get_viewport().size/2) * 1000
-	
+	var from = project_ray_origin(get_viewport().size / 2)
+	var to = from + project_ray_normal(get_viewport().size / 2) * 1000
+
 	var params = PhysicsRayQueryParameters3D.create(from, to)
 	var result = space.intersect_ray(params)
 	
-	if result:
-		print("Попадание в: ", result.collider.name)
-		
-		# Вызываем метод on_ray_hit у ChunkCollider
-		if result.collider.has_method("on_ray_hit"):
-			result.collider.on_ray_hit(result)
+	if result and result.collider.has_method("on_ray_hit"):
+		return result
+
+func flashlight_action():
+	flashlight = !flashlight
+	get_child(0).visible = flashlight

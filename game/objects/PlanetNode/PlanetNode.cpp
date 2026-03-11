@@ -76,7 +76,7 @@ void PlanetNode::update_chunks() {
             planet_data,
             chunk_coord,
             voxel_count,
-            lod
+            1
         );
         chunk->set_position(world_pos);
         add_child(chunk);
@@ -99,8 +99,11 @@ void PlanetNode::update_chunks() {
     }
 }
 
-void PlanetNode::on_block_hit(Vector3i planet_voxel) {
-    float density = planet_data->get_block(planet_voxel, 1.0);
-    density += 2.0;
-    planet_data->set_block(planet_voxel, density, 1.0);
+ChunkNode* PlanetNode::get_chunk_by_origin(const Vector3i& origin) const {
+    int64_t key = chunk_hash(origin, 1);
+    auto it = chunks.find(key);
+    if (it != chunks.end()) {
+        return it->second;
+    }
+    return nullptr;
 }

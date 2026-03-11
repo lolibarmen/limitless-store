@@ -72,10 +72,7 @@ public:
     int get_lod() const { return lod; }
     void set_lod(int new_lod) { lod = new_lod; }
 
-    void on_ray_hit(const Dictionary &result);
-    void on_ray_enter();
-    void on_ray_exit();
-    void on_ray_hover(const Vector3 &position);
+    void trans_metter(const Vector3& world_pos, float delta, float radius);
 };
 
 } // namespace godot

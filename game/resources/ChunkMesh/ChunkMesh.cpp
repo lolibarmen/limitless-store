@@ -1,227 +1,162 @@
 #include "ChunkMesh.hpp"
 #include <ChunkNode/ChunkNode.hpp>
+#include <godot_cpp/classes/surface_tool.hpp>
+#include <godot_cpp/classes/array_mesh.hpp>
+#include <array>
+#include <vector>
 
-using namespace godot;
+#include "tables.h"
 
-#include "cube_vertex.h"
+namespace godot {
+
+// ============================================================
+//  Вспомогательные функции
+// ============================================================
+
+// Вершины единичного куба (локальные смещения от угла куба)
+static const Vector3 CUBE_CORNERS[8] = {
+    {0,0,0},{1,0,0},{1,1,0},{0,1,0},
+    {0,0,1},{1,0,1},{1,1,1},{0,1,1}
+};
+
+// Какие два угла соединяет каждое из 12 рёбер куба
+static const int EDGE_VERTICES[12][2] = {
+    {0,1},{1,2},{2,3},{3,0},
+    {4,5},{5,6},{6,7},{7,4},
+    {0,4},{1,5},{2,6},{3,7}
+};
+
+// Линейная интерполяция точки пересечения изоповерхности на ребре
+static Vector3 vertex_interp(float iso, Vector3 p1, Vector3 p2, float v1, float v2) {
+    if (Math::abs(v2 - v1) < 1e-4f) return (p1 + p2) * 0.5f;
+    float t = (iso - v1) / (v2 - v1);
+    return p1 + (p2 - p1) * t;
+}
+
+// ============================================================
+//  ChunkMesh
+// ============================================================
 
 ChunkMesh::ChunkMesh() {}
-
 ChunkMesh::~ChunkMesh() {}
 
-void ChunkMesh::_bind_methods() {
+Ref<ArrayMesh> ChunkMesh::build(Ref<PlanetData> p_data, ChunkNode* p_chunk) {
+    ERR_FAIL_COND_V(!p_data.is_valid(), Ref<ArrayMesh>());
+    ERR_FAIL_COND_V(!p_chunk,           Ref<ArrayMesh>());
 
-}
+    const Vector3i origin    = p_chunk->get_origin();
+    const int      voxel_cnt = p_chunk->get_voxel_count();
+    const int      step      = p_chunk->get_lod();
+    const float    iso       = 0.0f;
 
-void ChunkMesh::create_surface_mesh(int size) {
+    const int N = voxel_cnt / step;
 
-    for (int x = -1; x < size; ++x)
-    for (int y = -1; y < size; ++y)
-    for (int z = -1; z < size; ++z)
-    {
-        create_surface_mesh_quad(
-            Vector3i(x,y,z)
-        );
-    }
-}
-
-void ChunkMesh::create_surface_mesh_quad(const Vector3i &p_index) {
-    for (int axis_index = 0; axis_index < 3; ++axis_index) {
-        const Vector3i &axis = AXIS[axis_index];
-        float val1 = get_density(p_index);
-        float val2 = get_density(p_index + axis);
-
-        if (val1 > 0 && val2 <= 0) {
-            add_quad(p_index, axis_index);
-        } else if (val1 <= 0 && val2 > 0) {
-            add_reversed_quad(p_index, axis_index);
-        }
-    }
-}
-
-void ChunkMesh::add_quad(const Vector3i &p_index, int p_axis_index) {
-    Vector3i points[4];
-    for (int i = 0; i < 4; ++i) {
-        points[i] = p_index + QUAD_POINTS[p_axis_index][i];
-    }
-
-    // Первый треугольник
-    add_vertex(points[0]);
-    add_vertex(points[1]);
-    add_vertex(points[2]);
-
-    // Второй треугольник
-    add_vertex(points[0]);
-    add_vertex(points[2]);
-    add_vertex(points[3]);
-}
-
-void ChunkMesh::add_reversed_quad(const Vector3i &p_index, int p_axis_index) {
-    Vector3i points[4];
-    for (int i = 0; i < 4; ++i) {
-        points[i] = p_index + QUAD_POINTS[p_axis_index][i];
-    }
-
-    // Реверсивный порядок вершин
-    add_vertex(points[0]);
-    add_vertex(points[2]);
-    add_vertex(points[1]);
-
-    add_vertex(points[0]);
-    add_vertex(points[3]);
-    add_vertex(points[2]);
-}
-
-Vector3 ChunkMesh::get_surface_position(const Vector3i &p_index) const {
-    Vector3 total(0, 0, 0);
-    int edge_count = 0;
-
-    for (int i = 0; i < 12; ++i) {
-        Vector3i a = p_index + EDGE_OFFSETS[i][0];
-        Vector3i b = p_index + EDGE_OFFSETS[i][1];
-        float va = get_density(a);
-        float vb = get_density(b);
-
-        // Если знаки разные — пересечение
-        if (va * vb < 0) {
-            edge_count++;
-            float t = Math::abs(va) / (Math::abs(va) + Math::abs(vb));
-            Vector3 pos_a(a.x, a.y, a.z);
-            Vector3 pos_b(b.x, b.y, b.z);
-            total += pos_a.lerp(pos_b, t);
-        }
-    }
-
-    if (edge_count == 0) {
-        // Если нет пересечений, возвращаем центр вокселя
-        return Vector3(p_index.x, p_index.y, p_index.z) + Vector3(0.5f, 0.5f, 0.5f);
-    }
-
-    return total / edge_count;
-}
-
-Vector3 ChunkMesh::get_surface_gradient(
-    const Vector3i &p_index,
-    float sample) const
-{
-    int lod = chunk->get_lod();
-
-    float dx =
-        sample - get_density(p_index + Vector3i(lod,0,0));
-
-    float dy =
-        sample - get_density(p_index + Vector3i(0,lod,0));
-
-    float dz =
-        sample - get_density(p_index + Vector3i(0,0,lod));
-
-    return Vector3(dx,dy,dz).normalized();
-}
-
-void ChunkMesh::add_vertex(const Vector3i &p_index) {
-
-    Vector3 pos_sum(0,0,0);
-    Vector3 normal_sum(0,0,0);
-
-    int count = 0;
-    int lod = chunk->get_lod();
-
-    for (int i = 0; i < 12; ++i) {
-
-        Vector3i a = p_index + EDGE_OFFSETS[i][0];
-        Vector3i b = p_index + EDGE_OFFSETS[i][1];
-
-        float va = get_density(a);
-        float vb = get_density(b);
-
-        if (va * vb < 0) {
-
-            count++;
-
-            float t = Math::abs(va) /
-                (Math::abs(va) + Math::abs(vb));
-
-            Vector3 pos_a(a.x, a.y, a.z);
-            Vector3 pos_b(b.x, b.y, b.z);
-
-            Vector3 pos_edge = pos_a.lerp(pos_b, t);
-
-            pos_sum += pos_edge;
-
-            Vector3 normal_a =
-                get_surface_gradient(a, va);
-
-            Vector3 normal_b =
-                get_surface_gradient(b, vb);
-
-            Vector3 normal_edge =
-                normal_a.lerp(normal_b, t).normalized();
-
-            normal_sum += normal_edge;
-        }
-    }
-
-    if (count == 0) {
-
-        pos_sum =
-            Vector3(p_index.x,p_index.y,p_index.z)
-            + Vector3(0.5,0.5,0.5);
-
-        normal_sum =
-            get_surface_gradient(
-                p_index,
-                get_density(p_index)
-            );
-
-        count = 1;
-    }
-
-    Vector3 final_pos = pos_sum / count;
-
-    // ⭐ переводим в локальные координаты чанка
-    final_pos *= lod;
-
-    Vector3 final_normal =
-        normal_sum.normalized();
-
-    st->set_normal(final_normal);
-    st->add_vertex(final_pos);
-}
-
-Ref<ArrayMesh> ChunkMesh::build(
-    Ref<PlanetData> p_data,
-    ChunkNode* p_chunk)
-{
-    chunk = p_chunk;
-    planet_data = p_data;
-
+    Ref<SurfaceTool> st;
     st.instantiate();
-
     st->begin(Mesh::PRIMITIVE_TRIANGLES);
 
-    create_surface_mesh(
-        chunk->get_voxel_count()
-    );
+    for (int ix = 0; ix < N; ++ix) {
+        for (int iy = 0; iy < N; ++iy) {
+            for (int iz = 0; iz < N; ++iz) {
 
-    st->index();
-    st->generate_normals();
+                // Локальные координаты ячейки (для позиций вершин меша)
+                Vector3i local_base = Vector3i(ix * step, iy * step, iz * step);
+                // Планетарные координаты (только для чтения плотности)
+                Vector3i planet_base = origin + local_base;
 
-    Ref<ArrayMesh> mesh =
-        st->commit();
+                float density[8];
+                for (int c = 0; c < 8; ++c) {
+                    Vector3i planet_corner = planet_base + Vector3i(
+                        (int)CUBE_CORNERS[c].x * step,
+                        (int)CUBE_CORNERS[c].y * step,
+                        (int)CUBE_CORNERS[c].z * step
+                    );
+                    density[c] = p_data->get_block(planet_corner, step);
+                }
 
-    st.unref();
+                int cube_idx = 0;
+                for (int c = 0; c < 8; ++c) {
+                    if (density[c] < iso) cube_idx |= (1 << c);
+                }
 
-    return mesh;
+                if (edgeTable[cube_idx] == 0) continue;
+
+                Vector3 local_corners[8];
+                for (int c = 0; c < 8; ++c) {
+                    local_corners[c] = Vector3(
+                        local_base.x + CUBE_CORNERS[c].x * step,
+                        local_base.y + CUBE_CORNERS[c].y * step,
+                        local_base.z + CUBE_CORNERS[c].z * step
+                    );
+                }
+
+                Vector3 edge_verts[12];
+                for (int e = 0; e < 12; ++e) {
+                    if (edgeTable[cube_idx] & (1 << e)) {
+                        int v0 = EDGE_VERTICES[e][0];
+                        int v1 = EDGE_VERTICES[e][1];
+                        edge_verts[e] = vertex_interp(
+                            iso,
+                            local_corners[v0], local_corners[v1],
+                            density[v0],       density[v1]
+                        );
+                    }
+                }
+
+                const int* tris = triTable[cube_idx];
+                for (int t = 0; tris[t] != -1; t += 3) {
+                    // Проверяем что индексы рёбер валидны
+                    int e0 = tris[t], e1 = tris[t+1], e2 = tris[t+2];
+                    
+                    if (e0 < 0 || e0 > 11 || e1 < 0 || e1 > 11 || e2 < 0 || e2 > 11) {
+                        UtilityFunctions::print("BAD EDGE INDEX: ", e0, " ", e1, " ", e2,
+                            " cube_idx=", cube_idx);
+                        continue;
+                    }
+
+                    Vector3 a = edge_verts[e0];
+                    Vector3 b = edge_verts[e1];
+                    Vector3 c = edge_verts[e2];
+
+                    // Ловим вершину в 0,0,0
+                    bool a_zero = a.length_squared() < 0.0001f;
+                    bool b_zero = b.length_squared() < 0.0001f;
+                    bool c_zero = c.length_squared() < 0.0001f;
+                    
+                    if (a_zero || b_zero || c_zero) {
+                        UtilityFunctions::print("ZERO VERTEX TRIANGLE");
+                        UtilityFunctions::print("  cube_idx=", cube_idx, 
+                            " cell=(", ix, ",", iy, ",", iz, ")");
+                        UtilityFunctions::print("  local_base=(", local_base.x, ",", 
+                            local_base.y, ",", local_base.z, ")");
+                        UtilityFunctions::print("  edge indices: ", e0, " ", e1, " ", e2);
+                        UtilityFunctions::print("  edgeTable[cube_idx]=", edgeTable[cube_idx]);
+                        UtilityFunctions::print("  densities: ",
+                            density[0], " ", density[1], " ", density[2], " ", density[3], " ",
+                            density[4], " ", density[5], " ", density[6], " ", density[7]);
+                        UtilityFunctions::print("  edge_verts used: ",
+                            (edgeTable[cube_idx] & (1<<e0)) ? "YES" : "NO", " ",
+                            (edgeTable[cube_idx] & (1<<e1)) ? "YES" : "NO", " ",
+                            (edgeTable[cube_idx] & (1<<e2)) ? "YES" : "NO");
+                        continue; // пропускаем артефактный треугольник пока дебажим
+                    }
+
+                    Vector3 normal = (b - a).cross(c - a).normalized();
+
+                    st->set_normal(normal);
+                    st->add_vertex(a);
+                    st->set_normal(normal);
+                    st->add_vertex(c);
+                    st->set_normal(normal);
+                    st->add_vertex(b);
+                }
+            }
+        }
+    }
+
+    return st->commit();
 }
 
-float ChunkMesh::get_density(const Vector3i &p_index) const {
+void ChunkMesh::_bind_methods() {}
 
-    Vector3i world_index =
-        chunk->get_origin() +
-        p_index * chunk->get_lod();
-
-    return planet_data->get_block(
-        world_index,
-        chunk->get_lod()
-    );
-}
+} // namespace godot

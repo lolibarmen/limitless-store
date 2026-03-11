@@ -35,7 +35,7 @@ public:
     void set_mesh(const Ref<ArrayMesh> mesh);
 
     // Методы для обработки лучей (будут вызываться из GDScript)
-    void on_ray_hit(const Dictionary &result);
+    void on_ray_hit(const Dictionary &result, float delta);
     void on_ray_enter();
     void on_ray_exit();
     void on_ray_hover(const Vector3 &position);

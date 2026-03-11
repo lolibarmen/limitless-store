@@ -1,14 +1,11 @@
-[gd_scene load_steps=10 format=3 uid="uid://bu55xvw7ffhtr"]
+[gd_scene load_steps=8 format=3 uid="uid://bu55xvw7ffhtr"]
 
-[ext_resource type="Script" uid="uid://b62iwab28xnnu" path="res://objects/planet/planet_node.gd" id="1_bodal"]
 [ext_resource type="Script" uid="uid://civg8rtoquiq2" path="res://objects/player/rigid_body_3d_2.gd" id="1_jaeev"]
 [ext_resource type="Script" uid="uid://bmsqvpjd0mn8b" path="res://objects/player/camera_3d.gd" id="2_u80x2"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_jaeev"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ewcy1"]
-
-[sub_resource type="PlanetData" id="PlanetData_kdmts"]
 
 [sub_resource type="Environment" id="Environment_ewcy1"]
 background_mode = 1
@@ -37,8 +34,6 @@ mesh = SubResource("BoxMesh_jaeev")
 shape = SubResource("BoxShape3D_ewcy1")
 
 [node name="PlanetNode" type="PlanetNode" parent="."]
-planet_data = SubResource("PlanetData_kdmts")
-script = ExtResource("1_bodal")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.6489436, -4.890994e-09, 0.76083654, -0.7608366, -6.1623446e-08, 0.6489436, 4.3711385e-08, -1, -4.3711385e-08, 0, 2.5839553, 3.5778387)
@@ -58,7 +53,6 @@ script = ExtResource("1_jaeev")
 script = ExtResource("2_u80x2")
 
 [node name="SpotLight3D" type="SpotLight3D" parent="CharacterBody3D/Camera3D"]
-light_energy = 2.903
 spot_angle = 40.78125
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D"]

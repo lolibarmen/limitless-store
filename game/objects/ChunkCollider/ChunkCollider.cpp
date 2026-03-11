@@ -14,7 +14,7 @@ void ChunkCollider::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_mesh", "mesh"), &ChunkCollider::set_mesh);
     
     // Биндим методы для лучей (чтобы их можно было вызывать из GDScript)
-    ClassDB::bind_method(D_METHOD("on_ray_hit", "result"), &ChunkCollider::on_ray_hit);
+    ClassDB::bind_method(D_METHOD("on_ray_hit", "result", "delta"), &ChunkCollider::on_ray_hit);
     ClassDB::bind_method(D_METHOD("on_ray_enter"), &ChunkCollider::on_ray_enter);
     ClassDB::bind_method(D_METHOD("on_ray_exit"), &ChunkCollider::on_ray_exit);
     ClassDB::bind_method(D_METHOD("on_ray_hover", "position"), &ChunkCollider::on_ray_hover);
@@ -44,7 +44,7 @@ void ChunkCollider::set_mesh(const Ref<ArrayMesh> mesh) {
     }
 }
 
-void ChunkCollider::on_ray_hit(const Dictionary &result) {
+void ChunkCollider::on_ray_hit(const Dictionary &result, float delta) {
     // Вызывается, когда луч попадает в этот коллайдер
     // UtilityFunctions::print("ChunkCollider: Ray hit at position: ", result["position"]);
     
@@ -54,7 +54,8 @@ void ChunkCollider::on_ray_hit(const Dictionary &result) {
     // - Применение урона
     // - И т.д.
     
-    chunk_node->on_ray_hit(result);
+    Vector3 world_pos = result["position"];
+    chunk_node->trans_metter(world_pos, delta, 2.0);
     
     // Если нужно вызвать сигнал или изменить состояние
     // _on_ray_hit(result);

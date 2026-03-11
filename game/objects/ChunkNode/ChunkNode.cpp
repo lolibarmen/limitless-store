@@ -58,23 +58,55 @@ void ChunkNode::build_mesh() {
     apply_debug_material();
 }
 
-void ChunkNode::on_ray_hit(const Dictionary &result) {
-    
-    Vector3 world_pos = result["position"];
-
+void ChunkNode::trans_metter(const Vector3& world_pos, float delta, float radius) {
     Vector3 local = world_pos - get_global_position();
 
-    Vector3i voxel = Vector3i(
-        Math::floor(local.x),
-        Math::floor(local.y),
-        Math::floor(local.z)
+    int r = (int)Math::ceil(radius);
+    Vector3i center = Vector3i(
+        (int)Math::floor(local.x),
+        (int)Math::floor(local.y),
+        (int)Math::floor(local.z)
     );
 
-    Vector3i planet_voxel = origin + voxel;
+    bool changed = false;
 
-    planet_node->on_block_hit(planet_voxel);
+    for (int dx = -r; dx <= r; dx++) {
+    for (int dy = -r; dy <= r; dy++) {
+    for (int dz = -r; dz <= r; dz++) {
 
-    build_mesh();
+        float dist = Vector3(dx, dy, dz).length();
+        if (dist > radius) continue;
+
+        float t = dist / radius;
+        float falloff = 1.0f - (t * t * (3.0f - 2.0f * t));
+
+        Vector3i planet_voxel = origin + center + Vector3i(dx, dy, dz);
+
+        float d = planet_data->get_block(planet_voxel, 1);
+        planet_data->set_block(planet_voxel, 1, d + delta * falloff);
+        changed = true;
+    }}}
+
+    if (!changed) return;
+
+    // Перестраиваем себя + все 26 соседей (3x3x3 куб)
+    if (planet_node == nullptr) {
+        build_mesh();
+        return;
+    }
+
+    int size = voxel_count * lod;
+
+    for (int nx = -1; nx <= 1; nx++) {
+    for (int ny = -1; ny <= 1; ny++) {
+    for (int nz = -1; nz <= 1; nz++) {
+
+        Vector3i neighbor_origin = origin + Vector3i(nx, ny, nz) * size;
+        ChunkNode* chunk = planet_node->get_chunk_by_origin(neighbor_origin);
+        if (chunk != nullptr) {
+            chunk->build_mesh();
+        }
+    }}}
 }
 
 void ChunkNode::apply_debug_material() {

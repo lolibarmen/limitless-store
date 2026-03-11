@@ -27,7 +27,7 @@ func _input(event):
 		# Вертикальное вращение (вокруг оси X камеры)
 		camera.rotate_x(deg_to_rad(-event.relative.y * mouse_sensitivity))
 		# Ограничиваем вертикальный угол, чтобы не перевернуться
-		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-90), deg_to_rad(90))
+		camera.rotation.x = clamp(camera.rotation.x, deg_to_rad(-89), deg_to_rad(89))
 	
 	# Освобождение/захват мыши по нажатию Escape
 	if event.is_action_pressed("ui_cancel"):
