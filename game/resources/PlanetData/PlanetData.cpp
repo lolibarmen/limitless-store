@@ -194,15 +194,15 @@ void PlanetData::initialize_default() {
     // Сначала явно заполняем весь рабочий объём воздухом.
     // Это гарантирует что get_block никогда не вернёт мусор
     // на границах — узлы будут существовать для всех запросов от ChunkMesh.
-    const int RANGE = 40; // чуть больше чем реальные данные (32)
-    for (int i = -RANGE; i <= RANGE; ++i)
-    for (int j = -RANGE; j <= RANGE; ++j)
-    for (int k = -RANGE; k <= RANGE; ++k)
-        set_block(Vector3i(i, j, k), 1, -1.0f);
+    // const int RANGE = 40; // чуть больше чем реальные данные (32)
+    // for (int i = -RANGE; i <= RANGE; ++i)
+    // for (int j = -RANGE; j <= RANGE; ++j)
+    // for (int k = -RANGE; k <= RANGE; ++k)
+    //     set_block(Vector3i(i, j, k), 1, -1.0f);
 
-    // Затем записываем землю поверх воздуха.
-    for (int i = -32; i < 32; ++i)
-    for (int j = -1;  j <  1;  ++j)
-    for (int k = -32; k < 32; ++k)
-        set_block(Vector3i(i, j, k), 1, 1.0f);
+    // // Затем записываем землю поверх воздуха.
+    // for (int i = -32; i < 32; ++i)
+    // for (int j = -1;  j <  1;  ++j)
+    // for (int k = -32; k < 32; ++k)
+    //     set_block(Vector3i(i, j, k), 1, 1.0f);
 }

@@ -43,6 +43,7 @@ private:
     void build_mesh();
 
     void apply_debug_material();
+    void apply_material();
 
 protected:
     static void _bind_methods();

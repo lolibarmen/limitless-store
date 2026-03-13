@@ -1,8 +1,10 @@
+MeshInstance3D
+CPUParticles3D
+FogVolume
 SpotLight3D
 Camera3D
 CollisionShape3D
 StaticBody3D
-MeshInstance3D
 OmniLight3D
 RigidBody3D
 CharacterBody3D
@@ -10,5 +12,3 @@ PlanetNode
 WorldEnvironment      - Matches the "sky" keyword.
 DirectionalLight3D
 LightmapProbe
-ChunkNode
-VehicleBody3D

@@ -5,6 +5,8 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include <godot_cpp/classes/standard_material3d.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/classes/texture2d.hpp>
 
 using namespace godot;
 
@@ -55,7 +57,7 @@ void ChunkNode::build_mesh() {
     chunk_collider->set_mesh(mesh);
     chunk_mesh.unref();
 
-    apply_debug_material();
+    apply_material();
 }
 
 void ChunkNode::trans_metter(const Vector3& world_pos, float delta, float radius) {
@@ -107,6 +109,36 @@ void ChunkNode::trans_metter(const Vector3& world_pos, float delta, float radius
             chunk->build_mesh();
         }
     }}}
+}
+
+void ChunkNode::apply_material() {
+    const String p_texture_path = "res://assets/snow.webp";
+
+    if (!mesh_instance) {
+        WARN_PRINT("ChunkNode::apply_material — mesh_instance is null");
+        return;
+    }
+
+    Ref<StandardMaterial3D> mat;
+    mat.instantiate();
+
+    // Загружаем текстуру
+    Ref<Texture2D> albedo = ResourceLoader::get_singleton()->load(p_texture_path, "Texture2D");
+    if (albedo.is_valid()) {
+        mat->set_texture(StandardMaterial3D::TEXTURE_ALBEDO, albedo);
+    } else {
+        WARN_PRINT("ChunkNode::apply_material — не удалось загрузить текстуру: " + p_texture_path);
+        mat->set_albedo(Color(0.6f, 0.55f, 0.5f)); // fallback-цвет
+    }
+
+    mat->set_shading_mode(StandardMaterial3D::SHADING_MODE_PER_PIXEL);
+    mat->set_diffuse_mode(StandardMaterial3D::DIFFUSE_BURLEY);
+    mat->set_specular_mode(StandardMaterial3D::SPECULAR_SCHLICK_GGX);
+
+    int surface_count = mesh_instance->get_surface_override_material_count();
+    for (int i = 0; i < surface_count; i++) {
+        mesh_instance->set_surface_override_material(i, mat);
+    }
 }
 
 void ChunkNode::apply_debug_material() {

@@ -40,6 +40,24 @@ static Vector3 vertex_interp(float iso, Vector3 p1, Vector3 p2, float v1, float 
 ChunkMesh::ChunkMesh() {}
 ChunkMesh::~ChunkMesh() {}
 
+static Vector2 triplanar_uv(const Vector3& pos, const Vector3& normal, float scale = 1.0f) {
+    Vector3 blend = Vector3(
+        Math::abs(normal.x),
+        Math::abs(normal.y),
+        Math::abs(normal.z)
+    );
+    // Нормализуем веса чтобы сумма = 1
+    float total = blend.x + blend.y + blend.z + 1e-6f;
+    blend /= total;
+
+    // UV по каждой плоскости
+    Vector2 uv_x = Vector2(pos.z, pos.y) * scale; // проекция YZ
+    Vector2 uv_y = Vector2(pos.x, pos.z) * scale; // проекция XZ
+    Vector2 uv_z = Vector2(pos.x, pos.y) * scale; // проекция XY
+
+    return uv_x * blend.x + uv_y * blend.y + uv_z * blend.z;
+}
+
 Ref<ArrayMesh> ChunkMesh::build(Ref<PlanetData> p_data, ChunkNode* p_chunk) {
     ERR_FAIL_COND_V(!p_data.is_valid(), Ref<ArrayMesh>());
     ERR_FAIL_COND_V(!p_chunk,           Ref<ArrayMesh>());
@@ -105,49 +123,22 @@ Ref<ArrayMesh> ChunkMesh::build(Ref<PlanetData> p_data, ChunkNode* p_chunk) {
 
                 const int* tris = triTable[cube_idx];
                 for (int t = 0; tris[t] != -1; t += 3) {
-                    // Проверяем что индексы рёбер валидны
-                    int e0 = tris[t], e1 = tris[t+1], e2 = tris[t+2];
-                    
-                    if (e0 < 0 || e0 > 11 || e1 < 0 || e1 > 11 || e2 < 0 || e2 > 11) {
-                        UtilityFunctions::print("BAD EDGE INDEX: ", e0, " ", e1, " ", e2,
-                            " cube_idx=", cube_idx);
-                        continue;
-                    }
-
-                    Vector3 a = edge_verts[e0];
-                    Vector3 b = edge_verts[e1];
-                    Vector3 c = edge_verts[e2];
-
-                    // Ловим вершину в 0,0,0
-                    bool a_zero = a.length_squared() < 0.0001f;
-                    bool b_zero = b.length_squared() < 0.0001f;
-                    bool c_zero = c.length_squared() < 0.0001f;
-                    
-                    if (a_zero || b_zero || c_zero) {
-                        UtilityFunctions::print("ZERO VERTEX TRIANGLE");
-                        UtilityFunctions::print("  cube_idx=", cube_idx, 
-                            " cell=(", ix, ",", iy, ",", iz, ")");
-                        UtilityFunctions::print("  local_base=(", local_base.x, ",", 
-                            local_base.y, ",", local_base.z, ")");
-                        UtilityFunctions::print("  edge indices: ", e0, " ", e1, " ", e2);
-                        UtilityFunctions::print("  edgeTable[cube_idx]=", edgeTable[cube_idx]);
-                        UtilityFunctions::print("  densities: ",
-                            density[0], " ", density[1], " ", density[2], " ", density[3], " ",
-                            density[4], " ", density[5], " ", density[6], " ", density[7]);
-                        UtilityFunctions::print("  edge_verts used: ",
-                            (edgeTable[cube_idx] & (1<<e0)) ? "YES" : "NO", " ",
-                            (edgeTable[cube_idx] & (1<<e1)) ? "YES" : "NO", " ",
-                            (edgeTable[cube_idx] & (1<<e2)) ? "YES" : "NO");
-                        continue; // пропускаем артефактный треугольник пока дебажим
-                    }
+                    Vector3 a = edge_verts[tris[t   ]];
+                    Vector3 b = edge_verts[tris[t + 1]];
+                    Vector3 c = edge_verts[tris[t + 2]];
 
                     Vector3 normal = (b - a).cross(c - a).normalized();
 
                     st->set_normal(normal);
+                    st->set_uv(triplanar_uv(a, normal));
                     st->add_vertex(a);
+
                     st->set_normal(normal);
+                    st->set_uv(triplanar_uv(c, normal));
                     st->add_vertex(c);
+
                     st->set_normal(normal);
+                    st->set_uv(triplanar_uv(b, normal));
                     st->add_vertex(b);
                 }
             }
