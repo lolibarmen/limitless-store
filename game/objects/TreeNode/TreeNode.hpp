@@ -4,10 +4,10 @@
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 #include <godot_cpp/classes/collision_shape3d.hpp>
 
-using namespace godot;
+namespace godot {
 
-class TestTreeNode : public StaticBody3D {
-    GDCLASS(TestTreeNode, StaticBody3D)
+class TreeNode : public StaticBody3D {
+    GDCLASS(TreeNode, StaticBody3D)
 
 private:
     MeshInstance3D *mesh_instance;
@@ -17,8 +17,10 @@ protected:
     static void _bind_methods();
 
 public:
-    TestTreeNode();
-    ~TestTreeNode() override = default;
+    TreeNode();
+    ~TreeNode() override = default;
 
     void _ready() override;
 };
+
+} // namespace godot

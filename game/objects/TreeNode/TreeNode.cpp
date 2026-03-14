@@ -1,4 +1,4 @@
-#include "TestTreeNode.hpp"
+#include "TreeNode.hpp"
 
 #include <godot_cpp/classes/standard_material3d.hpp>
 #include <godot_cpp/classes/box_mesh.hpp>
@@ -6,10 +6,12 @@
 
 #include <cstdio>
 
-void TestTreeNode::_bind_methods() {
+using namespace godot;
+
+void TreeNode::_bind_methods() {
 }
 
-TestTreeNode::TestTreeNode() {
+TreeNode::TreeNode() {
     mesh_instance = memnew(MeshInstance3D);
     collision_shape = memnew(CollisionShape3D);
 
@@ -20,7 +22,7 @@ TestTreeNode::TestTreeNode() {
     collision_shape->set_owner(this);
 }
 
-void TestTreeNode::_ready() {
+void TreeNode::_ready() {
     // Создаём простой куб как дерево
     Ref<BoxMesh> box_mesh = memnew(BoxMesh);
     box_mesh->set_size(Vector3(1, 3, 1));

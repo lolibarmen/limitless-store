@@ -1,5 +1,6 @@
-MeshInstance3D
 CPUParticles3D
+MeshInstance3D
+GPUParticles3D
 FogVolume
 SpotLight3D
 Camera3D
@@ -11,4 +12,3 @@ CharacterBody3D
 PlanetNode
 WorldEnvironment      - Matches the "sky" keyword.
 DirectionalLight3D
-LightmapProbe

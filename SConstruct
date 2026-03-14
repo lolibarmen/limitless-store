@@ -6,19 +6,26 @@ import os
 env = SConscript("godot-cpp/SConstruct")
 
 GAME_DIR = "game"
-OBJECT_DIR = os.path.join(GAME_DIR, "objects")
-RESOURCE_DIR = os.path.join(GAME_DIR, "resources")
 GENERATED_DIR = os.path.join(GAME_DIR, "generated")
 
-# include paths
+# Все директории с исходниками
+SOURCE_DIRS = [
+    os.path.join(GAME_DIR, "objects"),
+    os.path.join(GAME_DIR, "resources"),
+    os.path.join(GAME_DIR, "managers"),
+    os.path.join(GAME_DIR, "generators"),
+]
+
+# include paths — корень + все source dirs + core
 env.Append(CPPPATH=[
     "#game",
     "#game/objects",
     "#game/resources",
-    "#game/generated"
+    "#game/managers",
+    "#game/generators",
+    "#game/generated",
 ])
 
-# создаём директорию для автогенерации, если нет
 if not os.path.exists(GENERATED_DIR):
     os.makedirs(GENERATED_DIR)
 
@@ -31,6 +38,11 @@ registrations = ""
 # ------------------------------------------------
 def discover_cpp_classes(base_dir):
     global includes, registrations, all_sources
+
+    if not os.path.exists(base_dir):
+        print(f"Skipping (not found): {base_dir}")
+        return
+
     for root, dirs, files in os.walk(base_dir):
         cpp_files = [f for f in files if f.endswith(".cpp")]
         header_files = [f for f in files if f.endswith(".hpp")]
@@ -39,24 +51,24 @@ def discover_cpp_classes(base_dir):
             continue
 
         folder_name = os.path.basename(root)
-        print(f"Discovered folder: {folder_name} | cpp files: {len(cpp_files)}")
+        print(f"Discovered: {folder_name} | cpp: {len(cpp_files)}")
 
-        # добавляем cpp файлы в сборку
         for cpp in cpp_files:
             all_sources.append(os.path.join(root, cpp))
 
-        # формируем includes и registration
         for h in header_files:
-            rel_path = os.path.relpath(os.path.join(root, h), base_dir)
-            includes += f'#include "{folder_name}/{h}"\n'
+            # путь относительно game/ для include
+            rel_path = os.path.relpath(os.path.join(root, h), GAME_DIR)
+            rel_path = rel_path.replace("\\", "/")
+            includes += f'#include "{rel_path}"\n'
             class_name = os.path.splitext(h)[0]
             registrations += f'    ClassDB::register_class<{class_name}>();\n'
 
 # ------------------------------------------------
-# Discover objects and resources
+# Discover all source directories
 # ------------------------------------------------
-discover_cpp_classes(OBJECT_DIR)
-discover_cpp_classes(RESOURCE_DIR)  # теперь учитываем PlanetData и другие ресурсы
+for source_dir in SOURCE_DIRS:
+    discover_cpp_classes(source_dir)
 
 # ------------------------------------------------
 # GENERATE AUTO REGISTER FILE
@@ -70,7 +82,6 @@ using namespace godot;
 
 // === AUTO GENERATED INCLUDES ===
 {includes}
-
 inline void auto_register_classes()
 {{
 {registrations}}}

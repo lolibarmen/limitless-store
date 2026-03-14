@@ -1,15 +1,12 @@
-[gd_scene load_steps=9 format=3 uid="uid://bu55xvw7ffhtr"]
+[gd_scene load_steps=7 format=3 uid="uid://bu55xvw7ffhtr"]
 
 [ext_resource type="Script" uid="uid://civg8rtoquiq2" path="res://objects/player/rigid_body_3d_2.gd" id="1_jaeev"]
-[ext_resource type="Script" uid="uid://b62iwab28xnnu" path="res://objects/planet/planet_node.gd" id="1_kdmts"]
 [ext_resource type="Script" uid="uid://bmsqvpjd0mn8b" path="res://objects/player/camera_3d.gd" id="2_u80x2"]
 [ext_resource type="PackedScene" uid="uid://b4qyl5nrylip0" path="res://scenes/snow_wibe.tscn" id="4_kdmts"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_jaeev"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ewcy1"]
-
-[sub_resource type="PlanetData" id="PlanetData_kdmts"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ewcy1"]
 radius = 0.65185547
@@ -25,10 +22,6 @@ mesh = SubResource("BoxMesh_jaeev")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
 shape = SubResource("BoxShape3D_ewcy1")
-
-[node name="PlanetNode" type="PlanetNode" parent="."]
-planet_data = SubResource("PlanetData_kdmts")
-script = ExtResource("1_kdmts")
 
 [node name="CharacterBody3D" type="CharacterBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1173477, 3.19882, 0.9805131)

@@ -16,11 +16,11 @@ func _ready() -> void:
 	
 	var base_height = -16
 	var height_range = 6
-	var surface_blend = 4.0  # На сколько блоков вниз идёт переход 0.0 → 1.0
 	
 	for x in range(-64, 64):
 		for z in range(-64, 64):
-			var surface_y = base_height + int(height_noise.get_noise_2d(x, z) * height_range)
+			var noise = height_noise.get_noise_2d(x, z)
+			var surface_y = base_height + int(noise * height_range)
 			
 			for y in range(-32, 1):
 				if y > surface_y:
@@ -29,9 +29,10 @@ func _ready() -> void:
 				if cave_noise.get_noise_3d(x, y, z) > 0.3:
 					continue
 				
-				# Глубина под поверхностью: 0 на поверхности, растёт вниз
-				var depth = float(surface_y - y)
-				var density = clamp(depth / surface_blend, 0.0, 1.0)
+				var height = base_height + noise * height_range
+				var density = 1.0
+				if y == surface_y:
+					density = height - floor(height)
 				
 				get_planet_data().set_block(Vector3i(x, y, z), 1, density)
 	

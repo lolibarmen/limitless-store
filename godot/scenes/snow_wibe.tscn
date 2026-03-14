@@ -33,7 +33,7 @@ adjustment_saturation = 0.55
 script = ExtResource("1_h6hgm")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.07313359, -3.1695237e-08, 0.997322, -0.99732214, -1.7265018e-08, 0.07313371, 1.4900798e-08, -1, -3.2873018e-08, 0, 0, 0)
+transform = Transform3D(0.3327701, -2.6040976e-08, 0.94300824, -0.94300824, -2.4990722e-08, 0.3327701, 1.4900795e-08, -1, -3.2873015e-08, 0, 0, 0)
 light_color = Color(0.78431374, 0.84705883, 0.9098039, 1)
 light_energy = 0.6
 light_angular_distance = 1.0
