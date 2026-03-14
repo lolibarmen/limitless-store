@@ -24,10 +24,10 @@ void PlanetNode::_ready() {
 
 int PlanetNode::compute_lod(float distance) {
 
-    if (distance < 32) return 1;
-    if (distance < 64) return 2;
-    if (distance < 128) return 4;
-    if (distance < 256) return 8;
+    if (distance < 64) return 1;
+    if (distance < 128) return 2;
+    if (distance < 256) return 4;
+    if (distance < 512) return 8;
 
     return 16;
 }
@@ -76,7 +76,7 @@ void PlanetNode::update_chunks() {
             planet_data,
             chunk_coord,
             voxel_count,
-            1
+            lod
         );
         chunk->set_position(world_pos);
         add_child(chunk);
