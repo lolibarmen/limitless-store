@@ -9,56 +9,61 @@ namespace godot {
 class PlanetData : public Resource {
     GDCLASS(PlanetData, Resource)
 
+public:
+    // Перечисление типов блоков — доступно и из GDScript через константы
+    enum BlockType : uint8_t {
+        BLOCK_AIR   = 0,
+        BLOCK_STONE = 1,
+        BLOCK_DIRT  = 2,
+        BLOCK_GRASS = 3,
+        // ... добавляй по необходимости, максимум 255
+    };
+
 private:
     static constexpr float MIN_NODE_SIZE = 1.0f;
 
     struct OctreeNode {
-        Vector3 center;
-        float   half_size;
-        float   value;    // leaf: точное значение; branch: агрегат (среднее) дочерних нод
-        bool    is_leaf;
+        Vector3  center;
+        float    half_size;
+        float    value;      // leaf: плотность; branch: среднее дочерних
+        uint8_t  type;       // leaf: тип блока; branch: мажоритарный тип
+        bool     is_leaf;
         OctreeNode* children[8];
 
         OctreeNode(const Vector3& p_center, float p_half_size);
         ~OctreeNode();
 
-        // Пересчитывает value как среднее существующих дочерних нод.
-        // Вызывается снизу вверх после каждой записи.
+        // Пересчитывает value (среднее) и type (мажоритарный) по дочерним нодам
         void update_aggregate();
     };
 
     OctreeNode* root;
 
-    // Рекурсивно читает плотность в точке pos при заданном lod.
-    // lod — размер вокселя в мировых единицах (степень двойки).
-    float get_block_recursive(const OctreeNode* node,
-                              const Vector3&    pos,
-                              int               lod) const;
+    float   get_block_recursive(const OctreeNode* node, const Vector3& pos, int lod) const;
+    uint8_t get_type_recursive (const OctreeNode* node, const Vector3& pos, int lod) const;
 
-    // Рекурсивно записывает плотность и обновляет агрегаты на обратном ходу.
-    void set_block_recursive(OctreeNode*    node,
-                             const Vector3& pos,
-                             int            lod,
-                             float          value);
+    void set_block_recursive(OctreeNode* node, const Vector3& pos,
+                             int lod, float value, uint8_t type);
 
-    // Расширяет корень дерева до тех пор, пока pos не окажется внутри.
     void expand_root_to_fit(const Vector3& pos);
 
 protected:
     static void _bind_methods();
 
 public:
-    PlanetData();
-    ~PlanetData();
+    PlanetData() : root(new OctreeNode(Vector3(0, 0, 0), 64.0f)) {}
+    ~PlanetData() { delete root; }
 
-    void initialize_default();
+    void initialize_default() {};
 
-    // Записывает плотность density в воксель pos с детализацией lod.
-    void  set_block(const Vector3i& pos, int lod, float density);
+    // Запись: теперь принимает и тип блока
+    void    set_block(const Vector3i& pos, int lod, float density, int type = BLOCK_AIR);
 
-    // Возвращает плотность вокселя pos с детализацией lod.
-    // Если lod крупнее листа — возвращает агрегированное значение ветви.
-    float get_block(const Vector3i& pos, int lod) const;
+    // Чтение плотности (как раньше)
+    float   get_block(const Vector3i& pos, int lod) const;
+
+    // Чтение типа блока
+    int     get_block_type(const Vector3i& pos, int lod) const;
 };
 
 } // namespace godot

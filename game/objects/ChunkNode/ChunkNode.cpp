@@ -1,5 +1,5 @@
 #include "ChunkNode.hpp"
-#include <PlanetNode/PlanetNode.hpp>
+#include <ChunkManager/ChunkManager.hpp>
 
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -20,13 +20,13 @@ void ChunkNode::_bind_methods() {
 }
 
 void ChunkNode::configure(
-    PlanetNode* p_planet,
+    ChunkManager* p_manager,
     Ref<PlanetData> p_data,
     const Vector3i &p_origin,
     int p_voxel_count,
     int p_lod)
 {
-    planet_node = p_planet,
+    chunk_manager = p_manager,
     planet_data = p_data;
     origin = p_origin;
     voxel_count = p_voxel_count;
@@ -90,7 +90,7 @@ void ChunkNode::trans_metter(const Vector3& world_pos, float delta, float radius
     if (!changed) return;
 
     // Перестраиваем себя + все 26 соседей (3x3x3 куб)
-    if (planet_node == nullptr) {
+    if (chunk_manager == nullptr) {
         build_mesh();
         return;
     }
@@ -102,7 +102,7 @@ void ChunkNode::trans_metter(const Vector3& world_pos, float delta, float radius
     for (int nz = -1; nz <= 1; nz++) {
 
         Vector3i neighbor_origin = origin + Vector3i(nx, ny, nz) * size;
-        ChunkNode* chunk = planet_node->get_chunk_by_origin(neighbor_origin);
+        ChunkNode* chunk = chunk_manager->get_chunk_by_origin(neighbor_origin);
         if (chunk != nullptr) {
             chunk->build_mesh();
         }
@@ -135,8 +135,8 @@ void ChunkNode::apply_material() {
 }
 
 int ChunkNode::get_neighbor_lod(const Vector3i& direction) const {
-    if (!planet_node) return 0;
+    if (!chunk_manager) return 0;
     Vector3i neighbor_origin = origin + direction * voxel_count;
-    ChunkNode* neighbor = planet_node->get_chunk_by_origin(neighbor_origin);
+    ChunkNode* neighbor = chunk_manager->get_chunk_by_origin(neighbor_origin);
     return neighbor ? neighbor->get_lod() : 0;
 }

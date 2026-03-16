@@ -7,7 +7,7 @@
 
 namespace godot {
 
-class PlanetNode;
+class ChunkManager;
 
 class ChunkNode : public Node3D {
     GDCLASS(ChunkNode, Node3D)
@@ -24,7 +24,7 @@ private:
     ChunkCollider*  chunk_collider = nullptr;
 
     // === КУРАТОР ===
-    PlanetNode* planet_node = nullptr;
+    ChunkManager* chunk_manager = nullptr;
 
     void apply_material();
 
@@ -38,7 +38,7 @@ public:
     void _ready() override;
 
     void configure(
-        PlanetNode*   p_manager,
+        ChunkManager*   p_manager,
         Ref<PlanetData> p_data,
         const Vector3i& p_origin,
         int             p_voxel_count,
