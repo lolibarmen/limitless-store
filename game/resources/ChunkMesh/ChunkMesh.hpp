@@ -3,7 +3,7 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 
-#include <PlanetData/PlanetData.hpp>
+#include <BlockSource/BlockSource.hpp>
 
 namespace godot {
 
@@ -18,7 +18,7 @@ protected:
 public:
     ChunkMesh() = default;
 
-    void build(Ref<PlanetData> p_data, ChunkNode* p_chunk); 
+    void build(Ref<BlockSource> p_source, ChunkNode* p_chunk); 
 };
 
 } // namespace godot

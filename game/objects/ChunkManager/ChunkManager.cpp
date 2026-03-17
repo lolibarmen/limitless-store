@@ -1,108 +1,106 @@
 #include "ChunkManager.hpp"
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
+
 using namespace godot;
 
 void ChunkManager::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("get_planet_data"), &ChunkManager::get_planet_data);
-    ClassDB::bind_method(D_METHOD("set_planet_data", "p_data"), &ChunkManager::set_planet_data);
+    ClassDB::bind_method(D_METHOD("get_lod"),         &ChunkManager::get_lod);
+    ClassDB::bind_method(D_METHOD("set_lod", "v"),    &ChunkManager::set_lod);
     ClassDB::add_property("ChunkManager",
-        PropertyInfo(Variant::OBJECT, "planet_data", PROPERTY_HINT_RESOURCE_TYPE, "PlanetData"),
-        "set_planet_data", "get_planet_data");
+        PropertyInfo(Variant::INT, "lod"),
+        "set_lod", "get_lod");
+
+    ClassDB::bind_method(D_METHOD("get_voxel_count"),      &ChunkManager::get_voxel_count);
+    ClassDB::bind_method(D_METHOD("set_voxel_count", "v"), &ChunkManager::set_voxel_count);
+    ClassDB::add_property("ChunkManager",
+        PropertyInfo(Variant::INT, "voxel_count"),
+        "set_voxel_count", "get_voxel_count");
+
+    ClassDB::bind_method(D_METHOD("get_range"),      &ChunkManager::get_range);
+    ClassDB::bind_method(D_METHOD("set_range", "v"), &ChunkManager::set_range);
+    ClassDB::add_property("ChunkManager",
+        PropertyInfo(Variant::FLOAT, "range"),
+        "set_range", "get_range");
+
     ClassDB::bind_method(D_METHOD("update"), &ChunkManager::update);
 }
 
 ChunkManager::ChunkManager() {}
 
 void ChunkManager::_ready() {
-    planet_data.instantiate();
-    block_generator.instantiate();
-    update();
+    // update() не вызываем — ждём init() от WorldCoordinator
 }
 
-int ChunkManager::compute_lod(float distance) {
-    if (distance < 64)  return 1;
-    if (distance < 128) return 2;
-    if (distance < 256) return 4;
-    if (distance < 512) return 8;
-    return 16;
+void ChunkManager::init(Ref<BlockSource> p_block_source) {
+    ERR_FAIL_COND_MSG(!p_block_source.is_valid(),
+        "ChunkManager::init: block_source невалиден");
+
+    block_source = p_block_source;
+    update();
 }
 
 void ChunkManager::_process(double delta) {
+    // Не обновляем если источник ещё не передан
+    if (!block_source.is_valid()) return;
     update();
 }
 
-int64_t ChunkManager::chunk_hash(Vector3i pos, int lod) {
+int64_t ChunkManager::chunk_hash(Vector3i pos) {
     int64_t h = 1469598103934665603ULL;
-    h ^= pos.x; h *= 1099511628211ULL;
-    h ^= pos.y; h *= 1099511628211ULL;
-    h ^= pos.z; h *= 1099511628211ULL;
-    h ^= lod;   h *= 1099511628211ULL;
+    h ^= (int64_t)pos.x; h *= 1099511628211ULL;
+    h ^= (int64_t)pos.y; h *= 1099511628211ULL;
+    h ^= (int64_t)pos.z; h *= 1099511628211ULL;
     return h;
 }
 
-// Заполняет PlanetData данными от BlockGenerator для области чанка
-void ChunkManager::populate_chunk_data(Vector3i chunk_origin, int voxel_count, int lod) {
-    for (int x = 0; x < voxel_count; x++)
-    for (int y = 0; y < voxel_count; y++)
-    for (int z = 0; z < voxel_count; z++) {
-        Vector3i world_pos = chunk_origin + Vector3i(x * lod, y * lod, z * lod);
-
-        // BlockGenerator возвращает материал — переводим в плотность:
-        // AIR = 0.0, всё остальное = 1.0 (можно расширить по необходимости)
-        BlockMaterial mat = block_generator->get_block(world_pos);
-        float density = (mat == BlockMaterial::AIR) ? -1.0f : 1.0f;
-
-        planet_data->set_block(world_pos, lod, density);
-    }
-}
-
 void ChunkManager::update() {
-    Vector3 viewer = get_viewport()->get_camera_3d()->get_global_position();
-    int range       = 32;
-    int voxel_count = 8;
+    auto* vp = get_viewport();
+    if (!vp) return;
+    auto* cam = vp->get_camera_3d();
+    if (!cam) return;
 
-    // Округляем позицию камеры до сетки чанков
+    Vector3 viewer     = cam->get_global_position();
+    float   chunk_step = (float)(voxel_count * lod);
+
     Vector3i viewer_chunk(
-        (int)Math::floor(viewer.x / voxel_count) * voxel_count,
-        (int)Math::floor(viewer.y / voxel_count) * voxel_count,
-        (int)Math::floor(viewer.z / voxel_count) * voxel_count
+        (int)Math::floor(viewer.x / chunk_step) * (int)chunk_step,
+        (int)Math::floor(viewer.y / chunk_step) * (int)chunk_step,
+        (int)Math::floor(viewer.z / chunk_step) * (int)chunk_step
     );
 
     std::unordered_set<int64_t> active_keys;
+    std::vector<Vector3i>       to_create;
 
-    struct ChunkDesc {
-        Vector3i coord;
-        Vector3  world_pos;
-        int      lod;
-        int64_t  key;
-    };
-    std::vector<ChunkDesc> to_create;
+    int irange = (int)Math::ceil(range / chunk_step);
 
-    for (int x = -range; x < range; x += voxel_count)
-    for (int y = -range; y < range; y += voxel_count)
-    for (int z = -range; z < range; z += voxel_count) {
-        Vector3i coord = viewer_chunk + Vector3i(x, y, z);
-        Vector3  world_pos(coord.x, coord.y, coord.z);
-        float    distance = viewer.distance_to(world_pos);
-        int      lod      = compute_lod(distance);
-        int64_t  key      = chunk_hash(coord, lod);
+    for (int x = -irange; x < irange; x++)
+    for (int y = -irange; y < irange; y++)
+    for (int z = -irange; z < irange; z++) {
+        Vector3i coord = viewer_chunk + Vector3i(
+            x * (int)chunk_step,
+            y * (int)chunk_step,
+            z * (int)chunk_step
+        );
 
+        Vector3 world_pos(coord.x, coord.y, coord.z);
+        if (viewer.distance_to(world_pos) > range)
+            continue;
+
+        int64_t key = chunk_hash(coord);
         active_keys.insert(key);
 
         if (chunks.count(key) == 0)
-            to_create.push_back({ coord, world_pos, lod, key });
+            to_create.push_back(coord);
     }
 
-    for (auto& desc : to_create)
-        populate_chunk_data(desc.coord, voxel_count, desc.lod);
-
-    for (auto& desc : to_create) {
+    for (const Vector3i& coord : to_create) {
+        int64_t    key   = chunk_hash(coord);
         ChunkNode* chunk = memnew(ChunkNode);
-        chunk->configure(this, planet_data, desc.coord, voxel_count, desc.lod);
-        chunk->set_position(desc.world_pos);
+        chunk->init(this, block_source, coord, voxel_count, lod);
+        chunk->set_position(Vector3(coord.x, coord.y, coord.z));
         add_child(chunk);
-        chunks[desc.key] = chunk;
+        chunks[key] = chunk;
     }
 
     std::vector<int64_t> to_remove;
@@ -117,7 +115,7 @@ void ChunkManager::update() {
 }
 
 ChunkNode* ChunkManager::get_chunk_by_origin(const Vector3i& origin) const {
-    int64_t key = chunk_hash(origin, 1);
+    int64_t key = chunk_hash(origin);
     auto it = chunks.find(key);
     if (it != chunks.end())
         return it->second;

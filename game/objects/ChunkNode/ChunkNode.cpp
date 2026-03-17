@@ -19,15 +19,15 @@ ChunkNode::~ChunkNode() {
 void ChunkNode::_bind_methods() {
 }
 
-void ChunkNode::configure(
+void ChunkNode::init(
     ChunkManager* p_manager,
-    Ref<PlanetData> p_data,
+    Ref<BlockSource> p_source,
     const Vector3i &p_origin,
     int p_voxel_count,
     int p_lod)
 {
     chunk_manager = p_manager,
-    planet_data = p_data;
+    block_source = p_source;
     origin = p_origin;
     voxel_count = p_voxel_count;
     lod = p_lod;
@@ -49,9 +49,9 @@ void ChunkNode::_ready() {
 
 
 void ChunkNode::build_mesh() {
-    if(!planet_data.is_valid()) return;
+    if(!block_source.is_valid()) return;
 
-    chunk_mesh->build(planet_data, this);
+    chunk_mesh->build(block_source, this);
     Ref<ArrayMesh> mesh = chunk_mesh->get_mesh();
     chunk_collider->set_mesh(mesh);
 
@@ -82,8 +82,10 @@ void ChunkNode::trans_metter(const Vector3& world_pos, float delta, float radius
 
         Vector3i planet_voxel = origin + center + Vector3i(dx, dy, dz);
 
-        float d = planet_data->get_block(planet_voxel, 1);
-        planet_data->set_block(planet_voxel, 1, d + delta * falloff);
+        BlockData block_data = block_source->get_block(planet_voxel);
+        block_data.density += delta * falloff;
+
+        block_source->set_block(planet_voxel, block_data);
         changed = true;
     }}}
 

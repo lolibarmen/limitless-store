@@ -88,7 +88,7 @@ static void emit_triangle(Ref<SurfaceTool>& st,
 //  Основной марширующий куб
 // ------------------------------------------------------------
 static void build_marching_cubes(Ref<SurfaceTool>& st,
-                                  Ref<PlanetData>  p_data,
+                                  Ref<BlockSource> p_source,
                                   const Vector3i&  origin,
                                   int              N,
                                   int              step,
@@ -108,7 +108,7 @@ static void build_marching_cubes(Ref<SurfaceTool>& st,
                         (int)CUBE_CORNERS[c].y * step,
                         (int)CUBE_CORNERS[c].z * step
                     );
-                    density[c] = p_data->get_block(pc, step);
+                    density[c] = p_source->get_block(pc).density;
                 }
 
                 int cube_idx = 0;
@@ -162,7 +162,7 @@ static void build_marching_cubes(Ref<SurfaceTool>& st,
 
 // Собирает все вершины марширующего куба, лежащие на грани face_index
 static std::vector<Vector3> collect_surface_verts_on_face(
-    Ref<PlanetData>  p_data,
+    Ref<BlockSource>  p_source,
     const Vector3i&  origin,
     int              N,
     int              step,
@@ -194,7 +194,7 @@ static std::vector<Vector3> collect_surface_verts_on_face(
                     (int)CUBE_CORNERS[c].y * step,
                     (int)CUBE_CORNERS[c].z * step
                 );
-                density[c] = p_data->get_block(pc, step);
+                density[c] = p_source->get_block(pc).density;
             }
 
             int cube_idx = 0;
@@ -234,7 +234,7 @@ static std::vector<Vector3> collect_surface_verts_on_face(
 //  Финальная юбочка: стенка от поверхности вдоль нормали грани
 // ------------------------------------------------------------
 static void build_lod_skirt(Ref<SurfaceTool>& st,
-                             Ref<PlanetData>   p_data,
+                             Ref<BlockSource>  p_source,
                              const Vector3i&   origin,
                              int               N,
                              int               my_step,
@@ -253,7 +253,7 @@ static void build_lod_skirt(Ref<SurfaceTool>& st,
     );
 
     std::vector<Vector3> verts = collect_surface_verts_on_face(
-        p_data, origin, N, my_step, iso, face_index);
+        p_source, origin, N, my_step, iso, face_index);
 
     // Для каждой пары соседних вершин на грани строим прямоугольник юбочки.
     // Вершины собраны попарно (каждые 2 — одно ребро куба).
@@ -274,7 +274,7 @@ static void build_lod_skirt(Ref<SurfaceTool>& st,
 //  Публичный метод build
 // ============================================================
 
-void ChunkMesh::build(Ref<PlanetData> p_data, ChunkNode* p_chunk) {
+void ChunkMesh::build(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
     const Vector3i origin    = p_chunk->get_origin();
     const int      voxel_cnt = p_chunk->get_voxel_count();
     const int      step      = p_chunk->get_lod();
@@ -286,7 +286,7 @@ void ChunkMesh::build(Ref<PlanetData> p_data, ChunkNode* p_chunk) {
     st->begin(Mesh::PRIMITIVE_TRIANGLES);
 
     // 1. Основная геометрия
-    build_marching_cubes(st, p_data, origin, N, step, iso);
+    build_marching_cubes(st, p_source, origin, N, step, iso);
 
     // 2. Юбочки на всех 6 гранях, где LOD соседа отличается
     for (int face = 0; face < 6; ++face) {
@@ -295,7 +295,7 @@ void ChunkMesh::build(Ref<PlanetData> p_data, ChunkNode* p_chunk) {
         // Юбочку строим только если lod'ы разные
         // (при одинаковых — стыковка идеальная без юбки)
         if (neighbor_lod > 0 && neighbor_lod != step) {
-            build_lod_skirt(st, p_data, origin, N,
+            build_lod_skirt(st, p_source, origin, N,
                             step, neighbor_lod,
                             iso, face);
         }

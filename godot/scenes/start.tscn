@@ -43,5 +43,4 @@ shape = SubResource("CapsuleShape3D_ewcy1")
 
 [node name="SnowWibe" parent="." instance=ExtResource("4_kdmts")]
 
-[node name="ChunkManager" type="ChunkManager" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -66.58914, 0)
+[node name="WorldCoordinator" type="WorldCoordinator" parent="."]

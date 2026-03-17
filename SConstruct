@@ -13,6 +13,7 @@ GENERATED_DIR = os.path.join(GAME_DIR, "generated")
 # include paths
 env.Append(CPPPATH=[
     "#game",
+    "#game/common",
     "#game/objects",
     "#game/resources",
     "#game/generated"

@@ -1,9 +1,12 @@
 #pragma once
+
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
-#include <PlanetData/PlanetData.hpp>
+
 #include <ChunkMesh/ChunkMesh.hpp>
 #include <ChunkCollider/ChunkCollider.hpp>
+
+#include <BlockSource/BlockSource.hpp>
 
 namespace godot {
 
@@ -14,10 +17,10 @@ class ChunkNode : public Node3D {
 
 private:
     // === КОНФИГУРАЦИЯ ===
-    Ref<PlanetData> planet_data;
-    Vector3i        origin;
-    int             voxel_count = 8;
-    int             lod         = 1;
+    Ref<BlockSource>    block_source;
+    Vector3i            origin;
+    int                 voxel_count = 8;
+    int                 lod         = 1;
 
     // === GODOT NODES ===
     ChunkMesh*      chunk_mesh     = nullptr;
@@ -37,12 +40,12 @@ public:
 
     void _ready() override;
 
-    void configure(
-        ChunkManager*   p_manager,
-        Ref<PlanetData> p_data,
-        const Vector3i& p_origin,
-        int             p_voxel_count,
-        int             p_lod
+    void init(
+        ChunkManager*    p_manager,
+        Ref<BlockSource> p_source,
+        const Vector3i&  p_origin,
+        int              p_voxel_count,
+        int              p_lod
     );
 
     const Vector3i& get_origin()      const { return origin; }
