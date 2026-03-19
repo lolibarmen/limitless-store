@@ -17,6 +17,7 @@ ChunkNode::~ChunkNode() {
 }
 
 void ChunkNode::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("set_mesh", "mesh"), &ChunkNode::set_mesh);
 }
 
 void ChunkNode::init(
@@ -50,11 +51,12 @@ void ChunkNode::_ready() {
 
 void ChunkNode::build_mesh() {
     if(!block_source.is_valid()) return;
-
     chunk_mesh->build(block_source, this);
-    Ref<ArrayMesh> mesh = chunk_mesh->get_mesh();
-    chunk_collider->set_mesh(mesh);
+}
 
+void ChunkNode::set_mesh(Ref<ArrayMesh> p_mesh) {
+    chunk_mesh->set_mesh(p_mesh);
+    chunk_collider->set_mesh(p_mesh);
     apply_material();
 }
 
@@ -112,7 +114,7 @@ void ChunkNode::trans_metter(const Vector3& world_pos, float delta, float radius
 }
 
 void ChunkNode::apply_material() {
-    const String p_texture_path = "res://assets/snow.webp";
+    const String p_texture_path = "res://assets/grass.webp";
 
     Ref<StandardMaterial3D> mat;
     mat.instantiate();

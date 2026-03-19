@@ -55,6 +55,7 @@ public:
     int  get_neighbor_lod(const Vector3i& direction) const;
 
     void build_mesh();
+    void set_mesh(Ref<ArrayMesh> p_mesh);
     void trans_metter(const Vector3& world_pos, float radius, float delta);
 };
 

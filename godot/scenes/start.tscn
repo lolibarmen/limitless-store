@@ -24,7 +24,7 @@ mesh = SubResource("BoxMesh_jaeev")
 shape = SubResource("BoxShape3D_ewcy1")
 
 [node name="CharacterBody3D" type="CharacterBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1173477, 3.19882, 0.9805131)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.0112, 1.5634198, -26.308367)
 script = ExtResource("1_jaeev")
 
 [node name="Camera3D" type="Camera3D" parent="CharacterBody3D"]

@@ -42,10 +42,10 @@ BlockData BlockGenerator::classify(
 
     float cave_threshold = 0.55f - Math::max(0.0f, (float)world_pos.y * 0.001f);
     if (Math::abs(cave) > cave_threshold && world_pos.y < (int)surface_y)
-        return { BlockMaterial::AIR, 0.0f };
+        return { BlockMaterial::AIR, -1.0f };
 
     if ((float)world_pos.y > surface_y)
-        return { BlockMaterial::AIR, 0.0f };
+        return { BlockMaterial::AIR, -1.0f };
 
     float depth = surface_y - (float)world_pos.y;
 
