@@ -56,7 +56,7 @@ public:
 
     void build_mesh();
     void set_mesh(Ref<ArrayMesh> p_mesh);
-    void trans_metter(const Vector3& world_pos, float radius, float delta);
+    void trans_metter(const Vector3& world_pos, float delta, float radius);
 };
 
 } // namespace godot

@@ -38,6 +38,7 @@ BlockData BlockGenerator::classify(
     float            cave,
     float            detail
 ) const {
+    
     float surface_y = biome.height * 64.0f + detail * 8.0f;
 
     float cave_threshold = 0.55f - Math::max(0.0f, (float)world_pos.y * 0.001f);

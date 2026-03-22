@@ -33,8 +33,6 @@ BlockData BlockSource::get_block(const Vector3i& world_pos) const {
 }
 
 void BlockSource::set_block(const Vector3i& world_pos, BlockData data) {
-    // Опционально: клампим density на случай кривых данных
-    data.density = Math::clamp(data.density, 0.0f, 1.0f);
     edits[world_pos] = data;
 }
 

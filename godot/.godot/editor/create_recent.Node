@@ -1,3 +1,4 @@
+DirectionalLight3D
 WorldCoordinator
 ChunkManager
 ChunkNode
@@ -12,4 +13,3 @@ OmniLight3D
 RigidBody3D
 CharacterBody3D
 WorldEnvironment      - Matches the "sky" keyword.
-DirectionalLight3D

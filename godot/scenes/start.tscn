@@ -1,8 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://bu55xvw7ffhtr"]
+[gd_scene load_steps=6 format=3 uid="uid://bu55xvw7ffhtr"]
 
 [ext_resource type="Script" uid="uid://civg8rtoquiq2" path="res://objects/player/rigid_body_3d_2.gd" id="1_jaeev"]
 [ext_resource type="Script" uid="uid://bmsqvpjd0mn8b" path="res://objects/player/camera_3d.gd" id="2_u80x2"]
-[ext_resource type="PackedScene" uid="uid://b4qyl5nrylip0" path="res://scenes/snow_wibe.tscn" id="4_kdmts"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_jaeev"]
 
@@ -24,7 +23,7 @@ mesh = SubResource("BoxMesh_jaeev")
 shape = SubResource("BoxShape3D_ewcy1")
 
 [node name="CharacterBody3D" type="CharacterBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.0112, 1.5634198, -26.308367)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.794718, -21.389946, -178.77081)
 script = ExtResource("1_jaeev")
 
 [node name="Camera3D" type="Camera3D" parent="CharacterBody3D"]
@@ -41,6 +40,7 @@ spot_angle = 40.78125
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.41379452, 0)
 shape = SubResource("CapsuleShape3D_ewcy1")
 
-[node name="SnowWibe" parent="." instance=ExtResource("4_kdmts")]
-
 [node name="WorldCoordinator" type="WorldCoordinator" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+light_color = Color(0.93333334, 0.78039217, 0.5803922, 1)

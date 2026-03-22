@@ -55,7 +55,7 @@ void ChunkCollider::on_ray_hit(const Dictionary &result, float delta) {
     // - И т.д.
     
     Vector3 world_pos = result["position"];
-    chunk_node->trans_metter(world_pos, delta, 2.0);
+    chunk_node->trans_metter(world_pos, delta, 3.0);
     
     // Если нужно вызвать сигнал или изменить состояние
     // _on_ray_hit(result);

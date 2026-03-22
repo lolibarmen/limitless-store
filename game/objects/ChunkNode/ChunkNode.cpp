@@ -115,7 +115,7 @@ void ChunkNode::trans_metter(const Vector3& world_pos, float delta, float radius
 
 void ChunkNode::apply_material() {
     const String p_texture_path = "res://assets/grass.webp";
-
+    
     Ref<StandardMaterial3D> mat;
     mat.instantiate();
 
@@ -125,8 +125,20 @@ void ChunkNode::apply_material() {
         mat->set_texture(StandardMaterial3D::TEXTURE_ALBEDO, albedo);
     } else {
         WARN_PRINT("ChunkNode::apply_material — не удалось загрузить текстуру: " + p_texture_path);
-        mat->set_albedo(Color(0.6f, 0.55f, 0.5f)); // fallback-цвет
+        mat->set_albedo(Color(0.3f, 0.6f, 0.3f));
     }
+
+    // --- Triplanar mapping ---
+    mat->set_flag(StandardMaterial3D::FLAG_UV1_USE_TRIPLANAR, true);
+
+    // Масштаб текстуры (подбери под размер своего чанка)
+    // Чем меньше значение — тем крупнее тайл текстуры
+    float texture_scale = 1.0f;
+    mat->set_uv1_scale(Vector3(texture_scale, texture_scale, texture_scale));
+
+    // Плавность смешивания между тремя проекциями (0.0 — резко, 1.0 — мягко)
+    mat->set_uv1_triplanar_blend_sharpness(4.0f);
+    // ---
 
     mat->set_shading_mode(StandardMaterial3D::SHADING_MODE_PER_PIXEL);
     mat->set_diffuse_mode(StandardMaterial3D::DIFFUSE_BURLEY);

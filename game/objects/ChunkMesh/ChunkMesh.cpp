@@ -13,7 +13,7 @@ using namespace godot;
 struct MeshData {
     PackedVector3Array vertices;
     PackedVector3Array normals;
-    PackedVector2Array uvs;
+    PackedColorArray colors;
 };
 
 static const Vector3 CUBE_CORNERS[8] = {
@@ -33,22 +33,34 @@ static Vector3 vertex_interp(float iso, Vector3 p1, Vector3 p2, float v1, float 
     return p1 + (p2 - p1) * t;
 }
 
-static Vector2 triplanar_uv(const Vector3& pos, const Vector3& normal, float scale = 1.0f) {
-    Vector3 blend = Vector3(
-        Math::abs(normal.x),
-        Math::abs(normal.y),
-        Math::abs(normal.z)
+static Color color_interp(float iso, Color c1, Color c2, float v1, float v2) {
+    if (Math::abs(v2 - v1) < 1e-4f) {
+        return Color(
+            (c1.r + c2.r) * 0.5f,
+            (c1.g + c2.g) * 0.5f,
+            (c1.b + c2.b) * 0.5f,
+            (c1.a + c2.a) * 0.5f
+        );
+    }
+    float t = (iso - v1) / (v2 - v1);
+    return Color(
+        c1.r + (c2.r - c1.r) * t,
+        c1.g + (c2.g - c1.g) * t,
+        c1.b + (c2.b - c1.b) * t,
+        c1.a + (c2.a - c1.a) * t
     );
-    // Нормализуем веса чтобы сумма = 1
-    float total = blend.x + blend.y + blend.z + 1e-6f;
-    blend /= total;
+}
 
-    // UV по каждой плоскости
-    Vector2 uv_x = Vector2(pos.z, pos.y) * scale; // проекция YZ
-    Vector2 uv_y = Vector2(pos.x, pos.z) * scale; // проекция XZ
-    Vector2 uv_z = Vector2(pos.x, pos.y) * scale; // проекция XY
-
-    return uv_x * blend.x + uv_y * blend.y + uv_z * blend.z;
+static Color material_to_weights(BlockMaterial mat) {
+    switch (mat) {
+        case BlockMaterial::GRASS:  return Color(1, 0, 0, 0);
+        case BlockMaterial::DIRT:   return Color(0, 1, 0, 0);
+        case BlockMaterial::STONE:  return Color(0, 0, 1, 0);
+        case BlockMaterial::SAND:   return Color(0, 0, 0, 1);
+        case BlockMaterial::SNOW:   return Color(0, 0, 1, 0); // временно stone
+        case BlockMaterial::GRAVEL: return Color(0, 0, 1, 0);
+        default:                    return Color(0, 0, 1, 0);
+    }
 }
 
 MeshData generate_mesh_data(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
@@ -67,13 +79,16 @@ MeshData generate_mesh_data(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
                 Vector3i planet_base = origin + local_base;
 
                 float density[8];
+                Color corner_color[8]; // веса материала каждого угла
                 for (int c = 0; c < 8; ++c) {
                     Vector3i planet_corner = planet_base + Vector3i(
                         (int)CUBE_CORNERS[c].x * step,
                         (int)CUBE_CORNERS[c].y * step,
                         (int)CUBE_CORNERS[c].z * step
                     );
-                    density[c] = p_source->get_block(planet_corner).density;
+                    BlockData bd = p_source->get_block(planet_corner);
+                    density[c]      = bd.density;
+                    corner_color[c] = material_to_weights(bd.material);
                 }
 
                 int cube_idx = 0;
@@ -92,14 +107,20 @@ MeshData generate_mesh_data(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
                 }
 
                 Vector3 edge_verts[12];
+                Color   edge_colors[12]; // интерполированные веса на ребре
                 for (int e = 0; e < 12; ++e) {
                     if (edgeTable[cube_idx] & (1 << e)) {
                         int v0 = EDGE_VERTICES[e][0];
                         int v1 = EDGE_VERTICES[e][1];
-                        edge_verts[e] = vertex_interp(
+                        edge_verts[e]  = vertex_interp(
                             iso,
                             local_corners[v0], local_corners[v1],
                             density[v0],       density[v1]
+                        );
+                        edge_colors[e] = color_interp(
+                            iso,
+                            corner_color[v0], corner_color[v1],
+                            density[v0],      density[v1]
                         );
                     }
                 }
@@ -117,9 +138,9 @@ MeshData generate_mesh_data(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
                     result.normals.push_back(normal);
                     result.normals.push_back(normal);
                     result.normals.push_back(normal);
-                    result.uvs.push_back(triplanar_uv(a, normal));
-                    result.uvs.push_back(triplanar_uv(c, normal));
-                    result.uvs.push_back(triplanar_uv(b, normal));
+                    result.colors.push_back(edge_colors[tris[t    ]]);
+                    result.colors.push_back(edge_colors[tris[t + 2]]); // c
+                    result.colors.push_back(edge_colors[tris[t + 1]]); // b
                 }
             }
         }
@@ -129,8 +150,16 @@ MeshData generate_mesh_data(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
 }
 
 void ChunkMesh::build(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
-    std::thread([this, p_source, p_chunk]() {
+    const uint64_t chunk_id = p_chunk->get_instance_id();
+    
+    std::thread([this, p_source, chunk_id]() {
+        ChunkNode* p_chunk = Object::cast_to<ChunkNode>(ObjectDB::get_instance(chunk_id));
+        if (!p_chunk) return;
+
         const MeshData data = generate_mesh_data(p_source, p_chunk);
+
+        p_chunk = Object::cast_to<ChunkNode>(ObjectDB::get_instance(chunk_id));
+        if (!p_chunk) return;
 
         if (data.vertices.is_empty()) {
             p_chunk->call_deferred("set_mesh", Ref<Mesh>());
@@ -141,7 +170,7 @@ void ChunkMesh::build(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
         arrays.resize(Mesh::ARRAY_MAX);
         arrays[Mesh::ARRAY_VERTEX] = data.vertices;
         arrays[Mesh::ARRAY_NORMAL] = data.normals;
-        arrays[Mesh::ARRAY_TEX_UV] = data.uvs;
+        arrays[Mesh::ARRAY_COLOR]  = data.colors; // вместо ARRAY_TEX_UV
 
         Ref<ArrayMesh> mesh;
         mesh.instantiate();
