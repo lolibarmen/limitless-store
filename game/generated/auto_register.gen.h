@@ -9,6 +9,7 @@ using namespace godot;
 #include "ChunkManager/ChunkManager.hpp"
 #include "ChunkNode/ChunkNode.hpp"
 #include "WorldCoordinator/WorldCoordinator.hpp"
+#include "BlockLODSource/BlockLODSource.hpp"
 #include "BlockGenerator/BlockGenerator.hpp"
 #include "BiomeSource/BiomeSource.hpp"
 #include "BiomeGenerator/BiomeGenerator.hpp"
@@ -24,6 +25,7 @@ inline void auto_register_classes()
     ClassDB::register_class<ChunkManager>();
     ClassDB::register_class<ChunkNode>();
     ClassDB::register_class<WorldCoordinator>();
+    ClassDB::register_class<BlockLODSource>();
     ClassDB::register_class<BlockGenerator>();
     ClassDB::register_class<BiomeSource>();
     ClassDB::register_class<BiomeGenerator>();

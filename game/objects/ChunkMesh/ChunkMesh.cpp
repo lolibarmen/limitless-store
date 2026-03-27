@@ -63,12 +63,12 @@ static Color material_to_weights(BlockMaterial mat) {
     }
 }
 
-MeshData generate_mesh_data(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
+MeshData generate_mesh_data(Ref<BlockLODSource> p_source, ChunkNode* p_chunk) {
     const Vector3i origin    = p_chunk->get_origin();
     const int      voxel_cnt = p_chunk->get_voxel_count();
     const int      step      = p_chunk->get_lod();
     const float    iso       = 0.0f;
-    const int      N         = voxel_cnt / step;
+    const int      N         = voxel_cnt;
 
     MeshData result;
 
@@ -149,7 +149,7 @@ MeshData generate_mesh_data(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
     return result;
 }
 
-void ChunkMesh::build(Ref<BlockSource> p_source, ChunkNode* p_chunk) {
+void ChunkMesh::build(Ref<BlockLODSource> p_source, ChunkNode* p_chunk) {
     const uint64_t chunk_id = p_chunk->get_instance_id();
     
     std::thread([this, p_source, chunk_id]() {

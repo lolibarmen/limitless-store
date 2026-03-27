@@ -3,7 +3,7 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 
-#include <BlockSource/BlockSource.hpp>
+#include <BlockLODSource/BlockLODSource.hpp>
 
 namespace godot {
 
@@ -18,8 +18,8 @@ protected:
 public:
     ChunkMesh() = default;
 
-    void build(Ref<BlockSource> p_source, ChunkNode* p_chunk);
-    void build_async(Ref<BlockSource> p_source, ChunkNode* p_chunk);
+    void build(Ref<BlockLODSource> p_source, ChunkNode* p_chunk);
+    // void build_async(Ref<BlockLODSource> p_source, ChunkNode* p_chunk);
 };
 
 } // namespace godot

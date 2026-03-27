@@ -6,7 +6,7 @@
 #include <ChunkMesh/ChunkMesh.hpp>
 #include <ChunkCollider/ChunkCollider.hpp>
 
-#include <BlockSource/BlockSource.hpp>
+#include <BlockLODSource/BlockLODSource.hpp>
 
 namespace godot {
 
@@ -17,7 +17,7 @@ class ChunkNode : public Node3D {
 
 private:
     // === КОНФИГУРАЦИЯ ===
-    Ref<BlockSource>    block_source;
+    Ref<BlockLODSource> block_source;
     Vector3i            origin;
     int                 voxel_count = 8;
     int                 lod         = 1;
@@ -41,11 +41,11 @@ public:
     void _ready() override;
 
     void init(
-        ChunkManager*    p_manager,
-        Ref<BlockSource> p_source,
-        const Vector3i&  p_origin,
-        int              p_voxel_count,
-        int              p_lod
+        ChunkManager*       p_manager,
+        Ref<BlockLODSource> p_source,
+        const Vector3i&     p_origin,
+        int                 p_voxel_count,
+        int                 p_lod
     );
 
     const Vector3i& get_origin()      const { return origin; }

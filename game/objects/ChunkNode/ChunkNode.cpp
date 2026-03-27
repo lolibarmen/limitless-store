@@ -22,7 +22,7 @@ void ChunkNode::_bind_methods() {
 
 void ChunkNode::init(
     ChunkManager* p_manager,
-    Ref<BlockSource> p_source,
+    Ref<BlockLODSource> p_source,
     const Vector3i &p_origin,
     int p_voxel_count,
     int p_lod)
@@ -50,7 +50,10 @@ void ChunkNode::_ready() {
 
 
 void ChunkNode::build_mesh() {
-    if(!block_source.is_valid()) return;
+    if(!block_source.is_valid()) {
+        print_error("void ChunkNode::build_mesh() block_source not valid");
+        return;
+    }
     chunk_mesh->build(block_source, this);
 }
 
@@ -99,18 +102,18 @@ void ChunkNode::trans_metter(const Vector3& world_pos, float delta, float radius
         return;
     }
 
-    int size = voxel_count * lod;
+    // int size = voxel_count * lod;
 
-    for (int nx = -1; nx <= 1; nx++) {
-    for (int ny = -1; ny <= 1; ny++) {
-    for (int nz = -1; nz <= 1; nz++) {
+    // for (int nx = -1; nx <= 1; nx++) {
+    // for (int ny = -1; ny <= 1; ny++) {
+    // for (int nz = -1; nz <= 1; nz++) {
 
-        Vector3i neighbor_origin = origin + Vector3i(nx, ny, nz) * size;
-        ChunkNode* chunk = chunk_manager->get_chunk_by_origin(neighbor_origin);
-        if (chunk != nullptr) {
-            chunk->build_mesh();
-        }
-    }}}
+    //     Vector3i neighbor_origin = origin + Vector3i(nx, ny, nz) * size;
+    //     ChunkNode* chunk = chunk_manager->get_chunk_by_origin(neighbor_origin);
+    //     if (chunk != nullptr) {
+    //         chunk->build_mesh();
+    //     }
+    // }}}
 }
 
 void ChunkNode::apply_material() {

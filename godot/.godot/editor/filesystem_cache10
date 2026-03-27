@@ -1,10 +1,10 @@
 63f7b34db8d8cdea90c76aacccf841ec
-::res://::1774190979
+::res://::1774602088
 icon.svg::CompressedTexture2D::1695717925338695962::1771144532::1771144551::1::::<><><>0<>0<>3f937aa06d6f354ad7461d5b09c9800c<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
 ::res://addons/::1771143820
 ::res://addons/game/::1771145269
 game.gdextension::GDExtension::1818997734857902664::1771153017::0::1::::<><><>0<>0<><>::
-::res://addons/game/bin/::1774169583
+::res://addons/game/bin/::1774461118
 ::res://assets/::1773650094
 grass.webp::CompressedTexture2D::3156038832837024197::1773249576::1773249689::1::::<><><>0<>0<>e09ef2603cb0eaf0eba87177a43e0f81<>res://.godot/imported/grass.webp-f7538afa1b960c6527704ae78304c964.s3tc.ctex::
 grass_1.png::CompressedTexture2D::8616957541583417765::1773238798::1773239008::1::::<><><>0<>0<>1e6f335abf05c90a38f0df6774b00bf5<>res://.godot/imported/grass_1.png-c9328f8010af1d3a8aa0fb148a74928d.s3tc.ctex::
@@ -24,6 +24,6 @@ dense_fog.gd::GDScript::4903134586112991774::1773300386::0::1::::<>AtmospherePre
 firewatch_sunset.gd::GDScript::5279035589021482886::1773988580::0::1::::<>AtmospherePreset<><>0<>0<><>::
 night.gd::GDScript::8971634670834583419::1773300383::0::1::::<>AtmospherePreset<><>0<>0<><>::
 winter_fog.gd::GDScript::8028187958030215983::1773300377::0::1::::<>AtmospherePreset<><>0<>0<><>::
-::res://scenes/::1773988580
+::res://scenes/::1774460505
 snow_wibe.tscn::PackedScene::4456405641408223727::1773988580::0::1::::<><><>0<>0<><>::uid://cs120f4tatdt2::::res://objects/wibe/AtmosphereController.gd
-start.tscn::PackedScene::3853992610555219243::1773947354::0::1::::<><><>0<>0<><>::uid://civg8rtoquiq2::::res://objects/player/rigid_body_3d_2.gd<>uid://bmsqvpjd0mn8b::::res://objects/player/camera_3d.gd<>uid://b4qyl5nrylip0::::res://scenes/snow_wibe.tscn
+start.tscn::PackedScene::3853992610555219243::1774460505::0::1::::<><><>0<>0<><>::uid://civg8rtoquiq2::::res://objects/player/rigid_body_3d_2.gd<>uid://bmsqvpjd0mn8b::::res://objects/player/camera_3d.gd

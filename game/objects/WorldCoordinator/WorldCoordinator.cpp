@@ -22,12 +22,24 @@ void WorldCoordinator::_ready() {
     biome_source->set_generator(biome_gen);
 
     // --- уровень 2: блоки ---
-    Ref<BlockSource> block_source;
-    block_source.instantiate();
-    block_source->init(biome_source, seed);
+    Ref<BlockGenerator> block_gen;
+    block_gen.instantiate();
+    block_gen->init(biome_source, seed);
+
+    Ref<BlockLODSource> block_lod3_source;
+    block_lod3_source.instantiate();
+    block_lod3_source->init(block_gen, Ref<BlockGenerator>());
+
+    Ref<BlockLODSource> block_lod2_source;
+    block_lod2_source.instantiate();
+    block_lod2_source->init(block_gen, block_lod3_source);
+
+    Ref<BlockLODSource> block_lod1_source;
+    block_lod1_source.instantiate();
+    block_lod1_source->init(block_gen, block_lod2_source);
 
     // --- передаём менеджеру ---
     chunk_manager = memnew(ChunkManager);
-    chunk_manager->init(block_source);
+    chunk_manager->init(block_lod1_source, block_lod2_source, block_lod3_source);
     add_child(chunk_manager);
 }

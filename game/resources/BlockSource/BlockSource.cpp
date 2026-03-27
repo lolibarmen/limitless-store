@@ -11,14 +11,11 @@ void BlockSource::_bind_methods() {
         "set_generator", "get_generator");
 }
 
-void BlockSource::init(Ref<BiomeSource> biome_source, int seed) {
-    ERR_FAIL_COND_MSG(!biome_source.is_valid(),
-        "BlockSource::init: biome_source невалиден");
+void BlockSource::init(Ref<BlockGenerator> p_generator) {
+    ERR_FAIL_COND_MSG(!p_generator.is_valid(),
+        "BlockSource::init: p_generator невалиден");
 
-    Ref<BlockGenerator> gen;
-    gen.instantiate();
-    gen->init(biome_source, seed);
-    generator = gen;
+    generator = p_generator;
 }
 
 BlockData BlockSource::get_block(const Vector3i& world_pos) const {
