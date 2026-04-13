@@ -56,61 +56,50 @@ void NeochunkNode::generate_mesh() {
         return;
     }
 
-    // Если предыдущий таск ещё не завершён — ждём и освобождаем память
-    if (_task.task_id != WorkerThreadPool::INVALID_TASK_ID) {
-        WorkerThreadPool::get_singleton()->wait_for_task_completion(_task.task_id);
-        _task.task_id = WorkerThreadPool::INVALID_TASK_ID;
-    }
-
+    // Только лёгкая подготовка контекста — в главном потоке
     Vector3 chunk_pos = get_position();
     float half_chunk_size = chunk_size / 2;
-    Vector3i chunk_coord = Vector3i(
+
+    auto inp = std::make_shared<ChunkBuildInput>();
+    inp->lod_level    = lod_level;
+    inp->voxel_count  = voxel_count;
+    inp->chunk_size   = chunk_size;
+    inp->chunk_coord  = Vector3i(
         (int)(chunk_pos.x - half_chunk_size),
         (int)(chunk_pos.y - half_chunk_size),
         (int)(chunk_pos.z - half_chunk_size)
     );
 
-    auto inp = std::make_shared<ChunkBuildInput>();
-    inp->lod_level   = lod_level;
-    inp->voxel_count = voxel_count;
-    inp->chunk_size  = chunk_size;
-    int stride = voxel_count + 4;
-    inp->blocks.reserve(stride * stride * stride);
-    
-    for(int x = -2; x <= voxel_count+1; x++)
-    for(int y = -2; y <= voxel_count+1; y++)
-    for(int z = -2; z <= voxel_count+1; z++)
-    {
-        int idx = (x + 2) * stride * stride + (y + 2) * stride + (z + 2);
-        int step = 1 << lod_level;
-        Vector3i block_coord = Vector3i(x*step,y*step,z*step);
-        inp->blocks[idx] = block_source->get_block(chunk_coord + block_coord);
-    }
-
-    _task.input = inp;
-    _task.chunk_id = get_instance_id();
+    _task.input   = inp;
     _task.task_id = WorkerThreadPool::get_singleton()->add_task(
-        callable_mp(this, &NeochunkNode::_build_mesh_task),
+        callable_mp_static(&NeochunkNode::_build_mesh_task).bind(get_instance_id()),
         false,
         "NeochunkNode::generate_mesh"
     );
 }
 
-void NeochunkNode::_build_mesh_task() {
-    auto inp = _task.input;
+void NeochunkNode::_build_mesh_task(uint64_t chunk_id) {
+    NeochunkNode* chunk = Object::cast_to<NeochunkNode>(ObjectDB::get_instance(chunk_id));
+    if(!chunk) return;
+    auto task = chunk->_task;
+    auto inp = task.input;
 
     if (!inp) {
-        if (ObjectDB::get_instance(_task.chunk_id)) {
-            call_deferred("set_mesh", Ref<Mesh>());
-        }
+        chunk->call_deferred("set_mesh", Ref<Mesh>());
         return;
     }
+
+    // Сбор блоков — теперь в воркере
+    const int stride = inp->voxel_count + 4;
+    const int step   = 1 << inp->lod_level;
+    chunk->block_source->fill_chunk(inp->blocks, inp->chunk_coord, stride, step);
 
     const MeshData data = build_neochunk_mesh(*inp);
 
     if (data.vertices.is_empty()) {
-        if (ObjectDB::get_instance(_task.chunk_id)) {
-            call_deferred("set_mesh", Ref<Mesh>());
+        chunk = Object::cast_to<NeochunkNode>(ObjectDB::get_instance(chunk_id));
+        if (chunk) {
+            chunk->call_deferred("set_mesh", Ref<Mesh>());
         }
         return;
     }
@@ -124,8 +113,9 @@ void NeochunkNode::_build_mesh_task() {
     mesh.instantiate();
     mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
 
-    if (ObjectDB::get_instance(_task.chunk_id)) {
-        call_deferred("set_mesh", mesh);
+    chunk = Object::cast_to<NeochunkNode>(ObjectDB::get_instance(chunk_id));
+    if (chunk) {
+        chunk->call_deferred("set_mesh", mesh);
     }
 }
 

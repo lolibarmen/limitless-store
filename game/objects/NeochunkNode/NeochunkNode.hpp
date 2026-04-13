@@ -15,12 +15,7 @@ class NeochunkNode : public StaticBody3D {
 
 private:
 
-    struct ChunkTaskData {
-        std::shared_ptr<ChunkBuildInput> input;
-        uint64_t chunk_id;
-        WorkerThreadPool::TaskID task_id = WorkerThreadPool::INVALID_TASK_ID;
-    } _task;
-    void _build_mesh_task();
+    static void _build_mesh_task(uint64_t chunk_id);
 
     int lod_level = 0;
     const int voxel_count = 16;
@@ -47,9 +42,15 @@ public:
     // void _exit_tree() override { print_line(" - realy despawn"); }
 
     void set_mesh(const Ref<Mesh> mesh);
-    void set_block_source(const Ref<BlockLODSource> new_block_source) { block_source = new_block_source; }
     void set_lod_level(const int new_lod_level) { lod_level = new_lod_level; }
     void set_chunk_size(const float new_chunk_size) { chunk_size = new_chunk_size; }
+
+    void set_block_source(const Ref<BlockLODSource> new_block_source) { block_source = new_block_source; }
+
+    struct ChunkTaskData {
+        std::shared_ptr<ChunkBuildInput> input;
+        WorkerThreadPool::TaskID task_id = WorkerThreadPool::INVALID_TASK_ID;
+    } _task;
 };
 
 } // namespace godot
