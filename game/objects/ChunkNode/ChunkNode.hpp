@@ -3,7 +3,6 @@
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 
-#include <ChunkMesh/ChunkMesh.hpp>
 #include <ChunkCollider/ChunkCollider.hpp>
 
 #include <BlockLODSource/BlockLODSource.hpp>
@@ -23,7 +22,7 @@ private:
     int                 lod         = 1;
 
     // === GODOT NODES ===
-    ChunkMesh*      chunk_mesh     = nullptr;
+    MeshInstance3D* chunk_mesh     = nullptr;
     ChunkCollider*  chunk_collider = nullptr;
 
     // === КУРАТОР ===
@@ -55,8 +54,11 @@ public:
     int  get_neighbor_lod(const Vector3i& direction) const;
 
     void build_mesh();
+
     void set_mesh(Ref<ArrayMesh> p_mesh);
     void trans_metter(const Vector3& world_pos, float delta, float radius);
+
+    ChunkManager* get_chunk_manager() const { return chunk_manager; }
 };
 
 } // namespace godot

@@ -27,9 +27,10 @@ void BlockLODSource::init(Ref<BlockGenerator> p_generator, Ref<BlockLODSource> p
 
 BlockData BlockLODSource::get_block(const Vector3i& world_pos) const {
     auto it = edits.find(world_pos);
-    if (it != edits.end())
-        return it->second;
-
+    if (it != edits.end()) {
+        BlockData result = it->second;
+        return result;
+    }
     return generator->get_block(world_pos);
 }
 
@@ -42,5 +43,6 @@ void BlockLODSource::reset_block(const Vector3i& world_pos) {
 }
 
 bool BlockLODSource::has_edit(const Vector3i& world_pos) const {
-    return edits.count(world_pos) > 0;
+    bool result = edits.count(world_pos) > 0;
+    return result;
 }

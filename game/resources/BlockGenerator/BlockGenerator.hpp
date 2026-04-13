@@ -1,5 +1,5 @@
 #pragma once
-#include <godot_cpp/classes/resource.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/fast_noise_lite.hpp>
 #include <GameStructs/Blocks.hpp>
 #include <BiomeSource/BiomeSource.hpp>

@@ -1,12 +1,12 @@
 #pragma once
-#include <godot_cpp/classes/resource.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/fast_noise_lite.hpp>
 #include <GameStructs/Biomes.hpp>
 
 namespace godot {
 
-class BiomeGenerator : public Resource {
-    GDCLASS(BiomeGenerator, Resource)
+class BiomeGenerator : public RefCounted {
+    GDCLASS(BiomeGenerator, RefCounted)
 
 private:
     int seed = 0;

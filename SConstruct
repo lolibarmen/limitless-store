@@ -48,10 +48,10 @@ def discover_cpp_classes(base_dir):
 
         # формируем includes и registration
         for h in header_files:
-            rel_path = os.path.relpath(os.path.join(root, h), base_dir)
-            includes += f'#include "{folder_name}/{h}"\n'
             class_name = os.path.splitext(h)[0]
-            registrations += f'    ClassDB::register_class<{class_name}>();\n'
+            if class_name == folder_name:
+                includes += f'#include "{folder_name}/{h}"\n'
+                registrations += f'    ClassDB::register_class<{class_name}>();\n'
 
 # ------------------------------------------------
 # Discover objects and resources

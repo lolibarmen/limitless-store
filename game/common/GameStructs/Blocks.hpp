@@ -13,7 +13,7 @@ enum class BlockMaterial : int {
 
 struct BlockData {
     BlockMaterial material = BlockMaterial::AIR;
-    float density = 1.0f; // 0.0 - 1.0
+    float density = 1.0f;
 
     bool operator==(const BlockData& o) const {
         return material == o.material && density == o.density;

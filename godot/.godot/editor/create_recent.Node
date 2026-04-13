@@ -1,8 +1,10 @@
-DirectionalLight3D
 WorldCoordinator
+MeshInstance3D
+NeochunkManager
+WorldEnvironment
+DirectionalLight3D
 ChunkManager
 ChunkNode
-MeshInstance3D
 CPUParticles3D
 FogVolume
 SpotLight3D
@@ -10,6 +12,3 @@ Camera3D
 CollisionShape3D
 StaticBody3D
 OmniLight3D
-RigidBody3D
-CharacterBody3D
-WorldEnvironment      - Matches the "sky" keyword.

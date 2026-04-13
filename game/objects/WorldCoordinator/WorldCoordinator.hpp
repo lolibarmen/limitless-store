@@ -1,6 +1,6 @@
 #pragma once
 #include <godot_cpp/classes/node3d.hpp>
-#include <ChunkManager/ChunkManager.hpp>
+#include <NeochunkManager/NeochunkManager.hpp>
 
 #include <BiomeSource/BiomeSource.hpp>
 
@@ -13,7 +13,7 @@ private:
     int seed = 0;
 
     // Менеджеры — дочерние узлы в сцене, выставляются в инспекторе
-    ChunkManager*  chunk_manager  = nullptr;
+    NeochunkManager*  chunk_manager  = nullptr;
 
 protected:
     static void _bind_methods();

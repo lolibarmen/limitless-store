@@ -23,6 +23,9 @@ func cast_ray():
 	var params = PhysicsRayQueryParameters3D.create(from, to)
 	var result = space.intersect_ray(params)
 	
+	print(result.collider)
+	result.collider.queue_free()
+	
 	if result and result.collider.has_method("on_ray_hit"):
 		return result
 

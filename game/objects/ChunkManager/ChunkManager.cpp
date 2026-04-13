@@ -77,16 +77,17 @@ static Vector3i snap(Vector3i v, int step) {
     return { fs(v.x), fs(v.y), fs(v.z) };
 }
 
-void ChunkManager::spawn_chunk(Ring& ring, const Vector3i& coord)
+ChunkNode* ChunkManager::spawn_chunk(Ring& ring, const Vector3i& coord)
 {
     int64_t key = chunk_hash(coord);
-    if (ring.chunks.count(key)) return;
 
     ChunkNode* chunk = memnew(ChunkNode);
-    chunk->init(this, ring.source, coord, voxel_count, ring.lod);
+    chunk->init(this, rings[0].source, coord, voxel_count, ring.lod); // TODO
     chunk->set_position(Vector3(coord.x, coord.y, coord.z));
     add_child(chunk);
     ring.chunks[key] = chunk;
+
+    return chunk;
 }
 
 void ChunkManager::despawn_chunk(Ring& ring, int64_t key)
@@ -156,8 +157,9 @@ void ChunkManager::update()
             int64_t  key   = chunk_hash(coord);
             desired[ring_idx].insert(key);
 
-            if (ring.chunks.count(key) == 0)
-                spawn_chunk(ring, coord);
+            if (ring.chunks.count(key)) continue;
+
+            spawn_chunk(ring, coord); // СДЕЛАТЬ ОБЩЕЕ ХРАНИЛИЩЕ, МЕШ ГЕНЕРИРОВАТЬ С ШАГОМ ПО НЕМУ
         }
     }
 

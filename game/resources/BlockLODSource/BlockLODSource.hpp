@@ -1,5 +1,5 @@
 #pragma once
-#include <godot_cpp/classes/resource.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
 #include <unordered_map>
 #include <GameStructs/Blocks.hpp>
 #include <BlockGenerator/BlockGenerator.hpp>
@@ -35,6 +35,8 @@ public:
 
     Ref<BlockGenerator> get_generator() const { return generator; }
     void                set_generator(Ref<BlockGenerator> g) { generator = g; }
+
+    Ref<BlockLODSource> get_lod_source() const { return block_lod_source; }
 };
 
 } // namespace godot

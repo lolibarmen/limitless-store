@@ -39,7 +39,7 @@ void WorldCoordinator::_ready() {
     block_lod1_source->init(block_gen, block_lod2_source);
 
     // --- передаём менеджеру ---
-    chunk_manager = memnew(ChunkManager);
-    chunk_manager->init(block_lod1_source, block_lod2_source, block_lod3_source);
+    chunk_manager = memnew(NeochunkManager);
+    chunk_manager->set_block_source(block_lod1_source);
     add_child(chunk_manager);
 }

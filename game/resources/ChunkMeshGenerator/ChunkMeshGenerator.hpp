@@ -1,25 +1,25 @@
 #pragma once
 
 #include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/classes/mesh_instance3d.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
 
 #include <BlockLODSource/BlockLODSource.hpp>
 
 namespace godot {
 
 class ChunkNode;
+class ChunkMesh;
 
-class ChunkMesh : public MeshInstance3D {
-    GDCLASS(ChunkMesh, MeshInstance3D)
-
+class ChunkMeshGenerator : public RefCounted {
+    GDCLASS(ChunkMeshGenerator, RefCounted)
+    
 protected:
     static void _bind_methods() {};
 
 public:
-    ChunkMesh() = default;
+    ChunkMeshGenerator() = default;
 
     void build(Ref<BlockLODSource> p_source, ChunkNode* p_chunk);
-    // void build_async(Ref<BlockLODSource> p_source, ChunkNode* p_chunk);
 };
 
 } // namespace godot

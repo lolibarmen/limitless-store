@@ -1,5 +1,5 @@
 #pragma once
-#include <godot_cpp/classes/resource.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
 #include <unordered_map>
 #include <GameStructs/Biomes.hpp>
 #include <BiomeGenerator/BiomeGenerator.hpp>

@@ -24,13 +24,13 @@ private:
     Ring rings[RINGS_COUNT];
 
     int   voxel_count = 8;
-    float range_lod1  = 32.0f;
-    float range_lod2  = 64.0f;
-    float range_lod3  = 128.0f;
+    float range_lod1  = 32.0f; // 32
+    float range_lod2  = 64.0f; // 64
+    float range_lod3  = 128.0f; // 128
 
     static int64_t chunk_hash(Vector3i pos);
 
-    void spawn_chunk(Ring& ring, const Vector3i& coord);
+    ChunkNode* spawn_chunk(Ring& ring, const Vector3i& coord);
     void despawn_chunk(Ring& ring, int64_t key);
 
 protected:

@@ -40,7 +40,7 @@ BlockData BlockGenerator::classify(
 ) const {
     // Центр планеты (можно вынести в константу)
     const Vector3 PLANET_CENTER = Vector3(0, 0, 0);
-    const float    PLANET_RADIUS = 32.0f; // базовый радиус в блоках
+    const float    PLANET_RADIUS = 128.0f; // базовый радиус в блоках
 
     // Расстояние от центра до текущего блока
     Vector3 pos_f = Vector3(world_pos.x, world_pos.y, world_pos.z);
