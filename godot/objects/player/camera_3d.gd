@@ -6,11 +6,12 @@ func _input(event):
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			var result = cast_ray()
 			if result:
-				result.collider.on_ray_hit(result, 1.0)
+				var pos = result.collider.get_position()
+				result.collider.set_position(pos + Vector3(0.0, 1.0, 0.0))
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 			var result = cast_ray()
 			if result:
-				result.collider.on_ray_hit(result, -1.0)
+				result.collider.queue_free()
 	if event is InputEventKey:
 		if event.physical_keycode == KEY_F and event.pressed:
 			flashlight_action()
@@ -23,8 +24,10 @@ func cast_ray():
 	var params = PhysicsRayQueryParameters3D.create(from, to)
 	var result = space.intersect_ray(params)
 	
-	print(result.collider)
-	result.collider.queue_free()
+	#print(result.collider)
+	#result.collider.queue_free()
+	
+	return result
 	
 	if result and result.collider.has_method("on_ray_hit"):
 		return result

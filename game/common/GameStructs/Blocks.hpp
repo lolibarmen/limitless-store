@@ -9,6 +9,8 @@ enum class BlockMaterial : int {
     SNOW         = 5,
     GRAVEL       = 6,
     WATER        = 7,
+
+    MAX_MATERIAL
 };
 
 struct BlockData {

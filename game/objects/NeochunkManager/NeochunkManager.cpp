@@ -62,8 +62,9 @@ void NeochunkManager::update_recurs(Neochunk* n) {
     // bool should_split    = dist < n->size * 3.0f;
     // bool should_collapse = dist > n->size * 3.1f;
 
-    bool should_split = cube_distance(n->center, player_pos) < n->size * 2.0f;
-    bool should_collapse = false;
+    float dist = cube_distance(n->center, player_pos);
+    bool should_split    = dist < n->size * 1.5f;
+    bool should_collapse = dist > n->size * 1.6f;
 
     if (n->is_leaf() && should_split && n->depth < MAX_DEPTH) {
         despawn_mesh(n);

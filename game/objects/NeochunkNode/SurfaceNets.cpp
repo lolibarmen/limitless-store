@@ -23,6 +23,21 @@ static const struct { Vector3i a1, a2, n12; } EDGE_AXES[3] = { // axis 1, axis 2
     { {0,1,0}, {0,0,1}, {1,0,0} }
 };
 
+BlockData ChunkBuildInput::get_block(Vector3i block_coords) const {
+    int x = block_coords.x+2, y = block_coords.y+2, z = block_coords.z+2;
+    int n = voxel_count+4;
+
+    if (x < 0 || x >= n || y < 0 || y >= n || z < 0 || z >= n) {
+        print_error("get_block(): Index out of bounds: x=" + itos(x) +
+                ", y=" + itos(y) + ", z=" + itos(z) +
+                " (n=" + itos(n) + ")");
+        // Верните значение по умолчанию или выбросьте исключение
+        return BlockData();
+    }
+
+    return blocks[x * n * n + y * n + z];
+}
+
 MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
     MeshData result;
     
@@ -81,7 +96,11 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
             meanP = meanP + P;
         }
         meanP = meanP / edge_points.size();
-        voxel_vertices[{x, y, z}] = meanP * (1 << input.lod_level);
+
+        float scale = (1 << input.lod_level);
+        Vector3 offset = Vector3(input.chunk_size, input.chunk_size, input.chunk_size) * 0.5f;
+
+        voxel_vertices[{x,y,z}] = meanP * scale - offset;
     }
     
     for(auto& [coord, meanP] : voxel_vertices)
@@ -102,18 +121,26 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
             Vector3 v01 = voxel_vertices[c01];
             Vector3 v11 = voxel_vertices[c11];
 
+            BlockMaterial m00 = input.get_block(c00).material;
+            BlockMaterial m10 = input.get_block(c10).material;
+            BlockMaterial m01 = input.get_block(c01).material;
+            BlockMaterial m11 = input.get_block(c11).material;
+
+            auto material_to_color = [](BlockMaterial m) -> Color {
+                Color c((float)m/255.0f, 0, 0);
+                return c;
+            };
+
+            Color col00 = material_to_color(m00);
+            Color col10 = material_to_color(m10);
+            Color col01 = material_to_color(m01);
+            Color col11 = material_to_color(m11);
+
             Vector3 normal = (v01 - v00).cross(v11 - v00).normalized();
 
             float dA = input.get_block(coord).density;
             float dB = input.get_block(coord + n12).density;
             if ((dA < 0) == (dB < 0)) continue;
-
-            float half_chunk_size = input.chunk_size / 2;
-            Vector3 v_half_chunk_size = Vector3(half_chunk_size, half_chunk_size, half_chunk_size);
-            v00 -= v_half_chunk_size;
-            v10 -= v_half_chunk_size;
-            v01 -= v_half_chunk_size;
-            v11 -= v_half_chunk_size;
 
             bool flip = (dB < 0);
 
@@ -125,6 +152,13 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
                 result.vertices.push_back(v11);
                 result.vertices.push_back(v10);
 
+                result.colors.push_back(col00);
+                result.colors.push_back(col01);
+                result.colors.push_back(col11);
+                result.colors.push_back(col00);
+                result.colors.push_back(col11);
+                result.colors.push_back(col10);
+
                 normal = -normal;
             }
             else {
@@ -134,6 +168,13 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
                 result.vertices.push_back(v00);
                 result.vertices.push_back(v11);
                 result.vertices.push_back(v01);
+
+                result.colors.push_back(col00);
+                result.colors.push_back(col10);
+                result.colors.push_back(col11);
+                result.colors.push_back(col00);
+                result.colors.push_back(col11);
+                result.colors.push_back(col01);
             }
 
             result.normals.push_back(normal);

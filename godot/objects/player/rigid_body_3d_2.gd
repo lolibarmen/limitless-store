@@ -38,15 +38,15 @@ func _input(event):
 
 func _physics_process(delta):
 	# Add the gravity
-	if not is_on_floor():
-		velocity.y -= gravity * delta
+	#if not is_on_floor():
+		#velocity.y -= gravity * delta
 	
 	# Handle Jump (используем KEY_SPACE)
-	if Input.is_key_pressed(KEY_SPACE):
-		velocity.y = jump_velocity
+	#if Input.is_key_pressed(KEY_SPACE):
+		#velocity.y = jump_velocity
 	
 	# Получаем вектор движения напрямую с клавиатуры
-	var input_dir = Vector2.ZERO
+	var input_dir = Vector3.ZERO
 	
 	# WASD управление напрямую через is_key_pressed
 	if Input.is_key_pressed(KEY_W):

@@ -29,6 +29,8 @@ private:
     void add_debug_box();
     void set_debug_material();
 
+    void set_material();
+
     void generate_mesh();
 
 protected:

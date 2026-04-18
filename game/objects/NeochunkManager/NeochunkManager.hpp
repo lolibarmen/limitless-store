@@ -7,7 +7,7 @@
 
 namespace godot {
 
-constexpr int   MAX_DEPTH = 3;
+constexpr int   MAX_DEPTH = 2;
 constexpr float ROOT_SIZE = 64.0f;
 
 class NeochunkManager : public Node3D {
