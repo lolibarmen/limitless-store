@@ -94,7 +94,7 @@ void fragment() {
     vec3 world_pos = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
     vec3 world_normal = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
 
-    float mat_id = COLOR.r * 255.0;           // дробный ID с интерполяции
+    float mat_id  = round(COLOR.r * 255.0);           // дробный ID с интерполяции
     float id_low  = floor(mat_id);    // нижний материал
     float id_high = ceil(mat_id);     // верхний материал
     float blend   = fract(mat_id);    // сколько верхнего

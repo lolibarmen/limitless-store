@@ -121,21 +121,6 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
             Vector3 v01 = voxel_vertices[c01];
             Vector3 v11 = voxel_vertices[c11];
 
-            BlockMaterial m00 = input.get_block(c00).material;
-            BlockMaterial m10 = input.get_block(c10).material;
-            BlockMaterial m01 = input.get_block(c01).material;
-            BlockMaterial m11 = input.get_block(c11).material;
-
-            auto material_to_color = [](BlockMaterial m) -> Color {
-                Color c((float)m/255.0f, 0, 0);
-                return c;
-            };
-
-            Color col00 = material_to_color(m00);
-            Color col10 = material_to_color(m10);
-            Color col01 = material_to_color(m01);
-            Color col11 = material_to_color(m11);
-
             Vector3 normal = (v01 - v00).cross(v11 - v00).normalized();
 
             float dA = input.get_block(coord).density;
@@ -144,6 +129,14 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
 
             bool flip = (dB < 0);
 
+            // Материал берём со стороны с положительной плотностью ("твёрдый" вокcель)
+            BlockMaterial mat = (dA > 0)
+                ? input.get_block(coord).material
+                : input.get_block(coord + n12).material;
+
+            float mat_id = static_cast<float>(static_cast<int>(mat));
+            Color vertex_color(mat_id, 0.0f, 0.0f, 1.0f);
+
             if (flip) {
                 result.vertices.push_back(v00);
                 result.vertices.push_back(v01);
@@ -151,38 +144,20 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
                 result.vertices.push_back(v00);
                 result.vertices.push_back(v11);
                 result.vertices.push_back(v10);
-
-                result.colors.push_back(col00);
-                result.colors.push_back(col01);
-                result.colors.push_back(col11);
-                result.colors.push_back(col00);
-                result.colors.push_back(col11);
-                result.colors.push_back(col10);
-
                 normal = -normal;
-            }
-            else {
+            } else {
                 result.vertices.push_back(v00);
                 result.vertices.push_back(v10);
                 result.vertices.push_back(v11);
                 result.vertices.push_back(v00);
                 result.vertices.push_back(v11);
                 result.vertices.push_back(v01);
-
-                result.colors.push_back(col00);
-                result.colors.push_back(col10);
-                result.colors.push_back(col11);
-                result.colors.push_back(col00);
-                result.colors.push_back(col11);
-                result.colors.push_back(col01);
             }
 
-            result.normals.push_back(normal);
-            result.normals.push_back(normal);
-            result.normals.push_back(normal);
-            result.normals.push_back(normal);
-            result.normals.push_back(normal);
-            result.normals.push_back(normal);
+            for (int i = 0; i < 6; i++) {
+                result.normals.push_back(normal);
+                result.colors.push_back(vertex_color);
+            }
         }
     }
 
