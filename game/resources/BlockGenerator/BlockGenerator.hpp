@@ -13,8 +13,7 @@ private:
     int seed = 0;
 
     Ref<BiomeSource>   biome_source;
-    Ref<FastNoiseLite> noise_cave;
-    Ref<FastNoiseLite> noise_detail;
+    Ref<FastNoiseLite> noise_cave, noise_detail, noise_ridge;
 
     float cave_scale   = 0.04f;
     float detail_scale = 0.02f;
@@ -25,7 +24,8 @@ private:
         const Vector3i&  world_pos,
         const BiomeData& biome,
         float            cave,
-        float            detail
+        float            detail,
+        float            ridgel
     ) const;
 
 protected:

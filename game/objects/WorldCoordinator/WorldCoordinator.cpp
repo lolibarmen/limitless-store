@@ -1,5 +1,6 @@
 #include "WorldCoordinator.hpp"
 #include <godot_cpp/core/class_db.hpp>
+#include <BlockSource/BlockSource.hpp>
 
 using namespace godot;
 
@@ -26,20 +27,12 @@ void WorldCoordinator::_ready() {
     block_gen.instantiate();
     block_gen->init(biome_source, seed);
 
-    Ref<BlockLODSource> block_lod3_source;
-    block_lod3_source.instantiate();
-    block_lod3_source->init(block_gen, Ref<BlockGenerator>());
-
-    Ref<BlockLODSource> block_lod2_source;
-    block_lod2_source.instantiate();
-    block_lod2_source->init(block_gen, block_lod3_source);
-
-    Ref<BlockLODSource> block_lod1_source;
-    block_lod1_source.instantiate();
-    block_lod1_source->init(block_gen, block_lod2_source);
+    Ref<BlockSource> block_source;
+    block_source.instantiate();
+    block_source->init(block_gen);
 
     // --- передаём менеджеру ---
     chunk_manager = memnew(NeochunkManager);
-    chunk_manager->set_block_source(block_lod1_source);
+    chunk_manager->set_block_source(block_source);
     add_child(chunk_manager);
 }

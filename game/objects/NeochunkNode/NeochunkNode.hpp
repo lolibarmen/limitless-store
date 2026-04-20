@@ -5,7 +5,7 @@
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 #include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/classes/worker_thread_pool.hpp>
-#include <BlockLODSource/BlockLODSource.hpp>
+#include <BlockSource/BlockSource.hpp>
 #include <memory>
 
 namespace godot {
@@ -21,7 +21,7 @@ private:
     const int voxel_count = 16;
     float chunk_size = 16.0f;
 
-    Ref<BlockLODSource> block_source;
+    Ref<BlockSource> block_source;
     
     MeshInstance3D* mesh_instance;
     CollisionShape3D* collision_shape;
@@ -47,7 +47,7 @@ public:
     void set_lod_level(const int new_lod_level) { lod_level = new_lod_level; }
     void set_chunk_size(const float new_chunk_size) { chunk_size = new_chunk_size; }
 
-    void set_block_source(const Ref<BlockLODSource> new_block_source) { block_source = new_block_source; }
+    void set_block_source(const Ref<BlockSource> new_block_source) { block_source = new_block_source; }
 
     struct ChunkTaskData {
         std::shared_ptr<ChunkBuildInput> input;

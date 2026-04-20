@@ -11,7 +11,7 @@
 #include <optional>
 
 #include <GameStructs/Blocks.hpp>
-#include <BlockLODSource/BlockLODSource.hpp>
+#include <BlockSource/BlockSource.hpp>
 
 using namespace godot;
 

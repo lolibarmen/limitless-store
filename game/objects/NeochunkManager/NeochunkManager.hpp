@@ -1,7 +1,7 @@
 #pragma once
 #include <godot_cpp/classes/node3d.hpp>
 #include <NeochunkNode/NeochunkNode.hpp>
-#include <BlockLODSource/BlockLODSource.hpp>
+#include <BlockSource/BlockSource.hpp>
 #include <memory>
 #include <unordered_map>
 
@@ -13,7 +13,7 @@ constexpr float ROOT_SIZE = 64.0f;
 class NeochunkManager : public Node3D {
     GDCLASS(NeochunkManager, Node3D)
 
-    Ref<BlockLODSource> block_source;
+    Ref<BlockSource> block_source;
 
     struct Neochunk {
         Vector3 center;
@@ -58,7 +58,7 @@ protected:
 public:
     void _ready() override;
     void _process(double delta) override;
-    void set_block_source(Ref<BlockLODSource> bs) { block_source = bs; }
+    void set_block_source(Ref<BlockSource> bs) { block_source = bs; }
 };
 
 } // namespace godot

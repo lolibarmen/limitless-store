@@ -10,7 +10,7 @@ height = 1.9455941
 [node name="Node3D" type="Node3D"]
 
 [node name="CharacterBody3D" type="CharacterBody3D" parent="."]
-transform = Transform3D(0.99973345, 0, 0.023088653, 0, 1, 0, -0.023088653, 0, 0.99973345, 2.5005665, 132.99689, 14.460089)
+transform = Transform3D(0.99973345, 0, 0.023088653, 0, 1, 0, -0.023088653, 0, 0.99973345, -22.26565, 117.794815, 14.460089)
 script = ExtResource("1_jaeev")
 
 [node name="Camera3D" type="Camera3D" parent="CharacterBody3D"]

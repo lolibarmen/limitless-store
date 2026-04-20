@@ -15,12 +15,27 @@ void BlockGenerator::setup_noise() {
     noise_cave.instantiate();
     noise_cave->set_seed(seed + 10);
     noise_cave->set_noise_type(FastNoiseLite::TYPE_SIMPLEX_SMOOTH);
+    noise_cave->set_fractal_type(FastNoiseLite::FRACTAL_FBM);
+    noise_cave->set_fractal_octaves(4);
+    noise_cave->set_fractal_lacunarity(2.0f);
+    noise_cave->set_fractal_gain(0.5f);
     noise_cave->set_frequency(cave_scale);
 
     noise_detail.instantiate();
     noise_detail->set_seed(seed + 20);
     noise_detail->set_noise_type(FastNoiseLite::TYPE_SIMPLEX_SMOOTH);
+    noise_detail->set_fractal_type(FastNoiseLite::FRACTAL_FBM);
+    noise_detail->set_fractal_octaves(6);
+    noise_detail->set_fractal_lacunarity(2.0f);
+    noise_detail->set_fractal_gain(0.45f);
     noise_detail->set_frequency(detail_scale);
+
+    noise_ridge.instantiate();
+    noise_ridge->set_seed(seed + 30);
+    noise_ridge->set_noise_type(FastNoiseLite::TYPE_SIMPLEX_SMOOTH);
+    noise_ridge->set_fractal_type(FastNoiseLite::FRACTAL_RIDGED);
+    noise_ridge->set_fractal_octaves(5);
+    noise_ridge->set_frequency(detail_scale * 0.6f);
 }
 
 void BlockGenerator::init(Ref<BiomeSource> p_biome_source, int p_seed) {
@@ -32,38 +47,55 @@ void BlockGenerator::init(Ref<BiomeSource> p_biome_source, int p_seed) {
     setup_noise();
 }
 
+// Smooth hermite interpolation
+static inline float smoothstep(float edge0, float edge1, float x) {
+    float t = Math::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+    return t * t * (3.0f - 2.0f * t);
+}
+
 BlockData BlockGenerator::classify(
     const Vector3i&  world_pos,
     const BiomeData& biome,
     float            cave,
-    float            detail
+    float            detail,
+    float            ridge
 ) const {
-    // Центр планеты (можно вынести в константу)
     const Vector3 PLANET_CENTER = Vector3(0, 0, 0);
-    const float    PLANET_RADIUS = 128.0f; // базовый радиус в блоках
+    const float   PLANET_RADIUS = 128.0f;
 
-    // Расстояние от центра до текущего блока
     Vector3 pos_f = Vector3(world_pos.x, world_pos.y, world_pos.z);
     float dist = (pos_f - PLANET_CENTER).length();
 
-    // Поверхность планеты с учётом биома и шума
-    float surface_r = PLANET_RADIUS
-                    + biome.height * 64.0f
-                    + detail * 8.0f;
+    // Горы через ridge шум, сглаженные по высоте биома
+    float mountain_factor = smoothstep(0.5f, 1.0f, biome.height);
+    float height_offset = biome.height * 48.0f
+                        + detail * 12.0f
+                        + ridge * 24.0f * mountain_factor;
 
-    // Пустота выше поверхности
-    if (dist > surface_r)
+    float surface_r = PLANET_RADIUS + height_offset;
+
+    if (dist > surface_r + 1.0f)
         return { BlockMaterial::AIR, -1.0f };
 
-    // Пещеры: порог снижается у поверхности
-    float surface_dist = surface_r - dist;  // глубина под поверхностью
-    float cave_threshold = 0.55f - Math::max(0.0f, surface_dist * 0.001f);
-    if (Math::abs(cave) > cave_threshold && dist < surface_r)
+    // Плавная плотность у границы поверхности
+    float surface_dist = surface_r - dist;
+    float density = smoothstep(-0.5f, 0.5f, surface_dist);
+
+    if (surface_dist < -0.5f)
         return { BlockMaterial::AIR, -1.0f };
 
-    // Глубина от поверхности (аналог старого `depth`)
+    // Пещеры: плавный порог, нет пещер у самой поверхности
+    float surface_fade  = smoothstep(0.0f, 6.0f, surface_dist);
+    float cave_threshold = 0.50f + (1.0f - surface_fade) * 0.25f;
+    float cave_abs = Math::abs(cave);
+    if (cave_abs > cave_threshold) {
+        float cave_density = smoothstep(cave_threshold + 0.05f, cave_threshold, cave_abs);
+        if (cave_density < 0.01f)
+            return { BlockMaterial::AIR, -1.0f };
+        density = Math::min(density, cave_density);
+    }
+
     float depth = surface_dist;
-    float density = (depth < 1.0f) ? Math::fmod(surface_r, 1.0f) : 1.0f;
 
     BlockMaterial mat;
     switch (biome.type) {
@@ -100,12 +132,13 @@ BlockData BlockGenerator::classify(
 BlockData BlockGenerator::get_block(const Vector3i& world_pos) const {
     ERR_FAIL_COND_V_MSG(!biome_source.is_valid(), BlockData{},
         "BlockGenerator: не инициализирован, вызови init()");
-    ERR_FAIL_COND_V_MSG(!noise_cave.is_valid() || !noise_detail.is_valid(), BlockData{},
+    ERR_FAIL_COND_V_MSG(!noise_cave.is_valid() || !noise_detail.is_valid() || !noise_ridge.is_valid(), BlockData{},
         "BlockGenerator: шумы не инициализированы");
 
     BiomeData biome = biome_source->get_biome(world_pos);
     float cave      = noise_cave->get_noise_3d(world_pos.x, world_pos.y, world_pos.z);
     float detail    = noise_detail->get_noise_2d(world_pos.x, world_pos.z);
+    float ridge     = noise_ridge->get_noise_2d(world_pos.x, world_pos.z);
 
-    return classify(world_pos, biome, cave, detail);
+    return classify(world_pos, biome, cave, detail, ridge);
 }
