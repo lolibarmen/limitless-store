@@ -3,6 +3,7 @@
 using namespace godot;
 
 // === AUTO GENERATED INCLUDES ===
+#include "PlayerSimple/PlayerSimple.hpp"
 #include "TestTreeNode/TestTreeNode.hpp"
 #include "WorldCoordinator/WorldCoordinator.hpp"
 #include "NeochunkNode/NeochunkNode.hpp"
@@ -15,6 +16,7 @@ using namespace godot;
 
 inline void auto_register_classes()
 {
+    ClassDB::register_class<PlayerSimple>();
     ClassDB::register_class<TestTreeNode>();
     ClassDB::register_class<WorldCoordinator>();
     ClassDB::register_class<NeochunkNode>();

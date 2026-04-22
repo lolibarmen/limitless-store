@@ -48,6 +48,7 @@ public:
     void set_chunk_size(const float new_chunk_size) { chunk_size = new_chunk_size; }
 
     void set_block_source(const Ref<BlockSource> new_block_source) { block_source = new_block_source; }
+    Ref<BlockSource> get_block_source() const { return block_source; }
 
     struct ChunkTaskData {
         std::shared_ptr<ChunkBuildInput> input;

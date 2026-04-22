@@ -4,12 +4,11 @@
 using namespace godot;
 
 void BlockSource::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("get_generator"),         &BlockSource::get_generator);
-    ClassDB::bind_method(D_METHOD("set_generator", "gen"),  &BlockSource::set_generator);
-    ClassDB::add_property("BlockSource",
-        PropertyInfo(Variant::OBJECT, "generator",
-                     PROPERTY_HINT_RESOURCE_TYPE, "BlockGenerator"),
-        "set_generator", "get_generator");
+    // Обёртки
+    ClassDB::bind_method(D_METHOD("get_block_material", "world_pos"), &BlockSource::get_block_material);
+    ClassDB::bind_method(D_METHOD("get_block_density", "world_pos"), &BlockSource::get_block_density);
+    ClassDB::bind_method(D_METHOD("set_block_material", "world_pos", "material"), &BlockSource::set_block_material);
+    ClassDB::bind_method(D_METHOD("set_block_density", "world_pos", "density"), &BlockSource::set_block_density);
 }
 
 void BlockSource::init(Ref<BlockGenerator> p_generator) {

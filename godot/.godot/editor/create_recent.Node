@@ -1,10 +1,9 @@
+PlayerSimple
 MeshInstance3D
 WorldCoordinator
 NeochunkManager
 WorldEnvironment
 DirectionalLight3D
-ChunkManager
-ChunkNode
 CPUParticles3D
 FogVolume
 SpotLight3D

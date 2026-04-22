@@ -1,6 +1,7 @@
 #include "NeochunkManager.hpp"
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
+#include <NeochunkNode/ChunkMeshQueue.hpp>
 
 using namespace godot;
 
@@ -19,6 +20,8 @@ void NeochunkManager::_process(double delta) {
     update_roots();
     for (auto& [cell, root] : roots)
         update_recurs(root);
+
+    ChunkMeshQueue::get_singleton().tick(4);
 }
 
 void NeochunkManager::spawn_mesh(Neochunk* n) {

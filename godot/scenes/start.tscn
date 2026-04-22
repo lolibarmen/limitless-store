@@ -1,34 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://bu55xvw7ffhtr"]
-
-[ext_resource type="Script" uid="uid://civg8rtoquiq2" path="res://objects/player/rigid_body_3d_2.gd" id="1_jaeev"]
-[ext_resource type="Script" uid="uid://bmsqvpjd0mn8b" path="res://objects/player/camera_3d.gd" id="2_u80x2"]
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ewcy1"]
-radius = 0.65185547
-height = 1.9455941
+[gd_scene format=3 uid="uid://bu55xvw7ffhtr"]
 
 [node name="Node3D" type="Node3D"]
-
-[node name="CharacterBody3D" type="CharacterBody3D" parent="."]
-transform = Transform3D(0.99973345, 0, 0.023088653, 0, 1, 0, -0.023088653, 0, 0.99973345, -22.26565, 117.794815, 14.460089)
-script = ExtResource("1_jaeev")
-
-[node name="Camera3D" type="Camera3D" parent="CharacterBody3D"]
-script = ExtResource("2_u80x2")
-
-[node name="SpotLight3D" type="SpotLight3D" parent="CharacterBody3D/Camera3D"]
-visible = false
-light_color = Color(1, 1, 0.78431374, 1)
-light_energy = 2.0
-spot_range = 19.37529
-spot_angle = 40.78125
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CharacterBody3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.41379452, 0)
-shape = SubResource("CapsuleShape3D_ewcy1")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -0.7300073, 0.68343943, 0, -0.68343943, -0.7300073, 0, 0, 0)
 light_color = Color(0.93333334, 0.8509804, 0.75686276, 1)
 
 [node name="WorldCoordinator" type="WorldCoordinator" parent="."]
+
+[node name="PlayerSimple" type="PlayerSimple" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.527975, 149.50899, 0.5226989)
+visible = false

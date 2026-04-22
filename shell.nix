@@ -15,6 +15,7 @@ pkg-config
 scons
 python3
 gdb
+perf
 
 # Компиляторы
 gcc

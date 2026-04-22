@@ -1,5 +1,5 @@
 #include "NeochunkNode.hpp"
-
+#include "ChunkMeshQueue.hpp"
 #include <godot_cpp/classes/mesh.hpp>
 #include <godot_cpp/classes/box_mesh.hpp>
 #include <godot_cpp/classes/standard_material3d.hpp>
@@ -12,6 +12,7 @@ using namespace godot;
 
 void NeochunkNode::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_mesh", "mesh"), &NeochunkNode::set_mesh);
+    ClassDB::bind_method(D_METHOD("get_block_source"), &NeochunkNode::get_block_source);
 }
 
 NeochunkNode::NeochunkNode() {}
@@ -205,10 +206,7 @@ void NeochunkNode::_build_mesh_task(uint64_t chunk_id) {
     mesh.instantiate();
     mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
 
-    chunk = Object::cast_to<NeochunkNode>(ObjectDB::get_instance(chunk_id));
-    if (chunk) {
-        chunk->call_deferred("set_mesh", mesh);
-    }
+    ChunkMeshQueue::get_singleton().push(chunk_id, mesh);
 }
 
 void NeochunkNode::set_mesh(Ref<Mesh> mesh) {
@@ -227,7 +225,6 @@ void NeochunkNode::set_mesh(Ref<Mesh> mesh) {
 
     // add_debug_box();
     // set_debug_material();
-    set_material();
 }
 
 void NeochunkNode::_ready() {
@@ -238,6 +235,8 @@ void NeochunkNode::_ready() {
 
     collision_shape = memnew(CollisionShape3D);
     add_child(collision_shape);
+
+    // set_material();
 
     generate_mesh();
 }

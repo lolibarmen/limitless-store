@@ -31,6 +31,20 @@ public:
     void      reset_block(const Vector3i& world_pos);
     bool      has_edit(const Vector3i& world_pos) const;
 
+    // Обвёртки
+    int get_block_material(const Vector3i& world_pos) const { return static_cast<int>(get_block(world_pos).material); }
+    float get_block_density(const Vector3i& world_pos) const { return get_block(world_pos).density; }
+    void set_block_material(const Vector3i& world_pos, int material) {
+        BlockData data = get_block(world_pos);
+        data.material = static_cast<BlockMaterial>(material);
+        set_block(world_pos, data);
+    }
+    void set_block_density(const Vector3i& world_pos, float density) {
+        BlockData data = get_block(world_pos);
+        data.density = density;
+        set_block(world_pos, data);
+    }
+
     // Новый метод — заполняет массив блоков для чанка
     void fill_chunk(
         std::vector<BlockData>& out,
