@@ -29,8 +29,6 @@ private:
     void add_debug_box();
     void set_debug_material();
 
-    void set_material();
-
     void generate_mesh();
 
 protected:
@@ -41,7 +39,6 @@ public:
     ~NeochunkNode();
 
     void _ready() override;
-    // void _exit_tree() override { print_line(" - realy despawn"); }
 
     void set_mesh(const Ref<Mesh> mesh);
     void set_lod_level(const int new_lod_level) { lod_level = new_lod_level; }

@@ -134,7 +134,7 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
                 ? input.get_block(coord).material
                 : input.get_block(coord + n12).material;
 
-            float mat_id = static_cast<float>(static_cast<int>(mat));
+            float mat_id = static_cast<float>(static_cast<int>(mat)) / 255.0f;
             Color vertex_color(mat_id, 0.0f, 0.0f, 1.0f);
 
             if (flip) {

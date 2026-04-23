@@ -84,7 +84,7 @@ BlockData BlockGenerator::classify(
     if (surface_dist < -0.5f)
         return { BlockMaterial::AIR, -1.0f };
 
-    // Пещеры: плавный порог, нет пещер у самой поверхности
+    // // Пещеры: плавный порог, нет пещер у самой поверхности
     float surface_fade  = smoothstep(0.0f, 6.0f, surface_dist);
     float cave_threshold = 0.50f + (1.0f - surface_fade) * 0.25f;
     float cave_abs = Math::abs(cave);
@@ -128,6 +128,25 @@ BlockData BlockGenerator::classify(
 
     return { mat, density };
 }
+
+// BlockData BlockGenerator::classify(const Vector3i& world_pos, const BiomeData& biome,
+//                                    float cave, float detail, float ridge) const {
+//     const Vector3 PLANET_CENTER = Vector3(0, 0, 0);
+//     const float   PLANET_RADIUS = 128.0f;
+
+//     Vector3 pos_f = Vector3(world_pos.x, world_pos.y, world_pos.z);
+//     float dist = (pos_f - PLANET_CENTER).length();
+
+//     // density > 0  — внутри сферы, density < 0 — снаружи
+//     // +1.0 = центр планеты, 0.0 = ровно на поверхности, -1.0 = на 1 блок снаружи
+//     float density = PLANET_RADIUS - dist;
+
+//     if (density < 0.0f)
+//         return { BlockMaterial::AIR, density };
+
+//     BlockMaterial mat = BlockMaterial::STONE;
+//     return { mat, density };
+// }
 
 BlockData BlockGenerator::get_block(const Vector3i& world_pos) const {
     ERR_FAIL_COND_V_MSG(!biome_source.is_valid(), BlockData{},

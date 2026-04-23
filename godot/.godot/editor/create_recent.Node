@@ -1,4 +1,9 @@
+OuterWildsCharacter
+Node3D
+CollisionShape3D
+StaticBody3D
 PlayerSimple
+Camera3D
 MeshInstance3D
 WorldCoordinator
 NeochunkManager
@@ -7,7 +12,3 @@ DirectionalLight3D
 CPUParticles3D
 FogVolume
 SpotLight3D
-Camera3D
-CollisionShape3D
-StaticBody3D
-OmniLight3D

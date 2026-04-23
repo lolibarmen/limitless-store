@@ -1,6 +1,7 @@
 #include "WorldCoordinator.hpp"
-#include <godot_cpp/core/class_db.hpp>
 #include <BlockSource/BlockSource.hpp>
+#include <NeochunkNode/ChunkMaterialManager.hpp>
+#include <godot_cpp/core/class_db.hpp>
 
 using namespace godot;
 
@@ -13,6 +14,8 @@ void WorldCoordinator::_bind_methods() {
 }
 
 void WorldCoordinator::_ready() {
+    ChunkMaterialManager::get_singleton().initialize();
+
     // --- уровень 1: биом ---
     Ref<BiomeGenerator> biome_gen;
     biome_gen.instantiate();

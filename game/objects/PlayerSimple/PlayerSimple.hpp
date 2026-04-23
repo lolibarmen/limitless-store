@@ -24,7 +24,7 @@ private:
     float gravity = 9.8f;
 
     float camera_pitch = 0.0f; // ограничение угла камеры вверх/вниз
-
+    
 protected:
     static void _bind_methods();
 

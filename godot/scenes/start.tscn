@@ -8,6 +8,5 @@ light_color = Color(0.93333334, 0.8509804, 0.75686276, 1)
 
 [node name="WorldCoordinator" type="WorldCoordinator" parent="."]
 
-[node name="PlayerSimple" type="PlayerSimple" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.527975, 149.50899, 0.5226989)
-visible = false
+[node name="OuterWildsCharacter" type="OuterWildsCharacter" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.083065, 145.58357, 26.670355)
