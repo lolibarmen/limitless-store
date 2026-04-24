@@ -9,12 +9,13 @@ void OuterWildsCharacter::_ready() {
     // Коллизия
     collision_shape = memnew(CollisionShape3D);
     CapsuleShape3D *capsule_shape = memnew(CapsuleShape3D);
+    capsule_shape->set_height(1.8f);
     collision_shape->set_shape(capsule_shape);
     add_child(collision_shape);
 
     // Камера
     camera_pivot = memnew(Node3D);
-    camera_pivot->set_position(Vector3(0, 1.0f, 0));
+    camera_pivot->set_position(Vector3(0, 0.8f, 0));
     camera = memnew(Camera3D);
     camera->make_current();
     add_child(camera_pivot);

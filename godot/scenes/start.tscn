@@ -1,12 +1,54 @@
-[gd_scene format=3 uid="uid://bu55xvw7ffhtr"]
+[gd_scene load_steps=8 format=3 uid="uid://bu55xvw7ffhtr"]
+
+[ext_resource type="Texture2D" uid="uid://c0jaj1mgwn2u4" path="res://assets/skybox.jpg" id="1_jaeev"]
+[ext_resource type="Shader" uid="uid://d0xb350q4kkb7" path="res://assets/atmosphere.gdshader" id="2_u80x2"]
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_u80x2"]
+panorama = ExtResource("1_jaeev")
+filter = false
+
+[sub_resource type="Sky" id="Sky_jaeev"]
+sky_material = SubResource("PanoramaSkyMaterial_u80x2")
+
+[sub_resource type="Environment" id="Environment_u80x2"]
+background_mode = 2
+sky = SubResource("Sky_jaeev")
+ambient_light_source = 2
+ambient_light_color = Color(0.0756, 0.08004001, 0.12, 1)
+ambient_light_energy = 2.71
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bodal"]
+render_priority = 0
+shader = ExtResource("2_u80x2")
+shader_parameter/atmosphere_color = Color(0.3, 0.6, 1, 1)
+shader_parameter/sun_color = Color(1, 0.5, 0.2, 1)
+shader_parameter/sun_direction = Vector3(0, 0, 1)
+shader_parameter/density = 0.25
+shader_parameter/horizon_falloff = 1.0
+shader_parameter/sun_spread = 2.0
+shader_parameter/sun_strength = 1.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_jaeev"]
+material = SubResource("ShaderMaterial_bodal")
+flip_faces = true
+radius = 180.0
+height = 360.0
 
 [node name="Node3D" type="Node3D"]
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -0.7300073, 0.68343943, 0, -0.68343943, -0.7300073, 0, 0, 0)
-light_color = Color(0.93333334, 0.8509804, 0.75686276, 1)
 
 [node name="WorldCoordinator" type="WorldCoordinator" parent="."]
 
 [node name="OuterWildsCharacter" type="OuterWildsCharacter" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.083065, 145.58357, 26.670355)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.083, 150, 26.67)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_u80x2")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+light_energy = 0.448
+light_specular = 0.0
+
+[node name="Atmosphere" type="MeshInstance3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
+visible = false
+mesh = SubResource("SphereMesh_jaeev")

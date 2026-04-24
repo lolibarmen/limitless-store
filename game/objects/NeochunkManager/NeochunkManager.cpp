@@ -103,7 +103,7 @@ void NeochunkManager::update_roots() {
 
     for (auto it = roots.begin(); it != roots.end(); ) {
         Vector3i d = it->first - pc;
-        if (abs(d.x) > 1 || abs(d.y) > 1 || abs(d.z) > 1) {
+        if (abs(d.x) > root_radius || abs(d.y) > root_radius || abs(d.z) > root_radius) {
             delete_childrens(it->second);
             despawn_mesh(it->second);
             delete it->second;
@@ -111,9 +111,9 @@ void NeochunkManager::update_roots() {
         } else ++it;
     }
 
-    for (int dx = -1; dx <= 1; dx++)
-    for (int dy = -1; dy <= 1; dy++)
-    for (int dz = -1; dz <= 1; dz++) {
+    for (int dx = -root_radius; dx <= root_radius; dx++)
+    for (int dy = -root_radius; dy <= root_radius; dy++)
+    for (int dz = -root_radius; dz <= root_radius; dz++) {
         Vector3i cell = pc + Vector3i(dx, dy, dz);
         if (!roots.count(cell)) {
             Vector3 center = (Vector3(cell) + Vector3(0.5f, 0.5f, 0.5f)) * ROOT_SIZE;
