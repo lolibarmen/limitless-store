@@ -6,8 +6,8 @@
 
 namespace godot {
 
-class BlockGenerator : public Resource {
-    GDCLASS(BlockGenerator, Resource)
+class BlockGenerator : public RefCounted {
+    GDCLASS(BlockGenerator, RefCounted)
 
 private:
     int seed = 0;

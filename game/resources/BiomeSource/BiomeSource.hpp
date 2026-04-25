@@ -9,8 +9,8 @@
 
 namespace godot {
 
-class BiomeSource : public Resource {
-    GDCLASS(BiomeSource, Resource)
+class BiomeSource : public RefCounted {
+    GDCLASS(BiomeSource, RefCounted)
 
 private:
     Ref<BiomeGenerator> generator;

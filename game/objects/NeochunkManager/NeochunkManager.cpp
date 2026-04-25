@@ -1,4 +1,5 @@
 #include "NeochunkManager.hpp"
+#include <functional>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
 #include <NeochunkNode/ChunkMeshQueue.hpp>
@@ -21,7 +22,7 @@ void NeochunkManager::_process(double delta) {
     for (auto& [cell, root] : roots)
         update_recurs(root);
 
-    ChunkMeshQueue::get_singleton().tick(4);
+    ChunkMeshQueue::get_singleton().tick(9);
 }
 
 void NeochunkManager::spawn_mesh(Neochunk* n) {
@@ -75,7 +76,7 @@ void NeochunkManager::update_recurs(Neochunk* n) {
         float h = n->size / 2.0f, q = h / 2.0f;
         int i = 0;
         for (int x : {-1,1}) for (int y : {-1,1}) for (int z : {-1,1}) {
-            n->children[i] = new Neochunk(n->center + Vector3(x,y,z) * q, h, n->depth + 1);
+            n->children[i] = new Neochunk(n->center + Vector3(x,y,z) * q, h, n->depth + 1, n);
             spawn_mesh(n->children[i]);
             i++;
         }
@@ -120,6 +121,49 @@ void NeochunkManager::update_roots() {
             auto root = new Neochunk(center, ROOT_SIZE, 0);
             spawn_mesh(root);
             roots[cell] = root;
+        }
+    }
+}
+
+void NeochunkManager::refresh_mesh(NeochunkNode* target) {
+    Neochunk* origin = nullptr;
+    for (auto& [_, root] : roots) {
+        // спуск по дереву
+        std::function<Neochunk*(Neochunk*)> find = [&](Neochunk* n) -> Neochunk* {
+            if (n->node == target) return n;
+            for (auto* c : n->children)
+                if (c) if (auto* r = find(c)) return r;
+            return nullptr;
+        };
+        if ((origin = find(root))) break;
+    }
+    if (!origin) return;
+
+    // Перегенерировать себя
+    if (origin->node) origin->node->generate_mesh();
+
+    // Братья (дети родителя)
+    Neochunk* parent = origin->parent;
+    if (parent) {
+        for (auto* sibling : parent->children) {
+            if (!sibling || sibling == origin) continue;
+            if (sibling->is_leaf() && sibling->node)
+                sibling->node->generate_mesh();
+        }
+
+        // Дети дядей (дети соседей родителя)
+        Neochunk* grandparent = parent->parent;
+        if (grandparent) {
+            for (auto* uncle : grandparent->children) {
+                if (!uncle || uncle == parent) continue;
+                if (uncle->is_leaf()) {
+                    if (uncle->node) uncle->node->generate_mesh();
+                } else {
+                    for (auto* cousin : uncle->children)
+                        if (cousin && cousin->is_leaf() && cousin->node)
+                            cousin->node->generate_mesh();
+                }
+            }
         }
     }
 }

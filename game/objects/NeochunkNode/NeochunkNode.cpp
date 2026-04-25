@@ -12,6 +12,7 @@ using namespace godot;
 void NeochunkNode::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_mesh", "mesh"), &NeochunkNode::set_mesh);
     ClassDB::bind_method(D_METHOD("get_block_source"), &NeochunkNode::get_block_source);
+    ClassDB::bind_method(D_METHOD("generate_mesh"), &NeochunkNode::generate_mesh);
 }
 
 NeochunkNode::NeochunkNode() {}
@@ -143,6 +144,7 @@ void NeochunkNode::set_mesh(Ref<Mesh> mesh) {
 }
 
 void NeochunkNode::_ready() {
+    add_to_group("mineable");
 
     mesh_instance = memnew(MeshInstance3D);
     add_child(mesh_instance);

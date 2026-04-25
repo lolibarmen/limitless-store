@@ -2,6 +2,9 @@
 #include <godot_cpp/classes/capsule_shape3d.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/world3d.hpp>
+#include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
+#include <godot_cpp/classes/physics_direct_space_state3d.hpp>
 
 using namespace godot;
 
@@ -17,9 +20,15 @@ void OuterWildsCharacter::_ready() {
     camera_pivot = memnew(Node3D);
     camera_pivot->set_position(Vector3(0, 0.8f, 0));
     camera = memnew(Camera3D);
+    camera->set_far(10000);
     camera->make_current();
     add_child(camera_pivot);
     camera_pivot->add_child(camera);
+
+    // Интрумент
+    Ref<SuperDigger> super_digger;
+    super_digger.instantiate();
+    current_tool = super_digger;
 }
 
 void OuterWildsCharacter::_physics_process(double delta) {
@@ -64,6 +73,8 @@ void OuterWildsCharacter::_physics_process(double delta) {
 }
 
 void OuterWildsCharacter::_input(const Ref<InputEvent> &event) {
+    if (Engine::get_singleton()->is_editor_hint()) return;
+
     // Обработка движения мыши
     const InputEventMouseMotion *mouse_motion =
         Object::cast_to<InputEventMouseMotion>(event.ptr());
@@ -85,12 +96,46 @@ void OuterWildsCharacter::_input(const Ref<InputEvent> &event) {
         camera_pivot->set_rotation(Vector3(camera_pitch, 0, 0));
     }
 
-    if (event->is_action_pressed("ui_left_click")) {
-        
+    if (event->is_action_pressed("first_action")) {
+        Dictionary result = perform_raycast();
+
+        if (!result.is_empty()) {
+            Vector3 hit_point     = result["position"];
+            // Vector3 hit_normal    = result["normal"];
+            Object *hit_object    = Object::cast_to<Object>(result["collider"]);
+
+            if (hit_object) {
+                // Например, вызвать метод на объекте
+                // hit_object->call("on_interact");
+                // UtilityFunctions::print("Hit: ", hit_object->get_class());
+                // UtilityFunctions::print("At:  ", hit_point);
+
+                if(current_tool->can_use_on(result)) {
+                    current_tool->use(result);
+                }
+            }
+        }
     }
 
-    if (event->is_action_pressed("ui_right_click")) {
-        
+    if (event->is_action_pressed("second_action")) {
+        Dictionary result = perform_raycast();
+
+        if (!result.is_empty()) {
+            Vector3 hit_point     = result["position"];
+            // Vector3 hit_normal    = result["normal"];
+            Object *hit_object    = Object::cast_to<Object>(result["collider"]);
+
+            if (hit_object) {
+                // Например, вызвать метод на объекте
+                // hit_object->call("on_interact");
+                // UtilityFunctions::print("Hit: ", hit_object->get_class());
+                // UtilityFunctions::print("At:  ", hit_point);
+
+                if(current_tool->can_use_alt_on(result)) {
+                    current_tool->use_alt(result);
+                }
+            }
+        }
     }
 
     if (event->is_action_pressed("ui_cancel")) {
@@ -101,4 +146,20 @@ void OuterWildsCharacter::_input(const Ref<InputEvent> &event) {
             Input::get_singleton()->set_mouse_mode(Input::MOUSE_MODE_CAPTURED);
         }
     }
+}
+
+Dictionary OuterWildsCharacter::perform_raycast(float max_distance) {
+    // Получаем начало и направление луча из камеры
+    Vector3 ray_origin = camera->get_global_position();
+    Vector3 ray_direction = -camera->get_global_transform().basis.get_column(2); // forward
+    Vector3 ray_end = ray_origin + ray_direction * max_distance;
+
+    // Параметры запроса
+    Ref<PhysicsRayQueryParameters3D> query = PhysicsRayQueryParameters3D::create(ray_origin, ray_end);
+    query->set_collide_with_bodies(true);
+    // query->set_exclude({ get_rid() }); // исключить самого персонажа, если нужно
+
+    // Выполняем запрос
+    PhysicsDirectSpaceState3D *space_state = get_world_3d()->get_direct_space_state();
+    return space_state->intersect_ray(query);
 }

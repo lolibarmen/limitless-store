@@ -1,12 +1,11 @@
+WorldEnvironment
 MeshInstance3D
 DirectionalLight3D
-WorldEnvironment
 Camera3D
 OuterWildsCharacter
 Node3D
 CollisionShape3D
 StaticBody3D
-PlayerSimple
 WorldCoordinator
 NeochunkManager
 CPUParticles3D

@@ -6,6 +6,8 @@
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 
+#include <SuperDigger/SuperDigger.hpp>
+
 namespace godot {
 
 class OuterWildsCharacter : public CharacterBody3D {
@@ -17,6 +19,10 @@ private:
     Node3D *camera_pivot;
 
     float gravity = 9.8f;
+
+    Ref<Tool> current_tool;
+
+    Dictionary perform_raycast(float max_distance = 1000.0f);
 
 protected:
     static void _bind_methods() {};

@@ -83,7 +83,7 @@ void ChunkMaterialManager::initialize() {
 
     mat->set_shader_parameter("texture_null", load_tex("res://assets/null.webp"));
 
-    mat->set_shader_parameter("texture_scale",    0.25f);
+    mat->set_shader_parameter("texture_scale",    0.5f);
     mat->set_shader_parameter("blend_sharpness",  16.0f);
 
     _material = mat;

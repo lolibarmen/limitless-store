@@ -19,9 +19,13 @@ class NeochunkManager : public Node3D {
         Vector3 center;
         float   size;
         int     depth;
+        Neochunk* parent = nullptr;
         std::array<Neochunk*, 8> children = {};
         NeochunkNode* node = nullptr;
-        Neochunk(Vector3 c, float s, int d) : center(c), size(s), depth(d) {}
+
+        Neochunk(Vector3 c, float s, int d, Neochunk* p = nullptr)
+        : center(c), size(s), depth(d), parent(p) {}
+
         ~Neochunk() {
             if (node) {
                 node->queue_free();
@@ -60,6 +64,7 @@ public:
     void _ready() override;
     void _process(double delta) override;
     void set_block_source(Ref<BlockSource> bs) { block_source = bs; }
+    void refresh_mesh(NeochunkNode* node);
 };
 
 } // namespace godot

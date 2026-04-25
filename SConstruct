@@ -36,8 +36,8 @@ def discover_cpp_classes(base_dir):
         cpp_files = [f for f in files if f.endswith(".cpp")]
         header_files = [f for f in files if f.endswith(".hpp")]
 
-        if not cpp_files:
-            continue
+        # if not cpp_files:
+        #     continue
 
         folder_name = os.path.basename(root)
         print(f"Discovered folder: {folder_name} | cpp files: {len(cpp_files)}")

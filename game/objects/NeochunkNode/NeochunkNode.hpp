@@ -29,17 +29,17 @@ private:
     void add_debug_box();
     void set_debug_material();
 
-    void generate_mesh();
-
-protected:
+    
+    protected:
     static void _bind_methods();
-
-public:
+    
+    public:
     NeochunkNode();
     ~NeochunkNode();
-
+    
     void _ready() override;
-
+    
+    void generate_mesh();
     void set_mesh(const Ref<Mesh> mesh);
     void set_lod_level(const int new_lod_level) { lod_level = new_lod_level; }
     void set_chunk_size(const float new_chunk_size) { chunk_size = new_chunk_size; }
