@@ -64,7 +64,7 @@ public:
     void _ready() override;
     void _process(double delta) override;
     void set_block_source(Ref<BlockSource> bs) { block_source = bs; }
-    void refresh_mesh(NeochunkNode* node);
+    void refresh_mesh(const std::vector<Vector3i>& changed_voxels);
 };
 
 } // namespace godot

@@ -40,6 +40,7 @@ void SuperDigger::use(const Dictionary &raycast_result) {
 
     bool changed = false;
 
+    std::vector<Vector3i> changed_voxels;
     for (int dx = -r; dx <= r; dx++)
     for (int dy = -r; dy <= r; dy++)
     for (int dz = -r; dz <= r; dz++) {
@@ -52,13 +53,14 @@ void SuperDigger::use(const Dictionary &raycast_result) {
         Vector3i voxel = coord + Vector3i(dx, dy, dz);
         float d = block_source->get_block_density(voxel);
         block_source->set_block_density(voxel, d + delta * falloff);
+        changed_voxels.push_back(voxel);
         changed = true;
     }
 
     if (!changed) return;
 
     NeochunkManager* ncmanager = Object::cast_to<NeochunkManager>(ncnode->get_parent());
-    ncmanager->refresh_mesh(ncnode);
+    ncmanager->refresh_mesh(changed_voxels);
 
     UtilityFunctions::print("Super digger used on: ", ncnode->get_name());
 }
@@ -78,6 +80,7 @@ void SuperDigger::use_alt(const Dictionary &raycast_result) {
 
     bool changed = false;
 
+    std::vector<Vector3i> changed_voxels;
     for (int dx = -r; dx <= r; dx++)
     for (int dy = -r; dy <= r; dy++)
     for (int dz = -r; dz <= r; dz++) {
@@ -90,13 +93,14 @@ void SuperDigger::use_alt(const Dictionary &raycast_result) {
         Vector3i voxel = coord + Vector3i(dx, dy, dz);
         float d = block_source->get_block_density(voxel);
         block_source->set_block_density(voxel, d + delta * falloff);
+        changed_voxels.push_back(voxel);
         changed = true;
     }
 
     if (!changed) return;
 
     NeochunkManager* ncmanager = Object::cast_to<NeochunkManager>(ncnode->get_parent());
-    ncmanager->refresh_mesh(ncnode);
+    ncmanager->refresh_mesh(changed_voxels);
 
     UtilityFunctions::print("Super digger used on: ", ncnode->get_name());
 }

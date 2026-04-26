@@ -26,11 +26,12 @@ private:
     MeshInstance3D* mesh_instance;
     CollisionShape3D* collision_shape;
 
+    MeshInstance3D* debug_mesh_instance = nullptr;
+    
     void add_debug_box();
     void set_debug_material();
-
     
-    protected:
+protected:
     static void _bind_methods();
     
     public:

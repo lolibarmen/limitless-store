@@ -43,7 +43,7 @@ void OuterWildsCharacter::_physics_process(double delta) {
     }
 
     Input *input = Input::get_singleton();
-    if (input->is_action_just_pressed("ui_accept") && is_on_floor()) {
+    if (input->is_action_just_pressed("ui_accept")) { // <- && is_on_floor()
         velocity.y += 4.5;
     }
 

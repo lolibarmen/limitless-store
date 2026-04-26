@@ -1,6 +1,7 @@
-WorldEnvironment
-MeshInstance3D
+OmniLight3D
 DirectionalLight3D
+MeshInstance3D
+WorldEnvironment
 Camera3D
 OuterWildsCharacter
 Node3D

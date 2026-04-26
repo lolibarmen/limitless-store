@@ -20,7 +20,8 @@ NeochunkNode::NeochunkNode() {}
 NeochunkNode::~NeochunkNode() {}
 
 void NeochunkNode::add_debug_box() {
-    MeshInstance3D* debug_mesh_instance = memnew(MeshInstance3D);
+    if(debug_mesh_instance) return;
+    debug_mesh_instance = memnew(MeshInstance3D);
 
     BoxMesh* box_mesh = memnew(BoxMesh);
     box_mesh->set_size(Vector3(1.0, 1.0, 1.0) * chunk_size);

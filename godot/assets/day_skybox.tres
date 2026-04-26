@@ -1,0 +1,13 @@
+[gd_resource type="PanoramaSkyMaterial" load_steps=3 format=3 uid="uid://sbyhkt48e7sn"]
+
+[sub_resource type="Gradient" id="Gradient_ewcy1"]
+colors = PackedColorArray(0.6392157, 0.7607843, 1, 1, 0.49803922, 0.6666667, 0.99215686, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_jaeev"]
+gradient = SubResource("Gradient_ewcy1")
+fill_from = Vector2(0.5, 1)
+fill_to = Vector2(0.5, 0)
+metadata/_snap_enabled = true
+
+[resource]
+panorama = SubResource("GradientTexture2D_jaeev")

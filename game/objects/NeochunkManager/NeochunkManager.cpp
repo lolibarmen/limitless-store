@@ -125,45 +125,30 @@ void NeochunkManager::update_roots() {
     }
 }
 
-void NeochunkManager::refresh_mesh(NeochunkNode* target) {
-    Neochunk* origin = nullptr;
-    for (auto& [_, root] : roots) {
-        // спуск по дереву
-        std::function<Neochunk*(Neochunk*)> find = [&](Neochunk* n) -> Neochunk* {
-            if (n->node == target) return n;
-            for (auto* c : n->children)
-                if (c) if (auto* r = find(c)) return r;
-            return nullptr;
-        };
-        if ((origin = find(root))) break;
-    }
-    if (!origin) return;
+void NeochunkManager::refresh_mesh(const std::vector<Vector3i>& changed_voxels) {
+    std::function<void(Neochunk*)> check_and_refresh = [&](Neochunk* n) {
+        if (n->is_leaf()) {
+            if (!n->node) return;
+            // AABB чанка
+            float half = n->size / 2.0f;
+            Vector3 min = n->center - Vector3(half, half, half);
+            Vector3 max = n->center + Vector3(half, half, half);
 
-    // Перегенерировать себя
-    if (origin->node) origin->node->generate_mesh();
-
-    // Братья (дети родителя)
-    Neochunk* parent = origin->parent;
-    if (parent) {
-        for (auto* sibling : parent->children) {
-            if (!sibling || sibling == origin) continue;
-            if (sibling->is_leaf() && sibling->node)
-                sibling->node->generate_mesh();
-        }
-
-        // Дети дядей (дети соседей родителя)
-        Neochunk* grandparent = parent->parent;
-        if (grandparent) {
-            for (auto* uncle : grandparent->children) {
-                if (!uncle || uncle == parent) continue;
-                if (uncle->is_leaf()) {
-                    if (uncle->node) uncle->node->generate_mesh();
-                } else {
-                    for (auto* cousin : uncle->children)
-                        if (cousin && cousin->is_leaf() && cousin->node)
-                            cousin->node->generate_mesh();
+            for (const auto& v : changed_voxels) {
+                // +1 вокрел отступ — чтобы захватить граничащие чанки
+                if (v.x >= (int)min.x - 1 && v.x <= (int)max.x + 1 &&
+                    v.y >= (int)min.y - 1 && v.y <= (int)max.y + 1 &&
+                    v.z >= (int)min.z - 1 && v.z <= (int)max.z + 1) {
+                    n->node->generate_mesh();
+                    return; // достаточно одного попадания
                 }
             }
+        } else {
+            for (auto* c : n->children)
+                if (c) check_and_refresh(c);
         }
-    }
+    };
+
+    for (auto& [_, root] : roots)
+        check_and_refresh(root);
 }

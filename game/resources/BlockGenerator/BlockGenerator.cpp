@@ -50,7 +50,7 @@ void BlockGenerator::init(Ref<BiomeSource> p_biome_source, int p_seed) {
 // Smooth hermite interpolation
 static inline float smoothstep(float edge0, float edge1, float x) {
     float t = Math::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
-    return t * t * (3.0f - 2.0f * t);
+    return t;
 }
 
 BlockData BlockGenerator::classify(
@@ -79,7 +79,7 @@ BlockData BlockGenerator::classify(
 
     // Плавная плотность у границы поверхности
     float surface_dist = surface_r - dist;
-    float density = smoothstep(-0.5f, 0.5f, surface_dist);
+    float density = smoothstep(-1.0f, 1.0f, surface_dist);
 
     if (surface_dist < -0.5f)
         return { BlockMaterial::AIR, -1.0f };
