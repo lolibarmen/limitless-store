@@ -2,7 +2,7 @@
 
 namespace godot {
 
-enum class BlockMaterial : int {
+enum BlockMaterial {
     AIR          = 0,
     STONE        = 1,
     DIRT         = 2,
