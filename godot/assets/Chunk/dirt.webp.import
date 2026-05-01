@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c8frdfv2lysk0"
-path.s3tc="res://.godot/imported/stone.webp-51d5df8e63552bad8a608d836847e40c.s3tc.ctex"
+uid="uid://dndsy8ij0rsu2"
+path.s3tc="res://.godot/imported/dirt.webp-01a13d7816601a8a6bf4d4ed19ce1775.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/stone.webp"
-dest_files=["res://.godot/imported/stone.webp-51d5df8e63552bad8a608d836847e40c.s3tc.ctex"]
+source_file="res://assets/Chunk/dirt.webp"
+dest_files=["res://.godot/imported/dirt.webp-01a13d7816601a8a6bf4d4ed19ce1775.s3tc.ctex"]
 
 [params]
 

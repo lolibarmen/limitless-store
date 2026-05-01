@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dndsy8ij0rsu2"
-path.s3tc="res://.godot/imported/dirt.webp-12d4890c332352eabfd3a0a92562f783.s3tc.ctex"
+uid="uid://bg3u24lf07djo"
+path.s3tc="res://.godot/imported/snow.webp-f4775ccce5e7701896a4c8ca7f85bbb2.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/dirt.webp"
-dest_files=["res://.godot/imported/dirt.webp-12d4890c332352eabfd3a0a92562f783.s3tc.ctex"]
+source_file="res://assets/Chunk/snow.webp"
+dest_files=["res://.godot/imported/snow.webp-f4775ccce5e7701896a4c8ca7f85bbb2.s3tc.ctex"]
 
 [params]
 
