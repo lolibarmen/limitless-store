@@ -1,4 +1,3 @@
-res://scenes/bake_test.tscn
-res://assets/atmosphere.gdshader
-res://scenes/backup.tscn
 res://scenes/start.tscn
+res://assets/atmosphere.gdshader
+res://assets/day_skybox.tres

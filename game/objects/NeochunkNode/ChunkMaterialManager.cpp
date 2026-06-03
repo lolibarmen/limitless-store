@@ -74,14 +74,14 @@ void ChunkMaterialManager::initialize() {
         return ResourceLoader::get_singleton()->load(path, "Texture2D");
     };
 
-    mat->set_shader_parameter("texture_grass",  load_tex("res://assets/grass.webp"));
-    mat->set_shader_parameter("texture_dirt",   load_tex("res://assets/dirt.webp"));
-    mat->set_shader_parameter("texture_stone",  load_tex("res://assets/stone.webp"));
-    mat->set_shader_parameter("texture_sand",   load_tex("res://assets/sand.webp"));
-    mat->set_shader_parameter("texture_snow",   load_tex("res://assets/snow.webp"));
-    mat->set_shader_parameter("texture_gravel", load_tex("res://assets/gravel.webp"));
+    mat->set_shader_parameter("texture_grass",  load_tex("res://assets/Chunk/grass.webp"));
+    mat->set_shader_parameter("texture_dirt",   load_tex("res://assets/Chunk/dirt.webp"));
+    mat->set_shader_parameter("texture_stone",  load_tex("res://assets/Chunk/stone.webp"));
+    mat->set_shader_parameter("texture_sand",   load_tex("res://assets/Chunk/sand.webp"));
+    mat->set_shader_parameter("texture_snow",   load_tex("res://assets/Chunk/snow.webp"));
+    mat->set_shader_parameter("texture_gravel", load_tex("res://assets/Chunk/gravel.webp"));
 
-    mat->set_shader_parameter("texture_null", load_tex("res://assets/null.webp"));
+    mat->set_shader_parameter("texture_null", load_tex("res://assets/Chunk/null.webp"));
 
     mat->set_shader_parameter("texture_scale",    0.5f);
     mat->set_shader_parameter("blend_sharpness",  16.0f);
