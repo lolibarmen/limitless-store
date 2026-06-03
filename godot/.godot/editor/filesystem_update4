@@ -1,3 +1,4 @@
 res://scenes/bake_test.tscn
 res://assets/atmosphere.gdshader
-res://objects/bake_test/bake_test.VoxelGI_data.res
+res://scenes/backup.tscn
+res://scenes/start.tscn

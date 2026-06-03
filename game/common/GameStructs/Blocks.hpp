@@ -10,10 +10,9 @@ enum BlockMaterial {
     SAND         = 4,
     SNOW         = 5,
     GRAVEL       = 6,
-    WATER        = 7
+    WATER        = 7,
+    COUNT        = 8
 };
-
-constexpr auto BLOCK_MATERIAL_COUNT = std::size(BlockMaterial);
 
 struct BlockData {
     BlockMaterial material = BlockMaterial::AIR;

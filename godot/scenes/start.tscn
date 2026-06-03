@@ -39,7 +39,6 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 0.55919296, 0.8290376, 0, -0.8290376, 0.55919296, 0, 0, 0)
 light_color = Color(0.7411765, 0.8156863, 0.89411765, 1)
 light_energy = 0.1
-shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_kdmts")
