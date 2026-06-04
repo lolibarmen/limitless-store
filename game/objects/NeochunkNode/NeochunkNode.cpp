@@ -87,8 +87,8 @@ void NeochunkNode::generate_mesh() {
 
 void NeochunkNode::_build_mesh_task(uint64_t chunk_id) {
     Object* obj = ObjectDB::get_instance(chunk_id);
-    if(!obj) return;
     NeochunkNode* chunk = Object::cast_to<NeochunkNode>(obj);
+    if(!chunk) return;
     auto task = chunk->_task;
     auto inp = task.input;
 
