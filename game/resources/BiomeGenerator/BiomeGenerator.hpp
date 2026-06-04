@@ -11,14 +11,6 @@ class BiomeGenerator : public RefCounted {
 private:
     int seed = 0;
 
-    Ref<FastNoiseLite> noise_humidity;
-    Ref<FastNoiseLite> noise_temperature;
-    Ref<FastNoiseLite> noise_height;
-
-    float humidity_scale    = 0.003f;
-    float temperature_scale = 0.002f;
-    float height_scale      = 0.005f;
-
     void setup_noise();
 
     BiomeType classify(float humidity, float temperature, float height) const;
@@ -34,7 +26,8 @@ public:
 
     BiomeData get_biome(const Vector3i& world_pos) const;
 
-    int  get_seed() const { return seed; }
+    int get_seed() const { return seed; }
+    void set_seed(int p_seed) { seed = p_seed; }
 };
 
 } // namespace godot

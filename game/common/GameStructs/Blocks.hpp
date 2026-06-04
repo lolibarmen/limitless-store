@@ -3,7 +3,7 @@
 namespace godot {
 
 enum BlockMaterial {
-    AIR          = 0,
+    VOID         = 0,
     STONE        = 1,
     DIRT         = 2,
     GRASS        = 3,
@@ -15,7 +15,7 @@ enum BlockMaterial {
 };
 
 struct BlockData {
-    BlockMaterial material = BlockMaterial::AIR;
+    BlockMaterial material = BlockMaterial::VOID;
     float density = 1.0f;
     // uint8_t light = 0;
 

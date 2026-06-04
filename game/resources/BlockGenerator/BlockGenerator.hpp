@@ -11,22 +11,11 @@ class BlockGenerator : public RefCounted {
 
 private:
     int seed = 0;
-
-    Ref<BiomeSource>   biome_source;
-    Ref<FastNoiseLite> noise_cave, noise_detail, noise_ridge;
-
-    float cave_scale   = 0.04f;
-    float detail_scale = 0.02f;
+    Ref<BiomeSource> biome_source;
 
     void setup_noise();
-
-    BlockData classify(
-        const Vector3i&  world_pos,
-        const BiomeData& biome,
-        float            cave,
-        float            detail,
-        float            ridgel
-    ) const;
+    
+    Ref<FastNoiseLite> mountain_noise;
 
 protected:
     static void _bind_methods();
@@ -35,9 +24,7 @@ public:
     BlockGenerator() = default;
     ~BlockGenerator() override = default;
 
-    // Явная инициализация — вызывается из менеджера
     void init(Ref<BiomeSource> p_biome_source, int p_seed);
-
     BlockData get_block(const Vector3i& world_pos) const;
 
     int  get_seed() const { return seed; }

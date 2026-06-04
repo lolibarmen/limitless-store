@@ -58,9 +58,9 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
             float density = neighbor_block.density;
 
             if(density < 0)
-                have_negative = true;
-            else
                 have_positive = true;
+            else if(density > 0)
+                have_negative = true;
 
             densites[off.x][off.y][off.z] = density;
         }
@@ -76,7 +76,7 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
             float fA = densites[offA.x][offA.y][offA.z];
             float fB = densites[offB.x][offB.y][offB.z];
 
-            if ((fA < 0 && fB > 0) || (fA > 0 && fB < 0)) {
+            if ((fA < 0) != (fB < 0)) {
                 float t = (0 - fA) / (fB - fA);
 
                 Vector3 A(x + offA.x, y + offA.y, z + offA.z);
