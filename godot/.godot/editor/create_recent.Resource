@@ -1,1 +1,3 @@
+ImageTexture
+ShaderMaterial
 NoiseTexture2D

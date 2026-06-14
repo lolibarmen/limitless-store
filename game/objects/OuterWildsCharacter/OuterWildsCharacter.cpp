@@ -1,4 +1,6 @@
 #include "OuterWildsCharacter.hpp"
+#include <BuildTool/BuildTool.hpp>
+#include <SuperDigger/SuperDigger.hpp>
 #include <godot_cpp/classes/capsule_shape3d.hpp>
 #include <godot_cpp/classes/input_event_mouse_motion.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -6,8 +8,6 @@
 #include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
 #include <godot_cpp/classes/physics_direct_space_state3d.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-
-#include <BuildTool/BuildTool.hpp>
 
 using namespace godot;
 
@@ -32,11 +32,15 @@ void OuterWildsCharacter::_ready() {
     Input::get_singleton()->set_mouse_mode(Input::MOUSE_MODE_CAPTURED);
 
     // Интрумент
-    BuildTool* build_tool = memnew(BuildTool);
-    Ref<PackedScene> wall_scene = ResourceLoader::get_singleton()->load("res://objects/build/Wall.tscn");
-    build_tool->set_build_scene(wall_scene);
-    add_child(build_tool);
-    current_tool = build_tool;
+    // BuildTool* build_tool = memnew(BuildTool);
+    // Ref<PackedScene> wall_scene = ResourceLoader::get_singleton()->load("res://objects/build/Wall.tscn");
+    // build_tool->set_build_scene(wall_scene);
+    // add_child(build_tool);
+    // current_tool = build_tool;
+
+    SuperDigger* super_digger = memnew(SuperDigger);
+    add_child(super_digger);
+    current_tool = super_digger;
 }
 
 void OuterWildsCharacter::_process(double delta) {
@@ -47,7 +51,7 @@ void OuterWildsCharacter::_process(double delta) {
 void OuterWildsCharacter::_physics_process(double delta) {
     if (Engine::get_singleton()->is_editor_hint()) return;
 
-    float speed = 1.2f;
+    float speed = this->walk_speed;
 
     Vector3 velocity = get_velocity();
 
@@ -61,7 +65,7 @@ void OuterWildsCharacter::_physics_process(double delta) {
     }
 
     if (input->is_action_pressed("run")) {
-        speed = 6.0f;
+        speed = this->run_speed;
     }
 
     Vector2 input_dir = Vector2(

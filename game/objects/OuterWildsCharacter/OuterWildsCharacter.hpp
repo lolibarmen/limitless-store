@@ -18,7 +18,9 @@ private:
     Camera3D *camera;
     Node3D *camera_pivot;
 
-    float gravity = 9.8f;
+    float walk_speed    = 2.1f;
+    float run_speed     = 16.5f;
+    float gravity       = 9.8f;
 
     Tool* current_tool;
 
