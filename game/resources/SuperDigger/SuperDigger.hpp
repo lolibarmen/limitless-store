@@ -1,5 +1,6 @@
 #pragma once
 #include <Tool/Tool.hpp>
+#include <GameStructs/Blocks.hpp>
 
 namespace godot {
 
@@ -15,7 +16,7 @@ public:
     virtual void use(const Dictionary &raycast_result) override;
     virtual void use_alt(const Dictionary &raycast_result) override;
 
-    void dig(const Dictionary &raycast_result, float radius, float delta);
+    void dig(const Dictionary &raycast_result, float radius, float delta, BlockMaterial mat);
 };
 
 } // namespace godot

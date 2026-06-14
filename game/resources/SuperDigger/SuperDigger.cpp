@@ -7,7 +7,7 @@
 #include <NeochunkManager/NeochunkManager.hpp>
 using namespace godot;
 
-void SuperDigger::dig(const Dictionary &raycast_result, float radius, float delta) {
+void SuperDigger::dig(const Dictionary &raycast_result, float radius, float delta, BlockMaterial mat = BlockMaterial::VOID) {
     Object* obj = raycast_result["collider"];
     if (!obj) return;
     NeochunkNode* ncnode = Object::cast_to<NeochunkNode>(obj);
@@ -24,20 +24,31 @@ void SuperDigger::dig(const Dictionary &raycast_result, float radius, float delt
         if (dist > radius) continue;
 
         Vector3i voxel = coord + Vector3i(dx, dy, dz);
+
+        // Считаем градиент density (конечные разности)
+        float gx = block_source->get_block_density(voxel + Vector3i(1,0,0))
+                 - block_source->get_block_density(voxel - Vector3i(1,0,0));
+        float gy = block_source->get_block_density(voxel + Vector3i(0,1,0))
+                 - block_source->get_block_density(voxel - Vector3i(0,1,0));
+        float gz = block_source->get_block_density(voxel + Vector3i(0,0,1))
+                 - block_source->get_block_density(voxel - Vector3i(0,0,1));
+
+        float grad_len = Vector3(gx, gy, gz).length();
+
+        // Градиент близок к нулю — воксель далеко от поверхности,
+        // визуального эффекта не будет, пропускаем
+        if (grad_len < 0.01f) continue;
+
+        // Чтобы сдвинуть поверхность на delta единиц в мировом пространстве,
+        // нужно изменить density на delta * |grad| (обратная теорема о неявной функции)
+        float influence = CLAMP(1.0f - dist / radius, 0.0f, 1.0f);
         float d = block_source->get_block_density(voxel);
+        float new_d = CLAMP(d + delta * grad_len * influence, -1.0f, 1.0f);
 
-        float surface_threshold = 0.3f;
-        if (d > surface_threshold && delta > 0) continue;
-        if (d < -surface_threshold && delta < 0) continue;
+        if (new_d == d) continue;
 
-        float t = dist / radius;
-        float edge_falloff = (t < 0.7f) ? 1.0f : (1.0f - t) / 0.3f;
-
-        float new_d = d + delta * edge_falloff;
-        if (delta > 0) new_d = Math::min(new_d,  surface_threshold + delta);
-        else           new_d = Math::max(new_d, -surface_threshold + delta);
-
-        block_source->set_block_density(voxel, CLAMP(new_d, -1.0f, 1.0f));
+        block_source->set_block_density(voxel, new_d);
+        // if(delta > 0) block_source->set_block_material(voxel, mat);
         changed_voxels.push_back(voxel);
     }
 
@@ -61,9 +72,9 @@ bool SuperDigger::can_use_alt_on(const Dictionary &raycast_result) const {
 }
 
 void SuperDigger::use(const Dictionary &raycast_result) {
-    dig(raycast_result, 1.5f, 0.08f);
+    dig(raycast_result, 3.0f, 0.5f, BlockMaterial::DIRT);
 }
 
 void SuperDigger::use_alt(const Dictionary &raycast_result) {
-    dig(raycast_result, 3.0f, -0.08f);
+    dig(raycast_result, 3.0f, -0.5f);
 }

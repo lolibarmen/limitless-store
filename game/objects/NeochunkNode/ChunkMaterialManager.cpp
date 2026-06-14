@@ -28,7 +28,7 @@ vec4 triplanar_sample(sampler2D tex, vec3 world_pos, vec3 normal) {
 }
 
 vec4 sample_by_id(float id, vec3 world_pos, vec3 normal) {
-    const float texture_scale = 0.25;
+    const float texture_scale = 0.125;
     
     world_pos *= texture_scale;
     float slope = 1.0 - normal.y * normal.y;
