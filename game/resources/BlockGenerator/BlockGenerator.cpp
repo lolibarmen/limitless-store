@@ -33,30 +33,22 @@ BlockData BlockGenerator::get_block(const Vector3i& world_pos) const {
     ERR_FAIL_COND_V_MSG(!biome_source.is_valid(), BlockData{},
         "BlockGenerator: не инициализирован, вызови init()");
 
-    const float TRANSITION     = 1.0f;   // ширина перехода в блоках
+    const float TRANSITION     = 4.0f;   // ширина перехода в блоках
     const float MOUNTAIN_HEIGHT = 40.0f; // максимальная высота гор над уровнем 0
     const float BASE_HEIGHT     = 0.0f;  // базовый уровень поверхности
 
-    // Получаем значение шума в диапазоне [-1; 1]
+    // Строим горы
     float noise_val = mountain_noise->get_noise_2d(world_pos.x, world_pos.z);
-    // Преобразуем в высоту поверхности
     float surface_y = BASE_HEIGHT + noise_val * MOUNTAIN_HEIGHT;
 
     // Signed distance: положительное значение – внутри горы, отрицательное – снаружи
     float sd = surface_y - world_pos.y;
 
-    if (sd < 0.0f)
-        return { BlockMaterial::VOID, -1.0f };
+    if (sd < -TRANSITION) return { BlockMaterial::VOID, -1.0f };
 
-    // Плотность: 1.0 глубоко внутри, плавно падает до 0.0 на поверхности
-    float enumerator = sd - TRANSITION / 2.0f;
-    float density = Math::clamp(enumerator / TRANSITION, -1.0f, 1.0f);
+    float density = Math::clamp(sd / TRANSITION, -1.0f, 1.0f);
 
-    // Можно добавить разный материал для разных высот (например, снег на вершинах)
-    BlockMaterial material = BlockMaterial::SAND;
-    // if (surface_y > 20.0f && world_pos.y > surface_y - 2.0f) {
-    //     material = BlockMaterial::STONE; // или снег
-    // }
-
+    BlockMaterial material = (sd > 0) ? BlockMaterial::GRASS : BlockMaterial::VOID;
+    
     return { material, density };
 }

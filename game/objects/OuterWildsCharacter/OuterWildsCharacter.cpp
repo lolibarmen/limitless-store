@@ -5,6 +5,9 @@
 #include <godot_cpp/classes/world3d.hpp>
 #include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
 #include <godot_cpp/classes/physics_direct_space_state3d.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
+
+#include <BuildTool/BuildTool.hpp>
 
 using namespace godot;
 
@@ -25,16 +28,26 @@ void OuterWildsCharacter::_ready() {
     add_child(camera_pivot);
     camera_pivot->add_child(camera);
 
+    // Перключаем мышь
+    Input::get_singleton()->set_mouse_mode(Input::MOUSE_MODE_CAPTURED);
+
     // Интрумент
-    Ref<SuperDigger> super_digger;
-    super_digger.instantiate();
-    current_tool = super_digger;
+    BuildTool* build_tool = memnew(BuildTool);
+    Ref<PackedScene> wall_scene = ResourceLoader::get_singleton()->load("res://objects/build/Wall.tscn");
+    build_tool->set_build_scene(wall_scene);
+    add_child(build_tool);
+    current_tool = build_tool;
+}
+
+void OuterWildsCharacter::_process(double delta) {
+    Dictionary raycast = perform_raycast();
+    current_tool->update(raycast);
 }
 
 void OuterWildsCharacter::_physics_process(double delta) {
     if (Engine::get_singleton()->is_editor_hint()) return;
 
-    float speed = 2.0f;
+    float speed = 1.2f;
 
     Vector3 velocity = get_velocity();
 
@@ -45,6 +58,10 @@ void OuterWildsCharacter::_physics_process(double delta) {
     Input *input = Input::get_singleton();
     if (input->is_action_just_pressed("ui_accept")) { // <- && is_on_floor()
         velocity.y += 4.5;
+    }
+
+    if (input->is_action_pressed("run")) {
+        speed = 6.0f;
     }
 
     Vector2 input_dir = Vector2(

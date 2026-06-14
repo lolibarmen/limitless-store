@@ -27,7 +27,7 @@ bool SuperDigger::can_use_alt_on(const Dictionary &raycast_result) const {
 
 void SuperDigger::use(const Dictionary &raycast_result) {
     float radius = 3.0f;
-    float delta = 1.0f;
+    float delta = 0.1f;
 
     Object* obj = raycast_result["collider"];
     if (!obj) return;
@@ -62,12 +62,12 @@ void SuperDigger::use(const Dictionary &raycast_result) {
     NeochunkManager* ncmanager = Object::cast_to<NeochunkManager>(ncnode->get_parent());
     ncmanager->refresh_mesh(changed_voxels);
 
-    UtilityFunctions::print("Super digger used on: ", ncnode->get_name());
+    // UtilityFunctions::print("Super digger used on: ", ncnode->get_name());
 }
 
 void SuperDigger::use_alt(const Dictionary &raycast_result) {
     float radius = 3.0f;
-    float delta = -1.0f;
+    float delta = -0.1f;
 
     Object* obj = raycast_result["collider"];
     if (!obj) return;
@@ -102,5 +102,5 @@ void SuperDigger::use_alt(const Dictionary &raycast_result) {
     NeochunkManager* ncmanager = Object::cast_to<NeochunkManager>(ncnode->get_parent());
     ncmanager->refresh_mesh(changed_voxels);
 
-    UtilityFunctions::print("Super digger used on: ", ncnode->get_name());
+    // UtilityFunctions::print("Super digger used on: ", ncnode->get_name());
 }

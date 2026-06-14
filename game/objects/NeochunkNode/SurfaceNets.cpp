@@ -129,12 +129,12 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
 
             bool flip = (dB < 0);
 
+            Vector3i solid_coord = (dA > 0) ? coord : coord + n12;
+            BlockMaterial surface_mat = input.get_block(solid_coord).material;
+            float id = static_cast<float>(static_cast<int>(surface_mat)) / 255.0f;
+
             auto getVertexColor = [&](Vector3i gridCoord) -> Color {
-                BlockMaterial mat = (dA > 0)
-                    ? input.get_block(coord).material
-                    : input.get_block(coord + n12).material;
-                float mat_id = static_cast<float>(static_cast<int>(mat)) / 255.0f;
-                return Color(mat_id, 0.0f, 0.0f, 1.0f);
+                return Color(id, id, 0.0f, 1.0f);
             };
 
             Color col00 = getVertexColor(c00);

@@ -45,7 +45,7 @@ class NeochunkManager : public Node3D {
         }
     };
 
-    int root_radius = 3;
+    int root_radius = 8;
     std::unordered_map<Vector3i, Neochunk*, V3iHash> roots;
     Vector3 player_pos = {};
 

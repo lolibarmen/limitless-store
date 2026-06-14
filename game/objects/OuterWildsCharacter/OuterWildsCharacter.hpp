@@ -6,7 +6,7 @@
 #include <godot_cpp/classes/input.hpp>
 #include <godot_cpp/classes/input_event.hpp>
 
-#include <SuperDigger/SuperDigger.hpp>
+#include <Tool/Tool.hpp>
 
 namespace godot {
 
@@ -20,7 +20,7 @@ private:
 
     float gravity = 9.8f;
 
-    Ref<Tool> current_tool;
+    Tool* current_tool;
 
     Dictionary perform_raycast(float max_distance = 1000.0f);
 
@@ -32,6 +32,7 @@ public:
 
     void _ready() override;
     void _physics_process(double delta) override;
+    void _process(double delta) override;
     void _input(const Ref<InputEvent> &event) override;
 };
 

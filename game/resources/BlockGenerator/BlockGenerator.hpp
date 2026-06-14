@@ -16,6 +16,7 @@ private:
     void setup_noise();
     
     Ref<FastNoiseLite> mountain_noise;
+    Ref<FastNoiseLite> material_noise;
 
 protected:
     static void _bind_methods();
