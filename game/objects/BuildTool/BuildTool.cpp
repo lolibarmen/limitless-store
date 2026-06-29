@@ -6,6 +6,7 @@
 #include <godot_cpp/classes/physics_direct_space_state3d.hpp>
 #include <godot_cpp/classes/physics_shape_query_parameters3d.hpp>
 #include <godot_cpp/classes/world3d.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 
 namespace godot {
 
@@ -29,6 +30,11 @@ void BuildTool::use(const Dictionary &raycast_result) {
     parent->add_child(instance);
     instance->set_owner(parent);
     instance->set_global_transform(preview_node->get_global_transform());
+}
+
+void BuildTool::use_alt(const Dictionary &raycast_result) {
+    Ref<PackedScene> new_scene = ResourceLoader::get_singleton()->load("res://objects/build/Wall.tscn");
+    set_build_scene(new_scene);
 }
 
 void BuildTool::update(const Dictionary &raycast_result) {

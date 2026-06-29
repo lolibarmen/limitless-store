@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://bu55xvw7ffhtr"]
+[gd_scene load_steps=7 format=3 uid="uid://bu55xvw7ffhtr"]
 
 [ext_resource type="PackedScene" uid="uid://b0y8r66s07igh" path="res://objects/tools/Digger.tscn" id="1_jaeev"]
 
@@ -20,6 +20,12 @@ ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.3
 reflected_light_source = 1
+
+[sub_resource type="BoxMesh" id="BoxMesh_gqs60"]
+size = Vector3(0.05, 1, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gqs60"]
+size = Vector3(0.2, 1, 0.2)
 
 [node name="Node3D" type="Node3D"]
 
@@ -44,6 +50,13 @@ environment = SubResource("Environment_kdmts")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 54, 0)
 
 [node name="PickableTool" type="PickableTool" parent="."]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, -2.2, -12)
+tool_scene = ExtResource("1_jaeev")
+tool_class = &"BuildTool"
 
-[node name="@Node3D@20973" type="Node3D" parent="PickableTool" instance=ExtResource("1_jaeev")]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="PickableTool"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("BoxMesh_gqs60")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PickableTool"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9802322e-08, 0.5, 2.9802322e-08)
+shape = SubResource("BoxShape3D_gqs60")

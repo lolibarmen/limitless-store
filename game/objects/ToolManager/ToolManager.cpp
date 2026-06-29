@@ -28,17 +28,11 @@ void ToolManager::update_tool(const Dictionary& raycast_result) {
 }
 
 void ToolManager::pick_up(const Dictionary& raycast_result) {
-    print_line("Start pickaping");
     Object* collider = Object::cast_to<Object>(raycast_result["collider"]);
     if (!collider) return;
 
-    print_line("Shoot detecting");
-    print_line(collider);
-
     PickableTool* item = Object::cast_to<PickableTool>(collider);
     if (!item) return;
-
-    print_line("Object is PickableTool");
 
     Tool* new_tool = item->create_tool();
     if (!new_tool) {

@@ -1,5 +1,5 @@
 #pragma once
-#include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 
 namespace godot {
@@ -7,8 +7,8 @@ namespace godot {
 class Tool;
 class PickableTool;
 
-class ToolManager : public Node {
-    GDCLASS(ToolManager, Node)
+class ToolManager : public Node3D {
+    GDCLASS(ToolManager, Node3D)
 
 private:
     Tool* current_tool = nullptr;

@@ -12,6 +12,7 @@ using namespace godot;
 #include "WorldCoordinator/WorldCoordinator.hpp"
 #include "NeochunkNode/NeochunkNode.hpp"
 #include "NeochunkManager/NeochunkManager.hpp"
+#include "ToolManager/ToolManager.hpp"
 #include "BlockGenerator/BlockGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
@@ -19,7 +20,6 @@ using namespace godot;
 #include "BiomeGenerator/BiomeGenerator.hpp"
 #include "BlockSource/BlockSource.hpp"
 #include "PlayerInteraction/PlayerInteraction.hpp"
-#include "ToolManager/ToolManager.hpp"
 
 
 inline void auto_register_classes()
@@ -33,6 +33,7 @@ inline void auto_register_classes()
     ClassDB::register_class<WorldCoordinator>();
     ClassDB::register_class<NeochunkNode>();
     ClassDB::register_class<NeochunkManager>();
+    ClassDB::register_class<ToolManager>();
     ClassDB::register_class<BlockGenerator>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<PlayerMovement>();
@@ -40,5 +41,4 @@ inline void auto_register_classes()
     ClassDB::register_class<BiomeGenerator>();
     ClassDB::register_class<BlockSource>();
     ClassDB::register_class<PlayerInteraction>();
-    ClassDB::register_class<ToolManager>();
 }

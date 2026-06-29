@@ -23,7 +23,7 @@ void PickableTool::_bind_methods() {
 
 void PickableTool::_notification(int p_what) {
     if (p_what == NOTIFICATION_ENTER_TREE) {
-        // _update_preview();
+        _update_preview();
     }
 }
 
@@ -33,42 +33,47 @@ void PickableTool::set_tool_scene(const Ref<PackedScene> &scene) {
     }
     tool_scene = scene;
     if (is_inside_tree()) {
-        // _update_preview();
+        _update_preview();
     }
 }
 
 void PickableTool::_update_preview() {
-    // while (get_child_count() > 0) {
-    //     get_child(0)->queue_free();
-    // }
+    TypedArray<Node> old_children = get_children();
+    for (int i = 0; i < old_children.size(); i++) {
+        Node* child = Object::cast_to<Node>(old_children[i]);
+        if (child) {
+            remove_child(child);
+            child->queue_free();
+        }
+    }
 
-    // if (tool_scene.is_null()) return;
+    if (tool_scene.is_null()) return;
 
-    // Node* instance = tool_scene->instantiate();
-    // if (instance == nullptr) return;
+    Node* instance = tool_scene->instantiate();
+    if (instance == nullptr) return;
 
-    // // Сначала добавляем в дерево — reparent требует этого
-    // add_child(instance);
+    add_child(instance);
 
-    // TypedArray<Node> children = instance->get_children();
-    // for (int i = 0; i < children.size(); i++) {
-    //     Node* child = Object::cast_to<Node>(children[i]);
-    //     if (child) {
-    //         child->set_owner(nullptr); // сбрасываем owner перед reparent
-    //         child->reparent(this);
-    //     }
-    // }
+    TypedArray<Node> children = instance->get_children();
+    for (int i = 0; i < children.size(); i++) {
+        Node* child = Object::cast_to<Node>(children[i]);
+        if (child) {
+            child->set_owner(nullptr);
+            child->reparent(this);
+        }
+    }
 
-    // instance->queue_free();
+    remove_child(instance);
+    instance->queue_free();
 
-    // if (Engine::get_singleton()->is_editor_hint()) {
-    //     Node* edited_root = get_tree()->get_edited_scene_root();
-    //     if (edited_root != nullptr) {
-    //         for (int i = 0; i < get_child_count(); i++) {
-    //             get_child(i)->set_owner(edited_root);
-    //         }
-    //     }
-    // }
+    if (Engine::get_singleton()->is_editor_hint()) {
+        Node* edited_root = get_tree()->get_edited_scene_root();
+        if (edited_root != nullptr) {
+            for (int i = 0; i < get_child_count(); i++) {
+                get_child(i)->set_owner(edited_root);
+            }
+        }
+    }
 }
 
 Ref<PackedScene> PickableTool::get_tool_scene() const {

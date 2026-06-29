@@ -24,9 +24,9 @@ public:
     BuildTool() {}
 
     bool can_use_on    (const Dictionary &raycast_result) const override { return true; }
-    bool can_use_alt_on(const Dictionary &raycast_result) const override { return false; }
+    bool can_use_alt_on(const Dictionary &raycast_result) const override { return true; }
     void use    (const Dictionary &raycast_result) override;
-    void use_alt(const Dictionary &raycast_result) override {}
+    void use_alt(const Dictionary &raycast_result) override;
 
     void update(const Dictionary &raycast_result) override;
     void clear_preview();

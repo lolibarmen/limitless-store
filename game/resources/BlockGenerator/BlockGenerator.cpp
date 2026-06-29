@@ -13,26 +13,11 @@ void BlockGenerator::_bind_methods() {
 
 void BlockGenerator::setup_noise() {
     mountain_noise.instantiate();
-    mountain_noise->set_noise_type(FastNoiseLite::TYPE_SIMPLEX_SMOOTH);
+    mountain_noise->set_noise_type(FastNoiseLite::TYPE_PERLIN);
     mountain_noise->set_frequency(0.0025f);
     mountain_noise->set_fractal_octaves(4);
     mountain_noise->set_fractal_lacunarity(2.0f);
     mountain_noise->set_fractal_gain(0.5f);
-}
-
-void BlockGenerator::fill_heightmap(const Vector3i& chunk_pos, 
-                                     std::vector<float>& heightmap, 
-                                     int size_x, int size_z) const {
-    heightmap.resize(size_x * size_z);
-    for (int x = 0; x < size_x; ++x) {
-        for (int z = 0; z < size_z; ++z) {
-            int world_x = chunk_pos.x + x;
-            int world_z = chunk_pos.z + z;
-            float noise = mountain_noise->get_noise_2d(world_x, world_z);
-            float height = BASE_HEIGHT + noise * MOUNTAIN_HEIGHT;
-            heightmap[x + z * size_x] = height;
-        }
-    }
 }
 
 void BlockGenerator::init(Ref<BiomeSource> p_biome_source, int p_seed) {
