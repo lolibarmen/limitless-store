@@ -1,7 +1,7 @@
 #pragma once
 
 
-Dictionary OuterWildsCharacter::perform_raycast(float max_distance) {
+Dictionary Player::perform_raycast(float max_distance) {
     // Получаем начало и направление луча из камеры
     Vector3 ray_origin = camera->get_global_position();
     Vector3 ray_direction = -camera->get_global_transform().basis.get_column(2); // forward

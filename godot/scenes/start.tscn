@@ -1,4 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://bu55xvw7ffhtr"]
+[gd_scene load_steps=5 format=3 uid="uid://bu55xvw7ffhtr"]
+
+[ext_resource type="PackedScene" uid="uid://b0y8r66s07igh" path="res://objects/tools/Digger.tscn" id="1_jaeev"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ewcy1"]
 sky_top_color = Color(0.45490196, 0.69803923, 0.9882353, 1)
@@ -23,11 +25,8 @@ reflected_light_source = 1
 
 [node name="WorldCoordinator" type="WorldCoordinator" parent="."]
 
-[node name="OuterWildsCharacter" type="OuterWildsCharacter" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.389534, 102.241394, 7.902954)
-
 [node name="Sun" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.70710677, 0.70710677, 0, -0.70710677, 0.70710677, 0, 186.10132, 0)
+transform = Transform3D(1, 0, 0, 0, 0.7071067, 0.7071067, 0, -0.7071067, 0.7071067, 0, 186.10132, 0)
 light_energy = 0.7
 light_specular = 0.0
 directional_shadow_mode = 0
@@ -40,3 +39,11 @@ light_energy = 0.1
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_kdmts")
+
+[node name="Player" type="Player" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 54, 0)
+
+[node name="PickableTool" type="PickableTool" parent="."]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, -2.2, -12)
+
+[node name="@Node3D@20973" type="Node3D" parent="PickableTool" instance=ExtResource("1_jaeev")]

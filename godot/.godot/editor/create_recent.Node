@@ -1,7 +1,8 @@
-MeshInstance3D
+PickableTool
 CollisionShape3D
+MeshInstance3D
+Player
 StaticBody3D
-OuterWildsCharacter
 VoxelGI
 OmniLight3D
 WorldEnvironment
@@ -11,4 +12,3 @@ Node3D
 WorldCoordinator
 NeochunkManager
 CPUParticles3D
-FogVolume
