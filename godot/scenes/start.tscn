@@ -1,31 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://bu55xvw7ffhtr"]
+[gd_scene load_steps=5 format=3 uid="uid://bu55xvw7ffhtr"]
 
-[ext_resource type="PackedScene" uid="uid://b0y8r66s07igh" path="res://objects/tools/Digger.tscn" id="1_jaeev"]
-
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ewcy1"]
-sky_top_color = Color(0.45490196, 0.69803923, 0.9882353, 1)
-sky_horizon_color = Color(0.7411765, 0.8352941, 0.99215686, 1)
-sky_curve = 0.01811125
-ground_bottom_color = Color(0.74509805, 0.8352941, 0.9882353, 1)
-ground_horizon_color = Color(0.7411765, 0.8352941, 0.99215686, 1)
-
-[sub_resource type="Sky" id="Sky_bodal"]
-sky_material = SubResource("ProceduralSkyMaterial_ewcy1")
-
-[sub_resource type="Environment" id="Environment_kdmts"]
-background_mode = 2
-background_color = Color(0.8129298, 0.7731421, 0.72550553, 1)
-sky = SubResource("Sky_bodal")
-ambient_light_source = 2
-ambient_light_color = Color(1, 1, 1, 1)
-ambient_light_energy = 0.3
-reflected_light_source = 1
-
-[sub_resource type="BoxMesh" id="BoxMesh_gqs60"]
-size = Vector3(0.05, 1, 0.2)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_gqs60"]
-size = Vector3(0.2, 1, 0.2)
+[ext_resource type="Environment" uid="uid://bf1j2a28pxe0m" path="res://assets/day_sky.tres" id="1_u80x2"]
+[ext_resource type="PackedScene" uid="uid://cf1hotlaxf4yd" path="res://objects/tools/BuildTool.tscn" id="3_bodal"]
+[ext_resource type="PackedScene" uid="uid://wdupmsqw2yl" path="res://objects/tools/SupperDigger.tscn" id="4_0auqf"]
+[ext_resource type="PackedScene" uid="uid://cp5uyhcjpitbd" path="res://objects/world/pine_tree.tscn" id="4_kdmts"]
 
 [node name="Node3D" type="Node3D"]
 
@@ -44,19 +22,39 @@ light_color = Color(0.7411765, 0.8156863, 0.89411765, 1)
 light_energy = 0.1
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_kdmts")
+environment = ExtResource("1_u80x2")
 
 [node name="Player" type="Player" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 54, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 54, 2)
 
-[node name="PickableTool" type="PickableTool" parent="."]
-tool_scene = ExtResource("1_jaeev")
-tool_class = &"BuildTool"
+[node name="Node3D" type="Node3D" parent="."]
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="PickableTool"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-mesh = SubResource("BoxMesh_gqs60")
+[node name="pine_tree" parent="Node3D" instance=ExtResource("4_kdmts")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -0.5, -8)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="PickableTool"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9802322e-08, 0.5, 2.9802322e-08)
-shape = SubResource("BoxShape3D_gqs60")
+[node name="pine_tree2" parent="Node3D" instance=ExtResource("4_kdmts")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -1, -14)
+
+[node name="pine_tree3" parent="Node3D" instance=ExtResource("4_kdmts")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, -1.5, -20)
+
+[node name="pine_tree4" parent="Node3D" instance=ExtResource("4_kdmts")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, -0.5, -8)
+
+[node name="pine_tree5" parent="Node3D" instance=ExtResource("4_kdmts")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.19999999, 0)
+
+[node name="pine_tree6" parent="Node3D" instance=ExtResource("4_kdmts")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.3, 4)
+
+[node name="pine_tree7" parent="Node3D" instance=ExtResource("4_kdmts")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -0.5, 13)
+
+[node name="pine_tree8" parent="Node3D" instance=ExtResource("4_kdmts")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, -1, 5)
+
+[node name="BuildTool" parent="." instance=ExtResource("3_bodal")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+
+[node name="SupperDigger" parent="." instance=ExtResource("4_0auqf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4000001, 0.20000002, -2)

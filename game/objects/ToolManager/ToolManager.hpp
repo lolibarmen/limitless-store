@@ -21,6 +21,7 @@ public:
     void set_tool(Tool* tool);
     void update_tool(const Dictionary& raycast_result);
     void pick_up(const Dictionary& raycast_result);
+    void drop_current_tool(const Transform3D &drop_transform);
 
     Tool* get_current_tool() const;
     bool has_tool() const;

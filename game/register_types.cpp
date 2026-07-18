@@ -5,15 +5,16 @@
 
 using namespace godot;
 
-void initialize_game_module(ModuleInitializationLevel p_level) {
-    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
-        return;
 
+void initialize_game_module(ModuleInitializationLevel p_level) {
+    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
     auto_register_classes();
+    auto_register_singletons();
 }
 
 void uninitialize_game_module(ModuleInitializationLevel p_level) {
-    // Ничего не делаем при деинициализации
+    if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
+    auto_unregister_singletons();
 }
 
 extern "C" {

@@ -1,8 +1,44 @@
-[gd_scene load_steps=2 format=3 uid="uid://cn6egn18jexv8"]
+[gd_scene load_steps=3 format=3 uid="uid://do161o53vauas"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_al7t7"]
+size = Vector3(1, 1, 0.25)
 
-[node name="Wall" type="Node3D"]
+[sub_resource type="SphereShape3D" id="SphereShape3D_al7t7"]
+radius = 0.4
+
+[node name="Node3D" type="Node3D"]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 mesh = SubResource("BoxMesh_al7t7")
+
+[node name="BuildSocket_left" type="BuildSocket" parent="."]
+socket_id = "left"
+connects_to_id = "right"
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BuildSocket_left"]
+shape = SubResource("SphereShape3D_al7t7")
+
+[node name="BuildSocket_right" type="BuildSocket" parent="."]
+socket_id = "right"
+connects_to_id = "left"
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BuildSocket_right"]
+shape = SubResource("SphereShape3D_al7t7")
+
+[node name="BuildSocket_up" type="BuildSocket" parent="."]
+socket_id = "up"
+connects_to_id = "down"
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BuildSocket_up"]
+shape = SubResource("SphereShape3D_al7t7")
+
+[node name="BuildSocket_down" type="BuildSocket" parent="."]
+socket_id = "down"
+connects_to_id = "up"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BuildSocket_down"]
+shape = SubResource("SphereShape3D_al7t7")

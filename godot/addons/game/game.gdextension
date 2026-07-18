@@ -4,5 +4,11 @@ compatibility_minimum = "4.1"
 reloadable = true
 
 [libraries]
-linux.debug.x86_64 = "res://addons/game/bin/libgame.so"
-linux.release.x86_64 = "res://addons/game/bin/libgame.so"
+linux.debug.x86_64 = "res://addons/game/bin/libgame.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://addons/game/bin/libgame.linux.template_release.x86_64.so"
+
+windows.debug.x86_64 = "res://addons/game/bin/libgame.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/game/bin/libgame.windows.template_release.x86_64.dll"
+
+macos.debug = "res://addons/game/bin/libgame.macos.template_debug.universal.dylib"
+macos.release = "res://addons/game/bin/libgame.macos.template_release.universal.dylib"

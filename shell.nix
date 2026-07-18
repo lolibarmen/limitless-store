@@ -1,5 +1,9 @@
 { pkgs ? import <nixpkgs> {} }:
 
+
+let
+  mingw = pkgs.pkgsCross.mingwW64;
+in
 pkgs.mkShell {
 name = "godot-engine-dev";
 
@@ -17,10 +21,13 @@ python3
 gdb
 perf
 
-# Компиляторы
-gcc
+# Компилятор linux
 clang
-llvm
+
+# Компилятор windows
+mingw.buildPackages.gcc
+mingw.windows.pthreads
+mingw.windows.mcfgthreads
 
 # Vulkan
 vulkan-headers
@@ -56,5 +63,9 @@ echo ""
 echo "Available tools:"
 echo " - scons (build godot)"
 echo " - cmake / ninja (build game)"
+
+export CPATH="${mingw.windows.mcfgthreads.dev}/include:${mingw.windows.pthreads.dev or mingw.windows.pthreads}/include''${CPATH:+:$CPATH}"
+    export LIBRARY_PATH="${mingw.windows.mcfgthreads}/lib:${mingw.windows.pthreads}/lib''${LIBRARY_PATH:+:$LIBRARY_PATH}"
+
 '';
 }

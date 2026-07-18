@@ -1,102 +1,106 @@
 import os
 
-# ------------------------------------------------
-# Подключение Godot C++ environment
-# ------------------------------------------------
 env = SConscript("godot-cpp/SConstruct")
+
+if env["platform"] == "windows" and env.get("use_mingw"):
+    if "CPATH" in os.environ:
+        env["ENV"]["CPATH"] = os.environ["CPATH"]
+    if "LIBRARY_PATH" in os.environ:
+        env["ENV"]["LIBRARY_PATH"] = os.environ["LIBRARY_PATH"]
+
+    lib_path_dirs = [p for p in os.environ.get("LIBRARY_PATH", "").split(":") if p]
+    env.Append(LIBPATH=lib_path_dirs)
 
 GAME_DIR = "game"
 OBJECT_DIR = os.path.join(GAME_DIR, "objects")
-RESOURCE_DIR = os.path.join(GAME_DIR, "resources")
+SINGLETONS_DIR = os.path.join(GAME_DIR, "singletons")
 GENERATED_DIR = os.path.join(GAME_DIR, "generated")
 
-# include paths
-env.Append(CPPPATH=[
-    "#game",
-    "#game/common",
-    "#game/objects",
-    "#game/resources",
-    "#game/generated"
-])
-
-# создаём директорию для автогенерации, если нет
-if not os.path.exists(GENERATED_DIR):
-    os.makedirs(GENERATED_DIR)
+env.Append(CPPPATH=["#game", "#game/common", "#game/objects", "#game/generated", "#game/singletons"])
+os.makedirs(GENERATED_DIR, exist_ok=True)
 
 all_sources = []
 includes = ""
-registrations = ""
+class_registrations = ""
+singleton_decls = ""
+singleton_inits = ""
+singleton_frees = ""
 
-# ------------------------------------------------
-# AUTO DISCOVERY FUNCTION
-# ------------------------------------------------
-def discover_cpp_classes(base_dir):
-    global includes, registrations, all_sources
+
+def discover_cpp_classes(base_dir, is_singleton=False):
+    global includes, class_registrations, singleton_decls, singleton_inits, singleton_frees, all_sources
+
     for root, dirs, files in os.walk(base_dir):
         cpp_files = [f for f in files if f.endswith(".cpp")]
         header_files = [f for f in files if f.endswith(".hpp")]
-
-        # if not cpp_files:
-        #     continue
-
         folder_name = os.path.basename(root)
-        print(f"Discovered folder: {folder_name} | cpp files: {len(cpp_files)}")
 
-        # добавляем cpp файлы в сборку
-        for cpp in cpp_files:
-            all_sources.append(os.path.join(root, cpp))
+        all_sources += [os.path.join(root, cpp) for cpp in cpp_files]
 
-        # формируем includes и registration
         for h in header_files:
             class_name = os.path.splitext(h)[0]
-            if class_name == folder_name:
-                includes += f'#include "{folder_name}/{h}"\n'
-                registrations += f'    ClassDB::register_class<{class_name}>();\n'
+            if class_name != folder_name:
+                continue
 
-# ------------------------------------------------
-# Discover objects and resources
-# ------------------------------------------------
+            includes += f'#include "{folder_name}/{h}"\n'
+            class_registrations += f"    ClassDB::register_class<{class_name}>();\n"
+
+            if is_singleton:
+                singleton_decls += f"static {class_name} *{class_name}_instance = nullptr;\n"
+                singleton_inits += (
+                    f'    {class_name}_instance = memnew({class_name});\n'
+                    f'    Engine::get_singleton()->register_singleton("{class_name}", {class_name}_instance);\n'
+                )
+                singleton_frees += (
+                    f'    Engine::get_singleton()->unregister_singleton("{class_name}");\n'
+                    f'    memdelete({class_name}_instance);\n'
+                    f'    {class_name}_instance = nullptr;\n'
+                )
+
+
 discover_cpp_classes(OBJECT_DIR)
-discover_cpp_classes(RESOURCE_DIR)  # теперь учитываем PlanetData и другие ресурсы
+discover_cpp_classes(SINGLETONS_DIR, is_singleton=True)
 
-# ------------------------------------------------
-# GENERATE AUTO REGISTER FILE
-# ------------------------------------------------
 auto_file = os.path.join(GENERATED_DIR, "auto_register.gen.h")
-
 with open(auto_file, "w") as f:
     f.write(f"""#pragma once
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/classes/engine.hpp>
 using namespace godot;
 
-// === AUTO GENERATED INCLUDES ===
 {includes}
+{singleton_decls}
+inline void auto_register_classes() {{
+{class_registrations}}}
 
-inline void auto_register_classes()
-{{
-{registrations}}}
+inline void auto_register_singletons() {{
+{singleton_inits}}}
+
+inline void auto_unregister_singletons() {{
+{singleton_frees}}}
 """)
+print(f"Generated {auto_file}")
 
-print("Generated auto_register.gen.h")
-
-# ------------------------------------------------
-# REGISTER TYPES
-# ------------------------------------------------
 register_types_file = os.path.join(GAME_DIR, "register_types.cpp")
 if os.path.exists(register_types_file):
     all_sources.append(register_types_file)
 else:
     print("Warning: register_types.cpp not found!")
 
-# ------------------------------------------------
-# BUILD SHARED LIBRARY
-# ------------------------------------------------
+platform = env["platform"]
+target = env["target"]
+arch = env["arch"] if "arch" in env else "x86_64"
+
 output_dir = "godot/addons/game/bin"
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
+
+os.makedirs(output_dir, exist_ok=True)
+
+lib_filename = "libgame.{}.{}.{}{}".format(
+    platform, target, arch, env["SHLIBSUFFIX"]
+)
 
 lib = env.SharedLibrary(
-    target=os.path.join(output_dir, "libgame"),
+    target=os.path.join(output_dir, lib_filename),
     source=all_sources
 )
 

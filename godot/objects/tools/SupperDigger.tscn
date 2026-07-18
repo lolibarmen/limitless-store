@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3 uid="uid://wdupmsqw2yl"]
+
+[ext_resource type="Texture2D" uid="uid://65ihg1j6ky2" path="res://assets/Tools/Showel.png" id="1_afoq0"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i0eah"]
+transparency = 1
+albedo_texture = ExtResource("1_afoq0")
+uv1_scale = Vector3(2, 2, 0)
+uv1_offset = Vector3(0.168, 0, 0)
+texture_filter = 2
+texture_repeat = false
+
+[sub_resource type="BoxMesh" id="BoxMesh_afoq0"]
+material = SubResource("StandardMaterial3D_i0eah")
+size = Vector3(1.5, 1.5, 0.01)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_w70i8"]
+size = Vector3(0.90000004, 1.7, 0.3)
+
+[node name="SupperDigger" type="PickableTool"]
+tool_class = &"SuperDigger"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("BoxMesh_afoq0")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.050000057, 0.35000002, -0.049999982)
+shape = SubResource("BoxShape3D_w70i8")

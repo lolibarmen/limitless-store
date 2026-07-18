@@ -1,5 +1,6 @@
 #pragma once
 #include <Tool/Tool.hpp>
+#include <BuildSocket/BuildSocket.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/standard_material3d.hpp>
@@ -43,6 +44,11 @@ private:
     void spawn_preview();
     void destroy_preview();
     bool check_overlap() const;
+
+    BuildSocket* find_entry_socket(Node3D *p_instance, BuildSocket *p_target_socket) const;
+Transform3D compute_socket_attach_transform(Node3D *p_instance, BuildSocket *p_target_socket, BuildSocket *p_entry_socket) const;
+
+    BuildSocket *target_socket = nullptr;
 };
 
 } // namespace godot

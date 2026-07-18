@@ -21,10 +21,6 @@ void Player::_ready() {
     add_child(tool_mgr);
 
     camera_ctl->setup_camera(this);
-
-    // Начальный инструмент
-    SuperDigger* digger = memnew(SuperDigger);
-    tool_mgr->set_tool(digger);
 }
 
 void Player::_physics_process(double delta) {
