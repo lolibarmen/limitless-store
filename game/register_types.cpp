@@ -8,6 +8,7 @@ using namespace godot;
 
 void initialize_game_module(ModuleInitializationLevel p_level) {
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) return;
+    auto_register_virtual_classes();
     auto_register_classes();
     auto_register_singletons();
 }

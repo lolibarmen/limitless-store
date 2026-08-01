@@ -11,12 +11,6 @@ protected:
     static void _bind_methods() {}
 
 public:
-    // Найти ближайший свободный коннектор к позиции
-    virtual Node3D *get_nearest_connector(const Vector3 &world_pos) const;
-
-    // Примагнитить этот блок к коннектору другого блока
-    virtual void snap_to_connector(Node3D *connector);
-
     virtual ~BuildBlock() {}
 };
 

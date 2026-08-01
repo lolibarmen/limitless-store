@@ -14,21 +14,31 @@ if env["platform"] == "windows" and env.get("use_mingw"):
 GAME_DIR = "game"
 OBJECT_DIR = os.path.join(GAME_DIR, "objects")
 SINGLETONS_DIR = os.path.join(GAME_DIR, "singletons")
+VIRTUAL_DIR = os.path.join(GAME_DIR, "virtual")
 GENERATED_DIR = os.path.join(GAME_DIR, "generated")
 
-env.Append(CPPPATH=["#game", "#game/common", "#game/objects", "#game/generated", "#game/singletons"])
+env.Append(CPPPATH=[
+    "#game",
+    "#game/common",
+    "#game/objects",
+    "#game/generated",
+    "#game/singletons",
+    "#game/virtual",
+])
 os.makedirs(GENERATED_DIR, exist_ok=True)
 
 all_sources = []
 includes = ""
 class_registrations = ""
+virtual_class_registrations = ""
 singleton_decls = ""
 singleton_inits = ""
 singleton_frees = ""
 
 
-def discover_cpp_classes(base_dir, is_singleton=False):
-    global includes, class_registrations, singleton_decls, singleton_inits, singleton_frees, all_sources
+def discover_cpp_classes(base_dir, is_singleton=False, is_virtual=False):
+    global includes, class_registrations, virtual_class_registrations
+    global singleton_decls, singleton_inits, singleton_frees, all_sources
 
     for root, dirs, files in os.walk(base_dir):
         cpp_files = [f for f in files if f.endswith(".cpp")]
@@ -43,7 +53,11 @@ def discover_cpp_classes(base_dir, is_singleton=False):
                 continue
 
             includes += f'#include "{folder_name}/{h}"\n'
-            class_registrations += f"    ClassDB::register_class<{class_name}>();\n"
+
+            if is_virtual:
+                virtual_class_registrations += f"    ClassDB::register_class<{class_name}>();\n"
+            else:
+                class_registrations += f"    ClassDB::register_class<{class_name}>();\n"
 
             if is_singleton:
                 singleton_decls += f"static {class_name} *{class_name}_instance = nullptr;\n"
@@ -58,6 +72,9 @@ def discover_cpp_classes(base_dir, is_singleton=False):
                 )
 
 
+# Порядок важен: виртуальные (интерфейсные) классы регистрируются первыми,
+# т.к. обычные "objects" зачастую от них наследуются.
+# discover_cpp_classes(VIRTUAL_DIR, is_virtual=True)
 discover_cpp_classes(OBJECT_DIR)
 discover_cpp_classes(SINGLETONS_DIR, is_singleton=True)
 
@@ -70,6 +87,9 @@ using namespace godot;
 
 {includes}
 {singleton_decls}
+inline void auto_register_virtual_classes() {{
+{virtual_class_registrations}}}
+
 inline void auto_register_classes() {{
 {class_registrations}}}
 

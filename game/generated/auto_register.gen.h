@@ -3,7 +3,9 @@
 #include <godot_cpp/classes/engine.hpp>
 using namespace godot;
 
+#include "MeshPrimitive/MeshPrimitive.hpp"
 #include "Tool/Tool.hpp"
+#include "MeshMarker/MeshMarker.hpp"
 #include "BlockGenerator/BlockGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
@@ -13,7 +15,9 @@ using namespace godot;
 #include "BlockSource/BlockSource.hpp"
 #include "SuperDigger/SuperDigger.hpp"
 #include "BuildSocket/BuildSocket.hpp"
+#include "PotentialEditor/PotentialEditor.hpp"
 #include "BuildBlock/BuildBlock.hpp"
+#include "PotentialSource/PotentialSource.hpp"
 #include "Player/Player.hpp"
 #include "PickableTool/PickableTool.hpp"
 #include "WorldCoordinator/WorldCoordinator.hpp"
@@ -25,8 +29,13 @@ using namespace godot;
 
 static BuildGraph *BuildGraph_instance = nullptr;
 
+inline void auto_register_virtual_classes() {
+}
+
 inline void auto_register_classes() {
+    ClassDB::register_class<MeshPrimitive>();
     ClassDB::register_class<Tool>();
+    ClassDB::register_class<MeshMarker>();
     ClassDB::register_class<BlockGenerator>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<PlayerMovement>();
@@ -36,7 +45,9 @@ inline void auto_register_classes() {
     ClassDB::register_class<BlockSource>();
     ClassDB::register_class<SuperDigger>();
     ClassDB::register_class<BuildSocket>();
+    ClassDB::register_class<PotentialEditor>();
     ClassDB::register_class<BuildBlock>();
+    ClassDB::register_class<PotentialSource>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<PickableTool>();
     ClassDB::register_class<WorldCoordinator>();

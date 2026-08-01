@@ -1,0 +1,4 @@
+struct CellData
+{
+    float potential;
+};
