@@ -1,8 +1,10 @@
+MultiMeshInstance3D
+MultiMeshInstance2D
+MeshInstance3D
 MeshMarker
 MeshPrimitive
 PickableTool
 CollisionShape3D
-MeshInstance3D
 StaticBody3D
 Label
 VBoxContainer
@@ -10,6 +12,3 @@ CenterContainer
 Control
 CanvasLayer
 Area3D
-BuildTool
-BuildSocket
-Node3D

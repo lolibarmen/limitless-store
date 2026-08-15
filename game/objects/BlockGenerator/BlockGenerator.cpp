@@ -13,6 +13,7 @@ void BlockGenerator::_bind_methods() {
 
 void BlockGenerator::setup_noise() {
     mountain_noise.instantiate();
+    mountain_noise->set_seed(seed);
     mountain_noise->set_noise_type(FastNoiseLite::TYPE_PERLIN);
     mountain_noise->set_frequency(0.0025f);
     mountain_noise->set_fractal_octaves(4);
@@ -49,6 +50,6 @@ BlockData BlockGenerator::get_block(const Vector3i& world_pos) const {
     float density = Math::clamp(sd / TRANSITION, -1.0f, 1.0f);
 
     BlockMaterial material = (sd > 0) ? BlockMaterial::GRASS : BlockMaterial::VOID;
-    
+
     return { material, density };
 }

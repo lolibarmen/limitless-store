@@ -4,6 +4,7 @@
 using namespace godot;
 
 #include "MeshPrimitive/MeshPrimitive.hpp"
+#include "ChunkMeshNode/ChunkMeshNode.hpp"
 #include "Tool/Tool.hpp"
 #include "MeshMarker/MeshMarker.hpp"
 #include "BlockGenerator/BlockGenerator.hpp"
@@ -34,6 +35,7 @@ inline void auto_register_virtual_classes() {
 
 inline void auto_register_classes() {
     ClassDB::register_class<MeshPrimitive>();
+    ClassDB::register_class<ChunkMeshNode>();
     ClassDB::register_class<Tool>();
     ClassDB::register_class<MeshMarker>();
     ClassDB::register_class<BlockGenerator>();

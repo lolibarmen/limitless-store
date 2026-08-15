@@ -29,7 +29,7 @@ vec4 triplanar_sample(sampler2D tex, vec3 world_pos, vec3 normal) {
 
 vec4 sample_by_id(float id, vec3 world_pos, vec3 normal) {
     const float texture_scale = 0.25;
-    
+
     world_pos *= texture_scale;
     float slope = 1.0 - normal.y * normal.y;
     if (id < 0.5) return triplanar_sample(texture_null,   world_pos, normal);
@@ -48,10 +48,10 @@ vec4 sample_by_id(float id, vec3 world_pos, vec3 normal) {
 void fragment() {
     vec3 world_pos    = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
     vec3 world_normal = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
-    
+
     float id = round(COLOR.r * 255.0);
     vec4 albedo = sample_by_id(id, world_pos, world_normal);
-    
+
     ALBEDO = albedo.rgb;
     ROUGHNESS = 0.85;
     METALLIC = 0.0;

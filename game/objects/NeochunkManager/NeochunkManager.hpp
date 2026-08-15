@@ -53,7 +53,7 @@ class NeochunkManager : public Node3D {
 
     void update_recurs(Neochunk* n);
     void delete_childrens(Neochunk* n);
-    
+
     void spawn_mesh(Neochunk* n);
     void despawn_mesh(Neochunk* n);
 

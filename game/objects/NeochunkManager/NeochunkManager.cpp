@@ -2,7 +2,7 @@
 #include <functional>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
-#include <NeochunkNode/ChunkMeshQueue.hpp>
+#include <ChunkMeshNode/ChunkMeshQueue.hpp>
 
 using namespace godot;
 
@@ -139,7 +139,7 @@ void NeochunkManager::refresh_mesh(const std::vector<Vector3i>& changed_voxels) 
                 if (v.x >= (int)min.x - 1 && v.x <= (int)max.x + 1 &&
                     v.y >= (int)min.y - 1 && v.y <= (int)max.y + 1 &&
                     v.z >= (int)min.z - 1 && v.z <= (int)max.z + 1) {
-                    n->node->generate_mesh();
+                    n->node->generate();
                     return; // достаточно одного попадания
                 }
             }

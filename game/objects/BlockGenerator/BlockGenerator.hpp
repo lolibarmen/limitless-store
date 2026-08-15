@@ -14,7 +14,7 @@ private:
     Ref<BiomeSource> biome_source;
 
     void setup_noise();
-    
+
     Ref<FastNoiseLite> mountain_noise;
     Ref<FastNoiseLite> material_noise;
 

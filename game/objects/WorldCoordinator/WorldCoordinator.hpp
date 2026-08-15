@@ -10,7 +10,7 @@ class WorldCoordinator : public Node3D {
     GDCLASS(WorldCoordinator, Node3D)
 
 private:
-    int seed = 0;
+    int seed = 1;
 
     // Менеджеры — дочерние узлы в сцене, выставляются в инспекторе
     NeochunkManager*  chunk_manager  = nullptr;

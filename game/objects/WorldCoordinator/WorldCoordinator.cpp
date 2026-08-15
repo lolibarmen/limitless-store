@@ -1,6 +1,6 @@
 #include "WorldCoordinator.hpp"
 #include <BlockSource/BlockSource.hpp>
-#include <NeochunkNode/ChunkMaterialManager.hpp>
+#include <ChunkMeshNode/ChunkMaterialManager.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
 using namespace godot;

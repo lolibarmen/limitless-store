@@ -1,5 +1,5 @@
 #include "ChunkMeshQueue.hpp"
-#include "NeochunkNode.hpp"
+#include "ChunkMeshNode.hpp"
 
 using namespace godot;
 
@@ -14,7 +14,7 @@ void ChunkMeshQueue::tick(int max_per_frame) {
             _queue.pop();
         }
 
-        NeochunkNode* chunk = Object::cast_to<NeochunkNode>(
+        ChunkMeshNode* chunk = Object::cast_to<ChunkMeshNode>(
             ObjectDB::get_instance(job.chunk_id)
         );
         if (chunk) chunk->set_mesh(job.mesh);
