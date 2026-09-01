@@ -1,0 +1,75 @@
+[gd_scene load_steps=4 format=4 uid="uid://nguv18fp0kqi"]
+
+[ext_resource type="ArrayMesh" uid="uid://bdbn7aoidlgx0" path="res://assets/Tree/tree_block.res" id="1_vs3og"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f363f"]
+resource_name = "Материал"
+cull_mode = 2
+albedo_color = Color(0.9063318, 0.9063318, 0.9063318, 1)
+roughness = 0.5
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_vs3og"]
+_surfaces = [{
+"aabb": AABB(-1, 0, -1, 2, 2, 2),
+"attribute_data": PackedByteArray("AACAPwD//z7g/18/AAAAAAAAgD8AAAAA4P9fPwD//z7g/18/AP//PsD/Pz8AAAAA4P9fPwAAAADA/z8/AP//PsD/Pz8A//8+oP8fPwAAAADA/z8/AAAAAKD/Hz8A//8+oP8fPwD//z4A//8+AAAAAKD/Hz8AAAAAAP//PgD//z4A//8+AP//PsD+vz4AAAAAAP//PgAAAADA/r8+AP//PsD+vz4A//8+AP1/PgAAAADA/r8+AAAAAAD9fz4A//8+AP1/PgD//z4A+f89AAAAAAD9fz4AAAAAAPn/PQD//z4A+f89AP//PgAAAAAAAAAAAPn/PQAAAAAAAAAAAP//Pg=="),
+"format": 34359742487,
+"index_count": 48,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABAAHAAUACAAJAAoACAALAAkADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUAGAAZABoAGAAbABkAHAAdAB4AHAAfAB0A"),
+"material": SubResource("StandardMaterial3D_f363f"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 32,
+"vertex_data": PackedByteArray("AACAtwAAAAAAAIC/tgM1PwAAAEC1BTW/AACAtwAAAEAAAIC/tgM1PwAAAAC1BTW/tgM1PwAAAAC1BTW/AACAPwAAAEAAAIC3tgM1PwAAAEC1BTW/AACAPwAAAAAAAIC3AACAPwAAAAAAAIC3tgM1PwAAAEC2AzU/AACAPwAAAEAAAIC3tgM1PwAAAAC2AzU/tgM1PwAAAAC2AzU/AACAtwAAAEAAAIA/tgM1PwAAAEC2AzU/AACAtwAAAAAAAIA/AACAtwAAAAAAAIA/tQU1vwAAAEC2AzU/AACAtwAAAEAAAIA/tQU1vwAAAAC2AzU/tQU1vwAAAAC2AzU/AACAvwAAAEAAAIC3tQU1vwAAAEC2AzU/AACAvwAAAAAAAIC3AACAvwAAAAAAAIC3tQU1vwAAAEC1BTW/AACAvwAAAEAAAIC3tQU1vwAAAAC1BTW/tQU1vwAAAAC1BTW/AACAtwAAAEAAAIC/tQU1vwAAAEC1BTW/AACAtwAAAAAAAIC//v9/2gAAvtL+/3/aAAC+0v7/f9oAAL7S/v9/2gAAvtL+/3ylAABA7f7/fKUAAEDt/v98pQAAQO3+/3ylAABA7YDa/3/+/0DtgNr/f/7/QO2A2v9//v9A7YDa/3/+/0DtfKX/f/7/vdJ8pf9//v+90nyl/3/+/73SfKX/f/7/vdKCWv9/gtr/v4Ja/3+C2v+/glr/f4La/7+CWv9/gtr/v34l/399pf+/fiX/f32l/79+Jf9/faX/v34l/399pf+/AACCWoJa/78AAIJaglr/vwAAglqCWv+/AACCWoJa/78AAH8lfyX/vwAAfyV/Jf+/AAB/JX8l/78AAH8lfyX/vw==")
+}]
+
+[node name="TreeBlock" type="TreeBlock"]
+base_mesh = ExtResource("1_vs3og")
+mesh = SubResource("ArrayMesh_vs3og")
+
+[node name="marker_top_a" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2, 0)
+
+[node name="marker_top_b" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 2, 0.7)
+
+[node name="marker_top_c" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 1)
+
+[node name="marker_top_d" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 2, 0.7)
+
+[node name="marker_top_e" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 2, 0)
+
+[node name="marker_top_f" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 2, -0.7)
+
+[node name="marker_top_g" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -1)
+
+[node name="marker_top_h" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 2, -0.7)
+
+[node name="marker_down_a" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, 0)
+
+[node name="marker_down_b2" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0, 0.7)
+
+[node name="marker_down_c2" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+
+[node name="marker_down_d2" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0, 0.7)
+
+[node name="marker_down_e2" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0)
+
+[node name="marker_down_f2" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0, -0.7)
+
+[node name="marker_down_g2" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="marker_down_h2" type="MeshMarker" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0, -0.7)

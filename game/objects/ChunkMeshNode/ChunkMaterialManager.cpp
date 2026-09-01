@@ -7,59 +7,76 @@ using namespace godot;
 
 static const char* SHADER_CODE = R"(
 shader_type spatial;
+render_mode diffuse_toon, specular_toon, cull_back;
 
-uniform sampler2D texture_grass   : source_color, filter_nearest_mipmap;
-uniform sampler2D texture_dirt    : source_color, filter_nearest_mipmap;
-uniform sampler2D texture_stone   : source_color, filter_nearest_mipmap;
-uniform sampler2D texture_sand    : source_color, filter_nearest_mipmap;
-uniform sampler2D texture_snow    : source_color, filter_nearest_mipmap;
-uniform sampler2D texture_gravel  : source_color, filter_nearest_mipmap;
-uniform sampler2D texture_null    : source_color, filter_nearest_mipmap;
+uniform int grass_material_id = 3;
+uniform sampler2D grass_texture : source_color, filter_nearest_mipmap;
+uniform sampler2D other_texture : source_color, filter_nearest_mipmap;
+uniform float triplanar_scale = 1.0;
 
-vec4 triplanar_sample(sampler2D tex, vec3 world_pos, vec3 normal) {
-    const float blend_sharpness = 16.0;
-    vec3 blending = pow(abs(normal), vec3(blend_sharpness));
-    blending /= (blending.x + blending.y + blending.z);
+varying vec3 world_position;
+varying vec3 world_normal;
 
-    vec4 x = texture(tex, world_pos.yz);
-    vec4 y = texture(tex, world_pos.xz);
-    vec4 z = texture(tex, world_pos.xy);
-    return x * blending.x + y * blending.y + z * blending.z;
+void vertex() {
+    world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+    world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 }
 
-vec4 sample_by_id(float id, vec3 world_pos, vec3 normal) {
-    const float texture_scale = 0.25;
+vec3 triplanar_sample(sampler2D tex, vec3 position, vec3 normal) {
+    vec3 weights = abs(normal);
+    weights = pow(weights, vec3(4.0));
+    weights /= max(dot(weights, vec3(1.0)), 0.0001);
 
-    world_pos *= texture_scale;
-    float slope = 1.0 - normal.y * normal.y;
-    if (id < 0.5) return triplanar_sample(texture_null,   world_pos, normal);
-    if (id < 1.5) return triplanar_sample(texture_stone,  world_pos, normal);
-    if (id < 2.5) return triplanar_sample(texture_dirt,   world_pos, normal);
-    if (id < 3.5) {
-        vec4 grass = triplanar_sample(texture_grass, world_pos, normal);
-        vec4 dirt  = triplanar_sample(texture_dirt,  world_pos, normal);
-        return (0.5 < slope) ? dirt : grass;
+    vec2 uv_x = position.zy;
+    vec2 uv_y = position.xz;
+    vec2 uv_z = position.xy;
+
+    if (normal.x < 0.0) {
+        uv_x.x = -uv_x.x;
     }
-    if (id < 4.5) return triplanar_sample(texture_sand,   world_pos, normal);
-    if (id < 5.5) return triplanar_sample(texture_snow,   world_pos, normal);
-                  return triplanar_sample(texture_gravel, world_pos, normal);
+
+    if (normal.y < 0.0) {
+        uv_y.x = -uv_y.x;
+    }
+
+    if (normal.z < 0.0) {
+        uv_z.x = -uv_z.x;
+    }
+
+    return
+        texture(tex, uv_x * triplanar_scale).rgb * weights.x +
+        texture(tex, uv_y * triplanar_scale).rgb * weights.y +
+        texture(tex, uv_z * triplanar_scale).rgb * weights.z;
 }
 
 void fragment() {
-    vec3 world_pos    = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
-    vec3 world_normal = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
-
     float id = round(COLOR.r * 255.0);
-    vec4 albedo = sample_by_id(id, world_pos, world_normal);
 
-    ALBEDO = albedo.rgb;
-    ROUGHNESS = 0.85;
+    vec3 normal = normalize(world_normal);
+
+    vec3 grass_albedo = triplanar_sample(
+        grass_texture,
+        world_position,
+        normal
+    );
+
+    vec3 other_albedo = triplanar_sample(
+        other_texture,
+        world_position,
+        normal
+    );
+
+    ALBEDO = abs(id - float(grass_material_id)) < 0.5
+        ? grass_albedo
+        : other_albedo;
+
+    ROUGHNESS = 0.9;
     METALLIC = 0.0;
 }
 )";
 
 void ChunkMaterialManager::initialize() {
-    if (_material.is_valid()) return; // уже инициализирован
+    if (_material.is_valid()) return;
 
     Ref<Shader> shader;
     shader.instantiate();
@@ -69,17 +86,15 @@ void ChunkMaterialManager::initialize() {
     mat.instantiate();
     mat->set_shader(shader);
 
-    auto load_tex = [](const String& path) -> Ref<Texture2D> {
-        return ResourceLoader::get_singleton()->load(path, "Texture2D");
-    };
+    ResourceLoader* loader = ResourceLoader::get_singleton();
 
-    mat->set_shader_parameter("texture_null", load_tex("res://assets/Chunk/null.webp"));
-    mat->set_shader_parameter("texture_grass",  load_tex("res://assets/Chunk/grass.png"));
-    mat->set_shader_parameter("texture_dirt",   load_tex("res://assets/Chunk/dirt.png"));
-    mat->set_shader_parameter("texture_stone",  load_tex("res://assets/Chunk/stone.png"));
-    mat->set_shader_parameter("texture_sand",   load_tex("res://assets/Chunk/sand.webp"));
-    mat->set_shader_parameter("texture_snow",   load_tex("res://assets/Chunk/snow.webp"));
-    mat->set_shader_parameter("texture_gravel", load_tex("res://assets/Chunk/gravel.webp"));
+    Ref<Texture2D> grass_tex = loader->load("res://assets/Chunk/grass.png");
+    Ref<Texture2D> other_tex = loader->load("res://assets/Chunk/null.webp");
+
+    mat->set_shader_parameter("grass_material_id", 3);
+    mat->set_shader_parameter("grass_texture", grass_tex);
+    mat->set_shader_parameter("other_texture", other_tex);
+    mat->set_shader_parameter("triplanar_scale", 1.0f);
 
     _material = mat;
 }

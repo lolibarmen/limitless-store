@@ -6,6 +6,7 @@ using namespace godot;
 #include "MeshPrimitive/MeshPrimitive.hpp"
 #include "ChunkMeshNode/ChunkMeshNode.hpp"
 #include "Tool/Tool.hpp"
+#include "TreeBlock/TreeBlock.hpp"
 #include "MeshMarker/MeshMarker.hpp"
 #include "BlockGenerator/BlockGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
@@ -19,6 +20,7 @@ using namespace godot;
 #include "PotentialEditor/PotentialEditor.hpp"
 #include "BuildBlock/BuildBlock.hpp"
 #include "PotentialSource/PotentialSource.hpp"
+#include "TreeGenerator/TreeGenerator.hpp"
 #include "Player/Player.hpp"
 #include "PickableTool/PickableTool.hpp"
 #include "WorldCoordinator/WorldCoordinator.hpp"
@@ -37,6 +39,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<MeshPrimitive>();
     ClassDB::register_class<ChunkMeshNode>();
     ClassDB::register_class<Tool>();
+    ClassDB::register_class<TreeBlock>();
     ClassDB::register_class<MeshMarker>();
     ClassDB::register_class<BlockGenerator>();
     ClassDB::register_class<PlayerCamera>();
@@ -50,6 +53,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<PotentialEditor>();
     ClassDB::register_class<BuildBlock>();
     ClassDB::register_class<PotentialSource>();
+    ClassDB::register_class<TreeGenerator>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<PickableTool>();
     ClassDB::register_class<WorldCoordinator>();
