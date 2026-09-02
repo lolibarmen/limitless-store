@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=4 uid="uid://ds37r3ubnrghg"]
+
+[ext_resource type="ArrayMesh" uid="uid://bdbn7aoidlgx0" path="res://assets/Tree/tree_block.res" id="1_71het"]
+[ext_resource type="Texture2D" uid="uid://b3fkw0lb45ggr" path="res://assets/Tree/log.webp" id="2_m6bg2"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ul25n"]
+albedo_texture = ExtResource("2_m6bg2")
+uv1_triplanar = true
+uv1_triplanar_sharpness = 38.05469
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_31lr7"]
+_surfaces = [{
+"aabb": AABB(-1, -1, -1, 2, 2, 2),
+"attribute_data": PackedByteArray("AACAPwD//z7g/18/AAAAAAAAgD8AAAAA4P9fPwD//z7g/18/AP//PsD/Pz8AAAAA4P9fPwAAAADA/z8/AP//PsD/Pz8A//8+oP8fPwAAAADA/z8/AAAAAKD/Hz8A//8+oP8fPwD//z4A//8+AAAAAKD/Hz8AAAAAAP//PgD//z4A//8+AP//PsD+vz4AAAAAAP//PgAAAADA/r8+AP//PsD+vz4A//8+AP1/PgAAAADA/r8+AAAAAAD9fz4A//8+AP1/PgD//z4A+f89AAAAAAD9fz4AAAAAAPn/PQD//z4A+f89AP//PgAAAAAAAAAAAPn/PQAAAAAAAAAAAP//Pg=="),
+"format": 34359742487,
+"index_count": 48,
+"index_data": PackedByteArray("AAABAAIAAAADAAEABAAFAAYABAAHAAUACAAJAAoACAALAAkADAANAA4ADAAPAA0AEAARABIAEAATABEAFAAVABYAFAAXABUAGAAZABoAGAAbABkAHAAdAB4AHAAfAB0A"),
+"material": SubResource("StandardMaterial3D_ul25n"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 32,
+"vertex_data": PackedByteArray("AACAtwAAgL8AAIC/tgM1PwAAgD+1BTW/AACAtwAAgD8AAIC/tgM1PwAAgL+1BTW/tgM1PwAAgL+1BTW/AACAPwAAgD8AAIC3tgM1PwAAgD+1BTW/AACAPwAAgL8AAIC3AACAPwAAgL8AAIC3tgM1PwAAgD+2AzU/AACAPwAAgD8AAIC3tgM1PwAAgL+2AzU/tgM1PwAAgL+2AzU/AACAtwAAgD8AAIA/tgM1PwAAgD+2AzU/AACAtwAAgL8AAIA/AACAtwAAgL8AAIA/tQU1vwAAgD+2AzU/AACAtwAAgD8AAIA/tQU1vwAAgL+2AzU/tQU1vwAAgL+2AzU/AACAvwAAgD8AAIC3tQU1vwAAgD+2AzU/AACAvwAAgL8AAIC3AACAvwAAgL8AAIC3tQU1vwAAgD+1BTW/AACAvwAAgD8AAIC3tQU1vwAAgL+1BTW/tQU1vwAAgL+1BTW/AACAtwAAgD8AAIC/tQU1vwAAgD+1BTW/AACAtwAAgL8AAIC//v9/2gAAvtL+/3/aAAC+0v7/f9oAAL7S/v9/2gAAvtL+/3ylAABA7f7/fKUAAEDt/v98pQAAQO3+/3ylAABA7YDa/3/+/0DtgNr/f/7/QO2A2v9//v9A7YDa/3/+/0DtfKX/f/7/vdJ8pf9//v+90nyl/3/+/73SfKX/f/7/vdKCWv9/gtr/v4Ja/3+C2v+/glr/f4La/7+CWv9/gtr/v34l/399pf+/fiX/f32l/79+Jf9/faX/v34l/399pf+/AACCWoJa/78AAIJaglr/vwAAglqCWv+/AACCWoJa/78AAH8lfyX/vwAAfyV/Jf+/AAB/JX8l/78AAH8lfyX/vw==")
+}]
+
+[node name="TreeTrunk" type="MeshCylinder"]
+base_mesh = ExtResource("1_71het")
+mesh = SubResource("ArrayMesh_31lr7")

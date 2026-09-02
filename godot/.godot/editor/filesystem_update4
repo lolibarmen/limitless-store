@@ -2,3 +2,4 @@ res://scenes/start.tscn
 res://assets/day_sky.tres
 res://assets/atmosphere.gdshader
 res://assets/Grass/grass.gdshader
+res://assets/Tree/TreeBlock.gdshader
