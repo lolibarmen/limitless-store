@@ -32,6 +32,9 @@ public:
     String get_shape_type() const override { return "curve"; }
     void recompute_aabb() override;
 
+    float evaluate_sdf(const Vector3& world_pos) const override;
+    uint16_t get_material_id() const override;
+
     // --- Управление точками ---
     void clear_points();
     void add_point(const Vector3& position, const Vector3& tangent_in = Vector3(), 

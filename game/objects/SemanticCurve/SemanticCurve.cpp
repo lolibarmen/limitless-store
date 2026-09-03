@@ -154,3 +154,46 @@ float SemanticCurve::sample_radius(float t) const {
     
     return Math::lerp(_points[i0].radius, _points[i1].radius, local_t);
 }
+
+// --- Вспомогательная функция: расстояние от точки p до отрезка ab с учётом радиуса ---
+static float sdf_segment(const Vector3& p, const Vector3& a, const Vector3& b, float radius) {
+    Vector3 pa = p - a;
+    Vector3 ba = b - a;
+    // Проекция точки на отрезок, ограниченная диапазоном [0, 1]
+    float h = CLAMP(pa.dot(ba) / ba.dot(ba), 0.0f, 1.0f);
+    // Расстояние до ближайшей точки отрезка минус радиус
+    return (pa - ba * h).length() - radius;
+}
+
+float SemanticCurve::evaluate_sdf(const Vector3& world_pos) const {
+    if (_points.size() < 2) {
+        return 1e10f; // Слишком мало точек, считаем что фигуры нет
+    }
+
+    float min_dist = 1e10f;
+    int segments = _closed ? _points.size() : _points.size() - 1;
+
+    // Проходим по всем сегментам кривой и находим минимальное расстояние
+    for (int i = 0; i < segments; i++) {
+        int i0 = i;
+        int i1 = (i + 1) % _points.size();
+        
+        const auto& p0 = _points[i0];
+        const auto& p1 = _points[i1];
+        
+        // Для безопасности берем максимальный радиус из двух точек сегмента
+        float r = MAX(p0.radius, p1.radius);
+        
+        float dist = sdf_segment(world_pos, p0.position, p1.position, r);
+        if (dist < min_dist) {
+            min_dist = dist;
+        }
+    }
+    
+    return min_dist;
+}
+
+uint16_t SemanticCurve::get_material_id() const {
+    // 0 - это наш индекс PROP_MATERIAL_ID из базового класса
+    return static_cast<uint16_t>(get_property(0, 0.0f));
+}
