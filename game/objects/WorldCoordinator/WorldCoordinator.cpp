@@ -16,26 +16,7 @@ void WorldCoordinator::_bind_methods() {
 void WorldCoordinator::_ready() {
     ChunkMaterialManager::get_singleton().initialize();
 
-    // --- уровень 1: биом ---
-    Ref<BiomeGenerator> biome_gen;
-    biome_gen.instantiate();
-    biome_gen->init(seed);
-
-    Ref<BiomeSource> biome_source;
-    biome_source.instantiate();
-    biome_source->set_generator(biome_gen);
-
-    // --- уровень 2: блоки ---
-    Ref<BlockGenerator> block_gen;
-    block_gen.instantiate();
-    block_gen->init(biome_source, seed);
-
-    Ref<BlockSource> block_source;
-    block_source.instantiate();
-    block_source->init(block_gen);
-
     // --- передаём менеджеру ---
     chunk_manager = memnew(NeochunkManager);
-    chunk_manager->set_block_source(block_source);
     add_child(chunk_manager);
 }

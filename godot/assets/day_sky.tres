@@ -19,6 +19,5 @@ ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.5
 reflected_light_source = 1
-fog_enabled = true
 fog_light_color = Color(0.83681947, 0.85348845, 0.8794302, 1)
 fog_depth_curve = 0.3660226

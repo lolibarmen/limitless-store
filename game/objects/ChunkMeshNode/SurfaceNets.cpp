@@ -17,52 +17,36 @@ static constexpr int EDGE_TABLE[12][2] = {
     {0,4}, {1,5}, {2,6}, {3,7},
 };
 
-static const struct { Vector3i a1, a2, n12; } EDGE_AXES[3] = { // axis 1, axis 2, normal 12
+static const struct { Vector3i a1, a2, n12; } EDGE_AXES[3] = {
     { {1,0,0}, {0,1,0}, {0,0,1} },
     { {0,0,1}, {1,0,0}, {0,1,0} },
     { {0,1,0}, {0,0,1}, {1,0,0} }
 };
 
-BlockData ChunkBuildInput::get_block(Vector3i block_coords) const {
-    int x = block_coords.x+2, y = block_coords.y+2, z = block_coords.z+2;
-    int n = voxel_count+4;
-
-    if (x < 0 || x >= n || y < 0 || y >= n || z < 0 || z >= n) {
-        print_error("get_block(): Index out of bounds: x=" + itos(x) +
-                ", y=" + itos(y) + ", z=" + itos(z) +
-                " (n=" + itos(n) + ")");
-        // Верните значение по умолчанию или выбросьте исключение
-        return BlockData();
-    }
-
-    return blocks[x * n * n + y * n + z];
-}
-
-MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
+MeshData godot::build_neochunk_mesh(const ChunkBuildInput& input) {
     MeshData result;
     
     map<Vector3i, Vector3> voxel_vertices;
     
     // Первый проход: собираем meanP для каждого вокселя
-    for(int x=-1; x <= input.voxel_count; x++)
-    for(int y=-1; y <= input.voxel_count; y++)
-    for(int z=-1; z <= input.voxel_count; z++)
+    for(int x = -1; x <= input.voxel_count; x++)
+    for(int y = -1; y <= input.voxel_count; y++)
+    for(int z = -1; z <= input.voxel_count; z++)
     {
         bool have_positive = false;
         bool have_negative = false;
-        float densites[2][2][2];
+        float densities[2][2][2];
 
         // Отсекаем блоки без материи
         for(Vector3i off : CORNER_OFFSET) {
-            BlockData neighbor_block = input.get_block(Vector3i(x,y,z) + off);
-            float density = neighbor_block.density;
+            float density = input.get_sdf(Vector3i(x,y,z) + off);
 
             if(density < 0)
                 have_positive = true;
             else if(density > 0)
                 have_negative = true;
 
-            densites[off.x][off.y][off.z] = density;
+            densities[off.x][off.y][off.z] = density;
         }
 
         if(!have_positive || !have_negative) continue;
@@ -73,8 +57,8 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
             Vector3i offA = CORNER_OFFSET[edge[0]];
             Vector3i offB = CORNER_OFFSET[edge[1]];
 
-            float fA = densites[offA.x][offA.y][offA.z];
-            float fB = densites[offB.x][offB.y][offB.z];
+            float fA = densities[offA.x][offA.y][offA.z];
+            float fB = densities[offB.x][offB.y][offB.z];
 
             if ((fA < 0) != (fB < 0)) {
                 float t = (0 - fA) / (fB - fA);
@@ -103,6 +87,7 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
         voxel_vertices[{x,y,z}] = meanP * scale - offset;
     }
     
+    // Второй проход: строим квады между соседними вокселями
     for(auto& [coord, meanP] : voxel_vertices)
     {
         for(auto& [a1, a2, n12] : EDGE_AXES)
@@ -123,15 +108,19 @@ MeshData build_neochunk_mesh(const ChunkBuildInput& input) {
 
             Vector3 normal = (v01 - v00).cross(v11 - v00).normalized();
 
-            float dA = input.get_block(coord).density;
-            float dB = input.get_block(coord + n12).density;
+            // Читаем SDF из нового кэша
+            float dA = input.get_sdf(coord);
+            float dB = input.get_sdf(coord + n12);
             if ((dA < 0) == (dB < 0)) continue;
 
             bool flip = (dB < 0);
 
+            // Определяем, какой воксель "твёрдый" (внутри), чтобы взять его материал
             Vector3i solid_coord = (dA > 0) ? coord : coord + n12;
-            BlockMaterial surface_mat = input.get_block(solid_coord).material;
-            float id = static_cast<float>(static_cast<int>(surface_mat)) / 255.0f;
+            uint16_t material_id = input.get_material(solid_coord);
+            
+            // Нормализуем material_id в диапазон [0, 1] для цвета
+            float id = static_cast<float>(material_id) / 255.0f;
 
             auto getVertexColor = [&](Vector3i gridCoord) -> Color {
                 return Color(id, id, 0.0f, 1.0f);

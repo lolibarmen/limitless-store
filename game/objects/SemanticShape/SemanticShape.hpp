@@ -3,6 +3,8 @@
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/variant/aabb.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/variant/vector3.hpp> // <-- Добавлено для SDF
+#include <cstdint>                       // <-- Добавлено для uint16_t
 #include <unordered_map>
 
 namespace godot {
@@ -57,8 +59,12 @@ public:
     
     void notify_shape_changed();
 
-    // Возвращаем строку по умолчанию, чтобы класс не был абстрактным
+    // Возвращаем строку по умолчанию, чтобы класс не был абстрактным для Godot
     virtual String get_shape_type() const { return "shape"; }
+
+    virtual float evaluate_sdf(const Vector3& world_pos) const;
+
+    virtual uint16_t get_material_id() const;
 };
 
 } // namespace godot

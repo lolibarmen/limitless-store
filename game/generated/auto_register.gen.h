@@ -40,6 +40,7 @@ inline void auto_register_virtual_classes() {
 }
 
 inline void auto_register_classes() {
+    ClassDB::register_class<SemanticShape>();
     ClassDB::register_class<MeshPrimitive>();
     ClassDB::register_class<ChunkMeshNode>();
     ClassDB::register_class<Tool>();
@@ -64,7 +65,6 @@ inline void auto_register_classes() {
     ClassDB::register_class<WorldCoordinator>();
     ClassDB::register_class<PlayerInteraction>();
     ClassDB::register_class<NeochunkNode>();
-    ClassDB::register_class<SemanticShape>();
     ClassDB::register_class<NeochunkManager>();
     ClassDB::register_class<ToolManager>();
     ClassDB::register_class<SemanticWorld>();

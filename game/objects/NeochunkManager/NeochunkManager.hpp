@@ -1,19 +1,20 @@
 #pragma once
 #include <godot_cpp/classes/node3d.hpp>
+#include <godot_cpp/variant/aabb.hpp>
 #include <NeochunkNode/NeochunkNode.hpp>
-#include <BlockSource/BlockSource.hpp>
 #include <memory>
 #include <unordered_map>
+#include <array>
 
 namespace godot {
+
+class SemanticWorld;
 
 constexpr int   MAX_DEPTH = 2;
 constexpr float ROOT_SIZE = 64.0f;
 
 class NeochunkManager : public Node3D {
     GDCLASS(NeochunkManager, Node3D)
-
-    Ref<BlockSource> block_source;
 
     struct Neochunk {
         Vector3 center;
@@ -41,7 +42,7 @@ class NeochunkManager : public Node3D {
 
     struct V3iHash {
         size_t operator()(const Vector3i& v) const {
-            return std::hash<int>()(v.x) ^ std::hash<int>()(v.y)<<8 ^ std::hash<int>()(v.z)<<16;
+            return std::hash<int>()(v.x) ^ (std::hash<int>()(v.y) << 8) ^ (std::hash<int>()(v.z) << 16);
         }
     };
 
@@ -50,12 +51,15 @@ class NeochunkManager : public Node3D {
     Vector3 player_pos = {};
 
     void update_roots();
-
     void update_recurs(Neochunk* n);
     void delete_childrens(Neochunk* n);
 
     void spawn_mesh(Neochunk* n);
     void despawn_mesh(Neochunk* n);
+
+    // --- НОВЫЕ МЕТОДЫ ДЛЯ PARAMETRIC WORLD ---
+    void _on_shape_changed(uint64_t shape_id, const AABB& bounds);
+    void refresh_chunks_in_aabb(const AABB& bounds);
 
 protected:
     static void _bind_methods() {}
@@ -63,8 +67,6 @@ protected:
 public:
     void _ready() override;
     void _process(double delta) override;
-    void set_block_source(Ref<BlockSource> bs) { block_source = bs; }
-    void refresh_mesh(const std::vector<Vector3i>& changed_voxels);
 };
 
 } // namespace godot

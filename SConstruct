@@ -38,6 +38,7 @@ singleton_decls = ""
 singleton_inits = ""
 singleton_frees = ""
 
+FORCE_FIRST_CLASSES = ["SemanticShape"]
 
 def discover_cpp_classes(base_dir, is_singleton=False, is_virtual=False):
     global includes, class_registrations, virtual_class_registrations
@@ -60,7 +61,15 @@ def discover_cpp_classes(base_dir, is_singleton=False, is_virtual=False):
             if is_virtual:
                 virtual_class_registrations += f"    ClassDB::register_class<{class_name}>();\n"
             else:
-                class_registrations += f"    ClassDB::register_class<{class_name}>();\n"
+                # === ВОТ ЗДЕСЬ МАГИЯ ===
+                registration_line = f"    ClassDB::register_class<{class_name}>();\n"
+                if class_name in FORCE_FIRST_CLASSES:
+                    # Вставляем в самое начало строки регистраций
+                    class_registrations = registration_line + class_registrations
+                else:
+                    # Обычные классы добавляем в конец
+                    class_registrations += registration_line
+                # =======================
 
             if is_singleton:
                 singleton_decls += f"static {class_name} *{class_name}_instance = nullptr;\n"

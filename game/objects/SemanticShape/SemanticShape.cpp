@@ -65,3 +65,14 @@ void SemanticShape::notify_shape_changed() {
         _world->mark_shape_dirty(_id);
     }
 }
+
+float SemanticShape::evaluate_sdf(const Vector3& world_pos) const {
+    // По умолчанию фигура "не существует" или бесконечно далеко.
+    // Наследники (SemanticCurve, SemanticVolume) переопределят это.
+    return 1e10f; 
+}
+
+uint16_t SemanticShape::get_material_id() const {
+    // Ключ 0 мы договорились использовать для MATERIAL_ID в твоей табличке
+    return static_cast<uint16_t>(get_property(0, 0.0f));
+}

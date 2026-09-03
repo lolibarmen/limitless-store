@@ -1,4 +1,9 @@
+#include "SurfaceNets.hpp"
 #include "ChunkMeshNode.hpp"
+#include <Utils/VoxelBaker.hpp>
+#include <SemanticWorld/SemanticWorld.hpp>
+#include <ChunkMeshNode/ChunkMeshQueue.hpp>
+#include <godot_cpp/classes/engine.hpp>
 
 using namespace godot;
 
@@ -11,7 +16,6 @@ ChunkMeshNode::ChunkMeshNode() {}
 ChunkMeshNode::~ChunkMeshNode() {}
 
 void ChunkMeshNode::_ready() {
-    // Создаем визуальные и физические узлы как детей этого StaticBody3D
     _mesh_instance = memnew(MeshInstance3D);
     add_child(_mesh_instance);
 
@@ -20,19 +24,15 @@ void ChunkMeshNode::_ready() {
 }
 
 void ChunkMeshNode::generate_mesh() {
-    if (!_block_source.is_valid()) {
-        print_error("ChunkMeshNode::generate_mesh(): block_source is not valid!");
-        return;
-    }
-
     Vector3 chunk_pos = get_global_position();
-    float half_chunk_size = _chunk_size / 2;
+    float half_chunk_size = _chunk_size / 2.0f;
 
     auto inp = std::make_shared<ChunkBuildInput>();
     inp->lod_level    = _lod_level;
     inp->voxel_count  = _voxel_count;
     inp->chunk_size   = _chunk_size;
-
+    inp->stride       = (int)_voxel_count + 4;
+    inp->step         = 1 << _lod_level;
     inp->chunk_coord  = Vector3i(
         (int)(chunk_pos.x - half_chunk_size),
         (int)(chunk_pos.y - half_chunk_size),
@@ -60,11 +60,13 @@ void ChunkMeshNode::_build_mesh_task(uint64_t node_id) {
         return;
     }
 
-    const int stride = inp->voxel_count + 4;
-    const int step   = 1 << inp->lod_level;
-
-    // Сбор блоков теперь использует безопасную копию Ref из inp
-    node->_block_source->fill_chunk(inp->blocks, inp->chunk_coord, stride, step);
+    inp->cache = std::make_shared<VoxelCache>(inp->stride, inp->step, inp->chunk_coord);
+    
+    SemanticWorld* sw = (SemanticWorld*)Engine::get_singleton()->get_singleton("SemanticWorld");
+    if (sw) {
+        std::vector<Ref<SemanticShape>> shapes = sw->get_shapes_snapshot();
+        VoxelBaker::bake(*(inp->cache), shapes);
+    }
 
     const MeshData data = build_neochunk_mesh(*inp);
 
@@ -83,7 +85,6 @@ void ChunkMeshNode::_build_mesh_task(uint64_t node_id) {
     mesh.instantiate();
     mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
 
-    // Отдаем в очередь ID этого узла (ChunkMeshNode)
     ChunkMeshQueue::get_singleton().push(node_id, mesh);
 }
 
@@ -98,19 +99,7 @@ void ChunkMeshNode::set_mesh(Ref<Mesh> mesh) {
     _mesh_instance->set_mesh(mesh);
     _collision_shape->set_shape(shape);
 
-    auto& mgr = ChunkMaterialManager::get_singleton();
-    Ref<ShaderMaterial> mat = mgr.get_material();
-
-    int surface_count = _mesh_instance->get_surface_override_material_count();
-    for (int i = 0; i < surface_count; i++) {
-        _mesh_instance->set_surface_override_material(i, mat);
-    }
-}
-
-void ChunkMeshNode::set_debug_material() {
-    if (!_mesh_instance) return;
-    Ref<StandardMaterial3D> material;
-    material.instantiate();
-    material->set_flag(StandardMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
-    _mesh_instance->set_material_override(material);
+    // Здесь можно применить твой ChunkMaterialManager
+    // auto& mgr = ChunkMaterialManager::get_singleton();
+    // _mesh_instance->set_surface_override_material(0, mgr.get_material());
 }
