@@ -14,16 +14,12 @@ void NeochunkManager::_bind_methods() {
 }
 
 void NeochunkManager::_ready() {
-    print_line(">>> NeochunkManager _ready called");
     SemanticWorld* sw = (SemanticWorld*)Engine::get_singleton()->get_singleton("SemanticWorld");
     if (sw) {
         sw->set_on_shape_changed([this](uint64_t id, const AABB& bounds) {
             call_deferred("_on_shape_changed", id, bounds);
         });
     }
-
-    player_pos = get_global_position();
-    update_roots();
 }
 
 void NeochunkManager::_process(double delta) {
@@ -35,8 +31,6 @@ void NeochunkManager::_process(double delta) {
     player_pos = cam->get_global_position();
 
     update_roots();
-    
-    int active_nodes = 0;
     for (auto& [cell, root] : roots) {
         update_recurs(root);
     }
@@ -80,14 +74,11 @@ float cube_distance(Vector3 a, Vector3 b) {
 }
 
 void NeochunkManager::update_recurs(Neochunk* n) {
-    if (!n) return;
-    
     float dist = cube_distance(n->center, player_pos);
     bool should_split    = dist < n->size * 4.0f;
     bool should_collapse = dist > n->size * 4.1f;
 
     if (n->is_leaf() && should_split && n->depth < MAX_DEPTH) {
-        print_line("--- UPDATE_RECURS: SPLITTING chunk depth ", n->depth, " at dist ", dist, " (limit ", n->size * 4.0f, ")");
         despawn_mesh(n);
 
         float h = n->size / 2.0f, q = h / 2.0f;
@@ -103,14 +94,11 @@ void NeochunkManager::update_recurs(Neochunk* n) {
         }
     }
     else if (!n->is_leaf() && should_collapse) {
-        print_line("--- UPDATE_RECURS: COLLAPSING chunk depth ", n->depth, " at dist ", dist, " (limit ", n->size * 4.1f, ")");
         for (auto& c : n->children) {
-            if (c) {
-                delete_childrens(c);
-                despawn_mesh(c);
-                delete c;
-                c = nullptr;
-            }
+            delete_childrens(c);
+            despawn_mesh(c);
+            delete c;
+            c = nullptr;
         }
         spawn_mesh(n);
     }
@@ -131,7 +119,6 @@ void NeochunkManager::update_roots() {
     for (auto it = roots.begin(); it != roots.end(); ) {
         Vector3i d = it->first - pc;
         if (abs(d.x) > root_radius || abs(d.y) > root_radius || abs(d.z) > root_radius) {
-            print_line("!!! UPDATE_ROOTS: REMOVING distant root at cell ", it->first);
             delete_childrens(it->second);
             despawn_mesh(it->second);
             delete it->second;
@@ -146,7 +133,6 @@ void NeochunkManager::update_roots() {
             for (int dz = -root_radius; dz <= root_radius; dz++) {
                 Vector3i cell = pc + Vector3i(dx, dy, dz);
                 if (!roots.count(cell)) {
-                    print_line(">>> UPDATE_ROOTS: CREATING new root at cell ", cell);
                     Vector3 center = (Vector3(cell) + Vector3(0.5f, 0.5f, 0.5f)) * ROOT_SIZE;
                     auto root = new Neochunk(center, ROOT_SIZE, 0);
                     spawn_mesh(root);
@@ -158,13 +144,11 @@ void NeochunkManager::update_roots() {
 }
 
 void NeochunkManager::_on_shape_changed(uint64_t shape_id, const AABB& bounds) {
-    print_line(">>> SHAPE CHANGED: Refreshing chunks in AABB");
     refresh_chunks_in_aabb(bounds.grow(2.0f));
 }
 
 void NeochunkManager::refresh_chunks_in_aabb(const AABB& bounds) {
     std::function<void(Neochunk*)> check_and_refresh = [&](Neochunk* n) {
-        if (!n) return;
         if (n->is_leaf()) {
             if (!n->node) return;
             
@@ -175,8 +159,7 @@ void NeochunkManager::refresh_chunks_in_aabb(const AABB& bounds) {
             );
             
             if (chunk_aabb.intersects(bounds)) {
-                print_line("    Refreshing leaf chunk at ", n->center);
-                n->node->generate(); // Убедитесь, что этот метод есть и он корректен
+                n->node->generate();
             }
         } else {
             for (auto* c : n->children) {

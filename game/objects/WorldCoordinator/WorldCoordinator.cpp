@@ -40,7 +40,7 @@ void WorldCoordinator::_spawn_test_curve() {
     SemanticWorld* semantic_world = Object::cast_to<SemanticWorld>(sw_obj);
 
     if (!semantic_world) {
-        print_line("ERROR: SemanticWorld singleton not found!");
+        print_error("ERROR: SemanticWorld singleton not found!");
         return;
     }
 
@@ -58,6 +58,4 @@ void WorldCoordinator::_spawn_test_curve() {
 
     // 7. Регистрируем фигуру в мире
     uint64_t shape_id = semantic_world->register_shape(test_curve);
-
-    print_line("SUCCESS: Shape registered with ID: ", shape_id);
 }

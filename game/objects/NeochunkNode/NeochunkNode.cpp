@@ -43,7 +43,6 @@ void NeochunkNode::_ready() {
     _mesh_node->set_chunk_size(_chunk_size);
     _mesh_node->set_voxel_count(_voxel_count);
 
-    // Инициализируем визуализацию границ
     _update_bounds_mesh();
 }
 

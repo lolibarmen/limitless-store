@@ -11,7 +11,6 @@ using namespace godot;
 #include "PlayerMovement/PlayerMovement.hpp"
 #include "MeshYJoint/MeshYJoint.hpp"
 #include "SuperDigger/SuperDigger.hpp"
-#include "TestMeshInstance3D/TestMeshInstance3D.hpp"
 #include "MeshCylinder/MeshCylinder.hpp"
 #include "PotentialEditor/PotentialEditor.hpp"
 #include "PotentialSource/PotentialSource.hpp"
@@ -43,7 +42,6 @@ inline void auto_register_classes() {
     ClassDB::register_class<PlayerMovement>();
     ClassDB::register_class<MeshYJoint>();
     ClassDB::register_class<SuperDigger>();
-    ClassDB::register_class<TestMeshInstance3D>();
     ClassDB::register_class<MeshCylinder>();
     ClassDB::register_class<PotentialEditor>();
     ClassDB::register_class<PotentialSource>();

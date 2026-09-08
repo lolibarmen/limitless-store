@@ -30,7 +30,6 @@ uint64_t SemanticWorld::register_shape(Ref<SemanticShape> shape) {
     shape->set_world(this);
     _shapes[id] = shape;
     bounds = shape->get_aabb();
-    print_line("DEBUG [Register]: Shape ID ", id, " AABB: ", bounds);
     has_callback = (_on_shape_changed != nullptr);
     _shapes_mutex->unlock();
 

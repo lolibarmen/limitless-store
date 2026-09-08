@@ -12,7 +12,7 @@ private:
     int _lod_level = 0;
     float _chunk_size = 16.0f;
     float _voxel_count = 16.0f;
-    bool _show_bounds = true; // Новая галочка
+    bool _show_bounds = false; // Новая галочка
 
     ChunkMeshNode* _mesh_node = nullptr;
     MeshInstance3D* _bounds_mesh_node = nullptr; // Узел для отрисовки коробки
