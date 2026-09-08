@@ -1,3 +1,6 @@
+MeshInstance3D
+CollisionShape3D
+StaticBody3D
 MeshYJoint
 TreeGenerator
 MeshCylinder
@@ -6,10 +9,6 @@ MeshPrimitive
 WorldCoordinator
 MultiMeshInstance3D
 MultiMeshInstance2D
-MeshInstance3D
 PickableTool
-CollisionShape3D
-StaticBody3D
 Label
 VBoxContainer
-CenterContainer

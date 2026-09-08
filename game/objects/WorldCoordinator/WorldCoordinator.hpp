@@ -2,8 +2,6 @@
 #include <godot_cpp/classes/node3d.hpp>
 #include <NeochunkManager/NeochunkManager.hpp>
 
-#include <BiomeSource/BiomeSource.hpp>
-
 namespace godot {
 
 class WorldCoordinator : public Node3D {
@@ -15,6 +13,8 @@ private:
     // Менеджеры — дочерние узлы в сцене, выставляются в инспекторе
     NeochunkManager*  chunk_manager  = nullptr;
 
+    void _spawn_test_curve();
+    
 protected:
     static void _bind_methods();
 

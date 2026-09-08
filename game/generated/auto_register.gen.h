@@ -6,20 +6,14 @@ using namespace godot;
 #include "MeshPrimitive/MeshPrimitive.hpp"
 #include "ChunkMeshNode/ChunkMeshNode.hpp"
 #include "Tool/Tool.hpp"
-#include "BlockGenerator/BlockGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "SemanticCurve/SemanticCurve.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
-#include "BiomeSource/BiomeSource.hpp"
-#include "BuildTool/BuildTool.hpp"
 #include "MeshYJoint/MeshYJoint.hpp"
-#include "BiomeGenerator/BiomeGenerator.hpp"
-#include "BlockSource/BlockSource.hpp"
 #include "SuperDigger/SuperDigger.hpp"
-#include "BuildSocket/BuildSocket.hpp"
+#include "TestMeshInstance3D/TestMeshInstance3D.hpp"
 #include "MeshCylinder/MeshCylinder.hpp"
 #include "PotentialEditor/PotentialEditor.hpp"
-#include "BuildBlock/BuildBlock.hpp"
 #include "PotentialSource/PotentialSource.hpp"
 #include "TreeGenerator/TreeGenerator.hpp"
 #include "Player/Player.hpp"
@@ -44,20 +38,14 @@ inline void auto_register_classes() {
     ClassDB::register_class<MeshPrimitive>();
     ClassDB::register_class<ChunkMeshNode>();
     ClassDB::register_class<Tool>();
-    ClassDB::register_class<BlockGenerator>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<SemanticCurve>();
     ClassDB::register_class<PlayerMovement>();
-    ClassDB::register_class<BiomeSource>();
-    ClassDB::register_class<BuildTool>();
     ClassDB::register_class<MeshYJoint>();
-    ClassDB::register_class<BiomeGenerator>();
-    ClassDB::register_class<BlockSource>();
     ClassDB::register_class<SuperDigger>();
-    ClassDB::register_class<BuildSocket>();
+    ClassDB::register_class<TestMeshInstance3D>();
     ClassDB::register_class<MeshCylinder>();
     ClassDB::register_class<PotentialEditor>();
-    ClassDB::register_class<BuildBlock>();
     ClassDB::register_class<PotentialSource>();
     ClassDB::register_class<TreeGenerator>();
     ClassDB::register_class<Player>();

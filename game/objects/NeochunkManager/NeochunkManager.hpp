@@ -12,6 +12,7 @@ class SemanticWorld;
 
 constexpr int   MAX_DEPTH = 2;
 constexpr float ROOT_SIZE = 64.0f;
+constexpr int   ROOT_RADIUS = 0;
 
 class NeochunkManager : public Node3D {
     GDCLASS(NeochunkManager, Node3D)
@@ -46,7 +47,7 @@ class NeochunkManager : public Node3D {
         }
     };
 
-    int root_radius = 8;
+    int root_radius = ROOT_RADIUS;
     std::unordered_map<Vector3i, Neochunk*, V3iHash> roots;
     Vector3 player_pos = {};
 
@@ -62,7 +63,7 @@ class NeochunkManager : public Node3D {
     void refresh_chunks_in_aabb(const AABB& bounds);
 
 protected:
-    static void _bind_methods() {}
+    static void _bind_methods();
 
 public:
     void _ready() override;

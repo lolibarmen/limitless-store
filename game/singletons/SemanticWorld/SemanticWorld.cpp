@@ -20,27 +20,51 @@ void SemanticWorld::_bind_methods() {
 uint64_t SemanticWorld::register_shape(Ref<SemanticShape> shape) {
     if (shape.is_null()) return 0;
     
+    uint64_t id;
+    AABB bounds;
+    bool has_callback;
+
     _shapes_mutex->lock();
-    uint64_t id = _next_id++;
+    id = _next_id++;
     shape->set_id(id);
     shape->set_world(this);
     _shapes[id] = shape;
+    bounds = shape->get_aabb();
+    print_line("DEBUG [Register]: Shape ID ", id, " AABB: ", bounds);
+    has_callback = (_on_shape_changed != nullptr);
     _shapes_mutex->unlock();
+
+    // Вызываем колбэк вне лока, как и в mark_shape_dirty
+    if (has_callback) {
+        _on_shape_changed(id, bounds);
+    }
     
     return id;
 }
 
 void SemanticWorld::unregister_shape(uint64_t id) {
+    Ref<SemanticShape> shape_copy;
+    AABB bounds;
+    bool has_callback = false;
+    
     _shapes_mutex->lock();
     auto it = _shapes.find(id);
     if (it != _shapes.end()) {
+        shape_copy = it->second;
+        bounds = shape_copy->get_aabb(); 
+        
         it->second->set_world(nullptr);
         _shapes.erase(it);
+        
+        has_callback = (_on_shape_changed != nullptr);
     }
     _shapes_mutex->unlock();
+
+    if (has_callback && shape_copy.is_valid()) {
+        _on_shape_changed(id, bounds);
+    }
 }
 
-// КЛЮЧЕВОЙ МЕТОД: Делаем снапшот под локом, отпускаем лок, возвращаем результат
 std::vector<Ref<SemanticShape>> SemanticWorld::get_shapes_snapshot() const {
     std::vector<Ref<SemanticShape>> snapshot;
     

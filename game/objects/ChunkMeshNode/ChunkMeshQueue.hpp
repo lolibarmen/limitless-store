@@ -22,6 +22,8 @@ public:
         _queue.push({ chunk_id, mesh });
     }
 
+    void cancel_jobs_for(uint64_t chunk_id);
+
     void tick(int max_per_frame = 4);
 
 private:

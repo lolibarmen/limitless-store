@@ -1,6 +1,5 @@
 #pragma once
 #include <Tool/Tool.hpp>
-#include <BuildSocket/BuildSocket.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/packed_scene.hpp>
 #include <godot_cpp/classes/standard_material3d.hpp>

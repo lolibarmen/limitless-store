@@ -22,3 +22,17 @@ void ChunkMeshQueue::tick(int max_per_frame) {
         ++processed;
     }
 }
+
+void ChunkMeshQueue::cancel_jobs_for(uint64_t chunk_id) {
+    std::lock_guard<std::mutex> lock(_mutex);
+    // Простой способ: создать новую очередь, отфильтровав ненужные
+    std::queue<ChunkMeshJob> new_queue;
+    while (!_queue.empty()) {
+        ChunkMeshJob job = _queue.front();
+        _queue.pop();
+        if (job.chunk_id != chunk_id) {
+            new_queue.push(job);
+        }
+    }
+    _queue = std::move(new_queue);
+}

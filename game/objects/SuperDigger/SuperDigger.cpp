@@ -2,7 +2,6 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/static_body3d.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
-#include <BlockSource/BlockSource.hpp>
 #include <NeochunkNode/NeochunkNode.hpp>
 #include <NeochunkManager/NeochunkManager.hpp>
 using namespace godot;
