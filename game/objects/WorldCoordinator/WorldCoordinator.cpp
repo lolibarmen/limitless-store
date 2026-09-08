@@ -49,9 +49,9 @@ void WorldCoordinator::_spawn_test_curve() {
     test_curve.instantiate();
 
     // 5. Добавляем точки для формирования дуги
-    test_curve->add_point(Vector3(-16.0f, 0.0f, -16.0f), Vector3(0.0f, 0.0f, 5.0f), Vector3(0.0f, 0.0f, 5.0f), 3.0f);
-    test_curve->add_point(Vector3(  0.0f, 8.0f,   0.0f), Vector3(0.0f, 5.0f, 0.0f), Vector3(0.0f, 5.0f, 0.0f), 3.0f);
-    test_curve->add_point(Vector3( 16.0f, 0.0f,  16.0f), Vector3(0.0f, 0.0f,-5.0f), Vector3(0.0f, 0.0f,-5.0f), 3.0f);
+    test_curve->add_point(Vector3(-16.0f, 0.0f, -16.0f), Vector3(0.0f, 0.0f, 5.0f), Vector3(0.0f, 0.0f, 5.0f), 1.0f);
+    test_curve->add_point(Vector3(  0.0f, 8.0f,   0.0f), Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 5.0f, 0.0f), 10.0f);
+    test_curve->add_point(Vector3( 16.0f, 0.0f,  16.0f), Vector3(0.0f, 0.0f,-5.0f), Vector3(0.0f, 0.0f,-5.0f), 1.0f);
 
     // 6. Устанавливаем ID материала
     test_curve->set_property(0, 128.0f);

@@ -41,9 +41,9 @@ MeshData godot::build_neochunk_mesh(const ChunkBuildInput& input) {
         for(Vector3i off : CORNER_OFFSET) {
             float density = input.get_sdf(Vector3i(x,y,z) + off);
 
-            if(density < 0)
+            if(density > 0)
                 have_positive = true;
-            else if(density > 0)
+            else if(density < 0)
                 have_negative = true;
 
             densities[off.x][off.y][off.z] = density;
@@ -113,7 +113,7 @@ MeshData godot::build_neochunk_mesh(const ChunkBuildInput& input) {
             float dB = input.get_sdf(coord + n12);
             if ((dA < 0) == (dB < 0)) continue;
 
-            bool flip = (dB < 0);
+            bool flip = (dB >= 0);
 
             // Определяем, какой воксель "твёрдый" (внутри), чтобы взять его материал
             Vector3i solid_coord = (dA > 0) ? coord : coord + n12;

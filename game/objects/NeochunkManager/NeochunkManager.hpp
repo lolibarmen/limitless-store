@@ -12,7 +12,7 @@ class SemanticWorld;
 
 constexpr int   MAX_DEPTH = 2;
 constexpr float ROOT_SIZE = 64.0f;
-constexpr int   ROOT_RADIUS = 0;
+constexpr int   ROOT_RADIUS = 8;
 
 class NeochunkManager : public Node3D {
     GDCLASS(NeochunkManager, Node3D)
