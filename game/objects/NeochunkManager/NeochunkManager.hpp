@@ -58,9 +58,7 @@ class NeochunkManager : public Node3D {
     void spawn_mesh(Neochunk* n);
     void despawn_mesh(Neochunk* n);
 
-    // --- НОВЫЕ МЕТОДЫ ДЛЯ PARAMETRIC WORLD ---
-    void _on_shape_changed(uint64_t shape_id, const AABB& bounds);
-    void refresh_chunks_in_aabb(const AABB& bounds);
+    void refresh_chunks_in_aabb(const AABB& bounds, uint64_t world_id);
 
 protected:
     static void _bind_methods();

@@ -46,9 +46,10 @@ void NeochunkNode::_ready() {
     _update_bounds_mesh();
 }
 
-void NeochunkNode::generate() {
+#include <SemanticWorld/SemanticWorld.hpp>
+void NeochunkNode::generate(uint64_t world_id) {
     if (_mesh_node) {
-        _mesh_node->generate_mesh();
+        _mesh_node->generate_mesh(world_id);
     }
 }
 

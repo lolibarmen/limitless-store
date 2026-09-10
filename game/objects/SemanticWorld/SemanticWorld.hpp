@@ -4,7 +4,7 @@
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/variant/aabb.hpp>
-#include <SemanticShape/SemanticShape.hpp> // Проверьте актуальный путь
+#include <SemanticShape/SemanticShape.hpp>
 #include <unordered_map>
 #include <vector>
 #include <atomic>

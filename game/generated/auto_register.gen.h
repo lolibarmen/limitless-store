@@ -10,11 +10,9 @@ using namespace godot;
 #include "SemanticCurve/SemanticCurve.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
 #include "MeshYJoint/MeshYJoint.hpp"
-#include "SuperDigger/SuperDigger.hpp"
 #include "MeshCylinder/MeshCylinder.hpp"
+#include "SemanticWorld/SemanticWorld.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
-#include "PotentialEditor/PotentialEditor.hpp"
-#include "PotentialSource/PotentialSource.hpp"
 #include "TreeGenerator/TreeGenerator.hpp"
 #include "SemanticSphere/SemanticSphere.hpp"
 #include "Player/Player.hpp"
@@ -25,10 +23,8 @@ using namespace godot;
 #include "SemanticShape/SemanticShape.hpp"
 #include "NeochunkManager/NeochunkManager.hpp"
 #include "ToolManager/ToolManager.hpp"
-#include "SemanticWorld/SemanticWorld.hpp"
 #include "BuildGraph/BuildGraph.hpp"
 
-static SemanticWorld *SemanticWorld_instance = nullptr;
 static BuildGraph *BuildGraph_instance = nullptr;
 
 inline void auto_register_virtual_classes() {
@@ -43,11 +39,9 @@ inline void auto_register_classes() {
     ClassDB::register_class<SemanticCurve>();
     ClassDB::register_class<PlayerMovement>();
     ClassDB::register_class<MeshYJoint>();
-    ClassDB::register_class<SuperDigger>();
     ClassDB::register_class<MeshCylinder>();
+    ClassDB::register_class<SemanticWorld>();
     ClassDB::register_class<MeshGenerator>();
-    ClassDB::register_class<PotentialEditor>();
-    ClassDB::register_class<PotentialSource>();
     ClassDB::register_class<TreeGenerator>();
     ClassDB::register_class<SemanticSphere>();
     ClassDB::register_class<Player>();
@@ -57,21 +51,15 @@ inline void auto_register_classes() {
     ClassDB::register_class<NeochunkNode>();
     ClassDB::register_class<NeochunkManager>();
     ClassDB::register_class<ToolManager>();
-    ClassDB::register_class<SemanticWorld>();
     ClassDB::register_class<BuildGraph>();
 }
 
 inline void auto_register_singletons() {
-    SemanticWorld_instance = memnew(SemanticWorld);
-    Engine::get_singleton()->register_singleton("SemanticWorld", SemanticWorld_instance);
     BuildGraph_instance = memnew(BuildGraph);
     Engine::get_singleton()->register_singleton("BuildGraph", BuildGraph_instance);
 }
 
 inline void auto_unregister_singletons() {
-    Engine::get_singleton()->unregister_singleton("SemanticWorld");
-    memdelete(SemanticWorld_instance);
-    SemanticWorld_instance = nullptr;
     Engine::get_singleton()->unregister_singleton("BuildGraph");
     memdelete(BuildGraph_instance);
     BuildGraph_instance = nullptr;

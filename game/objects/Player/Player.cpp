@@ -1,5 +1,4 @@
 #include "Player.hpp"
-#include <SuperDigger/SuperDigger.hpp>
 #include <godot_cpp/classes/capsule_shape3d.hpp>
 #include <godot_cpp/classes/engine.hpp>
 

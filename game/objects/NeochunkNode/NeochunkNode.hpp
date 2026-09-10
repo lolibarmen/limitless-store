@@ -12,10 +12,10 @@ private:
     int _lod_level = 0;
     float _chunk_size = 16.0f;
     float _voxel_count = 16.0f;
-    bool _show_bounds = false; // Новая галочка
+    bool _show_bounds = false;
 
     ChunkMeshNode* _mesh_node = nullptr;
-    MeshInstance3D* _bounds_mesh_node = nullptr; // Узел для отрисовки коробки
+    MeshInstance3D* _bounds_mesh_node = nullptr;
 
 protected:
     static void _bind_methods();
@@ -25,19 +25,19 @@ public:
     ~NeochunkNode() override;
 
     void _ready() override;
-    void generate();
+    void generate(uint64_t world_id);
 
     void set_lod_level(int level);
     void set_chunk_size(float size);
     void set_voxel_count(float count);
-    void set_show_bounds(bool show); // Сеттер для галочки
+    void set_show_bounds(bool show);
     
     int get_lod_level() const { return _lod_level; }
     float get_chunk_size() const { return _chunk_size; }
     float get_voxel_count() const { return _voxel_count; }
-    bool get_show_bounds() const { return _show_bounds; } // Геттер для галочки
+    bool get_show_bounds() const { return _show_bounds; }
 
-    void _update_bounds_mesh(); // Вспомогательный метод для обновления визуализации
+    void _update_bounds_mesh();
 };
 
 } // namespace godot

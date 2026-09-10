@@ -24,7 +24,7 @@ private:
     CollisionShape3D* _collision_shape = nullptr;
     ChunkMeshTask _task;
 
-    static void _build_mesh_task(uint64_t node_id);
+    static void _build_mesh_task(uint64_t node_id, uint64_t world_id);
 
 protected:
     static void _bind_methods();
@@ -34,7 +34,7 @@ public:
     ~ChunkMeshNode() override;
     void _ready() override;
 
-    void generate_mesh();
+    void generate_mesh(uint64_t world_id);
     void set_mesh(Ref<Mesh> mesh);
     
     void set_lod_level(int level) { _lod_level = level; }

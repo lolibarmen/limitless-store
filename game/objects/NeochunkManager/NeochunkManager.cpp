@@ -9,9 +9,7 @@
 
 using namespace godot;
 
-void NeochunkManager::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("_on_shape_changed", "shape_id", "bounds"), &NeochunkManager::_on_shape_changed);
-}
+void NeochunkManager::_bind_methods() {}
 
 void NeochunkManager::_ready() {}
 
@@ -136,11 +134,7 @@ void NeochunkManager::update_roots() {
     }
 }
 
-void NeochunkManager::_on_shape_changed(uint64_t shape_id, const AABB& bounds) {
-    refresh_chunks_in_aabb(bounds.grow(2.0f));
-}
-
-void NeochunkManager::refresh_chunks_in_aabb(const AABB& bounds) {
+void NeochunkManager::refresh_chunks_in_aabb(const AABB& bounds, uint64_t world_id) {
     std::function<void(Neochunk*)> check_and_refresh = [&](Neochunk* n) {
         if (n->is_leaf()) {
             if (!n->node) return;
@@ -152,7 +146,7 @@ void NeochunkManager::refresh_chunks_in_aabb(const AABB& bounds) {
             );
             
             if (chunk_aabb.intersects(bounds)) {
-                n->node->generate();
+                n->node->generate(world_id);
             }
         } else {
             for (auto* c : n->children) {

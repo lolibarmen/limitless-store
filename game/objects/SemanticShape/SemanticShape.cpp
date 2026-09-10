@@ -25,23 +25,11 @@ AABB SemanticShape::get_aabb() const {
 void SemanticShape::notify_shape_changed() {
     recompute_aabb();
     
-    if (_generator.is_valid()) {
-        _generator->on_shape_changed(this);
-    }
-    
     if (_world != nullptr) {
-        _world->mark_shape_dirty(_id);
+        _world->mark_shape_dirty(_id); //TODO
     }
 }
 
 float SemanticShape::evaluate_sdf(const Vector3& world_pos) const {
     return 1e10f; 
-}
-
-void SemanticShape::set_generator(Ref<MeshGenerator> generator) {
-    _generator = generator;
-}
-
-Ref<MeshGenerator> SemanticShape::get_generator() const {
-    return _generator;
 }

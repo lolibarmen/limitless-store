@@ -10,7 +10,6 @@
 namespace godot {
 
 class SemanticWorld; 
-class MeshGenerator;
 
 class SemanticShape : public Resource {
     GDCLASS(SemanticShape, Resource)
@@ -18,7 +17,6 @@ class SemanticShape : public Resource {
 private:
     uint64_t _id = 0;
     SemanticWorld* _world = nullptr;
-    Ref<MeshGenerator> _generator;
 
 protected:
     AABB _aabb;
@@ -35,9 +33,6 @@ public:
 
     void set_world(SemanticWorld* world) { _world = world; }
     SemanticWorld* get_world() const { return _world; }
-
-    void set_generator(Ref<MeshGenerator> generator);
-    Ref<MeshGenerator> get_generator() const;
 
     virtual AABB get_aabb() const;
     virtual void recompute_aabb() { _aabb_dirty = true; }

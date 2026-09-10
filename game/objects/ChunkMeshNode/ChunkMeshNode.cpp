@@ -19,11 +19,9 @@ ChunkMeshNode::~ChunkMeshNode() {}
 void ChunkMeshNode::_ready() {
     _mesh_instance = nullptr;
     _collision_shape = nullptr;
-
-    generate_mesh();
 }
 
-void ChunkMeshNode::generate_mesh() {
+void ChunkMeshNode::generate_mesh(uint64_t world_id) {
     Vector3 chunk_pos = get_global_position();
     float half_chunk_size = _chunk_size / 2.0f;
 
@@ -41,13 +39,13 @@ void ChunkMeshNode::generate_mesh() {
 
     _task.input   = inp;
     _task.task_id = WorkerThreadPool::get_singleton()->add_task(
-        callable_mp_static(&ChunkMeshNode::_build_mesh_task).bind(get_instance_id()),
+        callable_mp_static(&ChunkMeshNode::_build_mesh_task).bind(get_instance_id(), world_id),
         false,
         "ChunkMeshNode::generate_mesh"
     );
 }
 
-void ChunkMeshNode::_build_mesh_task(uint64_t node_id) {
+void ChunkMeshNode::_build_mesh_task(uint64_t node_id, uint64_t world_id) {
     Object* obj = ObjectDB::get_instance(node_id);
     ChunkMeshNode* node = Object::cast_to<ChunkMeshNode>(obj);
     if (!node) return;
@@ -62,7 +60,7 @@ void ChunkMeshNode::_build_mesh_task(uint64_t node_id) {
 
     inp->cache = std::make_shared<VoxelCache>(inp->stride, inp->step, inp->chunk_coord);
     
-    SemanticWorld* sw = (SemanticWorld*)Engine::get_singleton()->get_singleton("SemanticWorld");
+    SemanticWorld* sw = Object::cast_to<SemanticWorld>( ObjectDB::get_instance(world_id) );
     if (sw) {
         std::vector<Ref<SemanticShape>> shapes = sw->get_shapes_snapshot();
         VoxelBaker::bake(*(inp->cache), shapes);
