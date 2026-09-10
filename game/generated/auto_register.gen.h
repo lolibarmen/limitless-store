@@ -12,6 +12,7 @@ using namespace godot;
 #include "MeshYJoint/MeshYJoint.hpp"
 #include "SuperDigger/SuperDigger.hpp"
 #include "MeshCylinder/MeshCylinder.hpp"
+#include "MeshGenerator/MeshGenerator.hpp"
 #include "PotentialEditor/PotentialEditor.hpp"
 #include "PotentialSource/PotentialSource.hpp"
 #include "TreeGenerator/TreeGenerator.hpp"
@@ -44,6 +45,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<MeshYJoint>();
     ClassDB::register_class<SuperDigger>();
     ClassDB::register_class<MeshCylinder>();
+    ClassDB::register_class<MeshGenerator>();
     ClassDB::register_class<PotentialEditor>();
     ClassDB::register_class<PotentialSource>();
     ClassDB::register_class<TreeGenerator>();

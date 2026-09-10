@@ -14,43 +14,11 @@ void WorldCoordinator::_bind_methods() {
     ClassDB::add_property("WorldCoordinator",
         PropertyInfo(Variant::INT, "seed"),
         "set_seed", "get_seed");
-    
-    // ВАЖНО: Биндим новый метод, чтобы call_deferred мог его найти по имени
-    ClassDB::bind_method(D_METHOD("_spawn_test_curve"), &WorldCoordinator::_spawn_test_curve);
 }
 
 void WorldCoordinator::_ready() {
-    // 1. Инициализация менеджера материалов
     ChunkMaterialManager::get_singleton().initialize();
 
-    // 2. Создаем и добавляем менеджер чанков
     chunk_manager = memnew(NeochunkManager);
     add_child(chunk_manager);
-
-    // 3. ОТЛАГАЕМ создание кривой до конца кадра.
-    // К этому моменту NeochunkManager уже успеет вызвать _process, 
-    // найти камеру и заполнить словарь roots.
-    call_deferred("_spawn_test_curve");
-}
-
-void WorldCoordinator::_spawn_test_curve() {
-    // Теперь мы уверены, что сцена полностью проинициализирована
-    
-    Object* sw_obj = Engine::get_singleton()->get_singleton("SemanticWorld");
-    SemanticWorld* semantic_world = Object::cast_to<SemanticWorld>(sw_obj);
-
-    if (!semantic_world) {
-        print_error("ERROR: SemanticWorld singleton not found!");
-        return;
-    }
-
-    // 4. Создаем тестовую кривую
-    Ref<SemanticSphere> test_sphere;
-    test_sphere.instantiate();
-
-    // 5. Добавляем точки для формирования дуги
-    test_sphere->set_radius(10.0f);
-
-    // 7. Регистрируем фигуру в мире
-    uint64_t shape_id = semantic_world->register_shape(test_sphere);
 }

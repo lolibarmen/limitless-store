@@ -4,10 +4,9 @@
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/variant/aabb.hpp>
-#include <SemanticShape/SemanticShape.hpp>
+#include <SemanticShape/SemanticShape.hpp> // Проверьте актуальный путь
 #include <unordered_map>
 #include <vector>
-#include <functional>
 #include <atomic>
 
 namespace godot {
@@ -20,20 +19,17 @@ private:
     Ref<Mutex> _shapes_mutex;
     std::atomic<uint64_t> _next_id{1};
     std::vector<uint64_t> _dirty_shapes;
-    
-    std::function<void(uint64_t, const AABB&)> _on_shape_changed;
 
 protected:
     static void _bind_methods();
 
 public:
-    SemanticWorld(); // Конструктор теперь нужен для instantiate()
+    SemanticWorld();
     ~SemanticWorld() override = default;
 
     uint64_t register_shape(Ref<SemanticShape> shape);
     void unregister_shape(uint64_t id);
     
-    // Возвращает безопасный снапшот ссылок на фигуры
     std::vector<Ref<SemanticShape>> get_shapes_snapshot() const;
 
     int get_shape_count() const;
@@ -43,8 +39,6 @@ public:
     void mark_shape_dirty(uint64_t id);
     const std::vector<uint64_t>& get_dirty_shapes() const { return _dirty_shapes; }
     void clear_dirty_flags();
-    
-    void set_on_shape_changed(std::function<void(uint64_t, const AABB&)> callback);
 };
 
 } // namespace godot

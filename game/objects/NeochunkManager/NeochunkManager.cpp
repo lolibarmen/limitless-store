@@ -13,14 +13,7 @@ void NeochunkManager::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_on_shape_changed", "shape_id", "bounds"), &NeochunkManager::_on_shape_changed);
 }
 
-void NeochunkManager::_ready() {
-    SemanticWorld* sw = (SemanticWorld*)Engine::get_singleton()->get_singleton("SemanticWorld");
-    if (sw) {
-        sw->set_on_shape_changed([this](uint64_t id, const AABB& bounds) {
-            call_deferred("_on_shape_changed", id, bounds);
-        });
-    }
-}
+void NeochunkManager::_ready() {}
 
 void NeochunkManager::_process(double delta) {
     auto* vp = get_viewport();
