@@ -33,7 +33,6 @@ public:
     void recompute_aabb() override;
 
     float evaluate_sdf(const Vector3& world_pos) const override;
-    uint16_t get_material_id() const override;
 
     // --- Управление точками ---
     void clear_points();

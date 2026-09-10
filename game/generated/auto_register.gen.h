@@ -15,6 +15,7 @@ using namespace godot;
 #include "PotentialEditor/PotentialEditor.hpp"
 #include "PotentialSource/PotentialSource.hpp"
 #include "TreeGenerator/TreeGenerator.hpp"
+#include "SemanticSphere/SemanticSphere.hpp"
 #include "Player/Player.hpp"
 #include "PickableTool/PickableTool.hpp"
 #include "WorldCoordinator/WorldCoordinator.hpp"
@@ -46,6 +47,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<PotentialEditor>();
     ClassDB::register_class<PotentialSource>();
     ClassDB::register_class<TreeGenerator>();
+    ClassDB::register_class<SemanticSphere>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<PickableTool>();
     ClassDB::register_class<WorldCoordinator>();

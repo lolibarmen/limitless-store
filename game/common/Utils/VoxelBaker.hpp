@@ -36,7 +36,6 @@ public:
             if (shape.is_null()) continue;
 
             AABB bounds = shape->get_aabb();
-            uint16_t mat_id = shape->get_material_id();
             
             // Небольшой запас (margin), чтобы гарантированно захватить края сглаживания
             float margin = 1.0f; 
@@ -60,7 +59,6 @@ public:
                 // Если эта фигура ближе к точке, чем всё, что было найдено ранее
                 if (dist < cache.sdf_data[i]) {
                     cache.sdf_data[i] = dist;
-                    cache.material_data[i] = mat_id;
                 }
             }
         }

@@ -155,7 +155,6 @@ float SemanticCurve::sample_radius(float t) const {
     return Math::lerp(_points[i0].radius, _points[i1].radius, local_t);
 }
 
-// --- Вспомогательная функция: расстояние от точки p до отрезка ab с учётом радиуса ---
 static float sdf_segment(const Vector3& p, const Vector3& a, const Vector3& b, float radius) {
     Vector3 pa = p - a;
     Vector3 ba = b - a;
@@ -191,9 +190,4 @@ float SemanticCurve::evaluate_sdf(const Vector3& world_pos) const {
     }
     
     return min_dist;
-}
-
-uint16_t SemanticCurve::get_material_id() const {
-    // 0 - это наш индекс PROP_MATERIAL_ID из базового класса
-    return static_cast<uint16_t>(get_property(0, 0.0f));
 }

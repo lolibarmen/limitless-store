@@ -4,7 +4,7 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
-#include <SemanticCurve/SemanticCurve.hpp>
+#include <SemanticSphere/SemanticSphere.hpp>
 
 using namespace godot;
 
@@ -45,17 +45,12 @@ void WorldCoordinator::_spawn_test_curve() {
     }
 
     // 4. Создаем тестовую кривую
-    Ref<SemanticCurve> test_curve;
-    test_curve.instantiate();
+    Ref<SemanticSphere> test_sphere;
+    test_sphere.instantiate();
 
     // 5. Добавляем точки для формирования дуги
-    test_curve->add_point(Vector3(-16.0f, 0.0f, -16.0f), Vector3(0.0f, 0.0f, 5.0f), Vector3(0.0f, 0.0f, 5.0f), 1.0f);
-    test_curve->add_point(Vector3(  0.0f, 8.0f,   0.0f), Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 5.0f, 0.0f), 10.0f);
-    test_curve->add_point(Vector3( 16.0f, 0.0f,  16.0f), Vector3(0.0f, 0.0f,-5.0f), Vector3(0.0f, 0.0f,-5.0f), 1.0f);
-
-    // 6. Устанавливаем ID материала
-    test_curve->set_property(0, 128.0f);
+    test_sphere->set_radius(10.0f);
 
     // 7. Регистрируем фигуру в мире
-    uint64_t shape_id = semantic_world->register_shape(test_curve);
+    uint64_t shape_id = semantic_world->register_shape(test_sphere);
 }

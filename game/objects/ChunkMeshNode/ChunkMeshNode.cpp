@@ -79,7 +79,7 @@ void ChunkMeshNode::_build_mesh_task(uint64_t node_id) {
     arrays.resize(Mesh::ARRAY_MAX);
     arrays[Mesh::ARRAY_VERTEX] = data.vertices;
     arrays[Mesh::ARRAY_NORMAL] = data.normals;
-    arrays[Mesh::ARRAY_COLOR]  = data.colors;
+    // arrays[Mesh::ARRAY_COLOR]  = data.colors;
 
     Ref<ArrayMesh> mesh;
     mesh.instantiate();

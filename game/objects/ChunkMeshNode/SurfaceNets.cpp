@@ -116,40 +116,40 @@ MeshData godot::build_neochunk_mesh(const ChunkBuildInput& input) {
             bool flip = (dB >= 0);
 
             // Определяем, какой воксель "твёрдый" (внутри), чтобы взять его материал
-            Vector3i solid_coord = (dA > 0) ? coord : coord + n12;
-            uint16_t material_id = input.get_material(solid_coord);
+            // Vector3i solid_coord = (dA > 0) ? coord : coord + n12;
+            // uint16_t material_id = input.get_material(solid_coord);
             
             // Нормализуем material_id в диапазон [0, 1] для цвета
-            float id = static_cast<float>(material_id) / 255.0f;
+            // float id = static_cast<float>(material_id) / 255.0f;
 
-            auto getVertexColor = [&](Vector3i gridCoord) -> Color {
-                return Color(id, id, 0.0f, 1.0f);
-            };
+            // auto getVertexColor = [&](Vector3i gridCoord) -> Color {
+            //     return Color(id, id, 0.0f, 1.0f);
+            // };
 
-            Color col00 = getVertexColor(c00);
-            Color col10 = getVertexColor(c10);
-            Color col01 = getVertexColor(c01);
-            Color col11 = getVertexColor(c11);
+            // Color col00 = getVertexColor(c00);
+            // Color col10 = getVertexColor(c10);
+            // Color col01 = getVertexColor(c01);
+            // Color col11 = getVertexColor(c11);
 
             if (flip) {
                 normal = -normal;
                 // Треугольник 1: v00, v01, v11
-                result.vertices.push_back(v00); result.normals.push_back(normal); result.colors.push_back(col00);
-                result.vertices.push_back(v01); result.normals.push_back(normal); result.colors.push_back(col01);
-                result.vertices.push_back(v11); result.normals.push_back(normal); result.colors.push_back(col11);
+                result.vertices.push_back(v00); result.normals.push_back(normal); //result.colors.push_back(col00);
+                result.vertices.push_back(v01); result.normals.push_back(normal); //result.colors.push_back(col01);
+                result.vertices.push_back(v11); result.normals.push_back(normal); //result.colors.push_back(col11);
                 // Треугольник 2: v00, v11, v10
-                result.vertices.push_back(v00); result.normals.push_back(normal); result.colors.push_back(col00);
-                result.vertices.push_back(v11); result.normals.push_back(normal); result.colors.push_back(col11);
-                result.vertices.push_back(v10); result.normals.push_back(normal); result.colors.push_back(col10);
+                result.vertices.push_back(v00); result.normals.push_back(normal); //result.colors.push_back(col00);
+                result.vertices.push_back(v11); result.normals.push_back(normal); //result.colors.push_back(col11);
+                result.vertices.push_back(v10); result.normals.push_back(normal); //result.colors.push_back(col10);
             } else {
                 // Треугольник 1: v00, v10, v11
-                result.vertices.push_back(v00); result.normals.push_back(normal); result.colors.push_back(col00);
-                result.vertices.push_back(v10); result.normals.push_back(normal); result.colors.push_back(col10);
-                result.vertices.push_back(v11); result.normals.push_back(normal); result.colors.push_back(col11);
+                result.vertices.push_back(v00); result.normals.push_back(normal); //result.colors.push_back(col00);
+                result.vertices.push_back(v10); result.normals.push_back(normal); //result.colors.push_back(col10);
+                result.vertices.push_back(v11); result.normals.push_back(normal); //result.colors.push_back(col11);
                 // Треугольник 2: v00, v11, v01
-                result.vertices.push_back(v00); result.normals.push_back(normal); result.colors.push_back(col00);
-                result.vertices.push_back(v11); result.normals.push_back(normal); result.colors.push_back(col11);
-                result.vertices.push_back(v01); result.normals.push_back(normal); result.colors.push_back(col01);
+                result.vertices.push_back(v00); result.normals.push_back(normal); //result.colors.push_back(col00);
+                result.vertices.push_back(v11); result.normals.push_back(normal); //result.colors.push_back(col11);
+                result.vertices.push_back(v01); result.normals.push_back(normal); //result.colors.push_back(col01);
             }
         }
     }

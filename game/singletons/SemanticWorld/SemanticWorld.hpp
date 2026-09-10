@@ -17,7 +17,7 @@ class SemanticWorld : public Object {
 
 private:
     std::unordered_map<uint64_t, Ref<SemanticShape>> _shapes;
-    Ref<Mutex> _shapes_mutex; // <-- Godot Mutex вместо std::mutex
+    Ref<Mutex> _shapes_mutex;
     std::atomic<uint64_t> _next_id{1};
     std::vector<uint64_t> _dirty_shapes;
     
