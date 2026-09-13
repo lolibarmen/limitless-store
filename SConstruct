@@ -38,7 +38,7 @@ singleton_decls = ""
 singleton_inits = ""
 singleton_frees = ""
 
-FORCE_FIRST_CLASSES = ["SemanticShape"]
+FORCE_FIRST_CLASSES = ["SemanticShape", "MeshGenerator", "SemanticSphere"]
 
 def discover_cpp_classes(base_dir, is_singleton=False, is_virtual=False):
     global includes, class_registrations, virtual_class_registrations

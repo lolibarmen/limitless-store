@@ -6,7 +6,6 @@ using namespace godot;
 
 void MeshGenerator::_bind_methods() {}
 
-Ref<ArrayMesh> MeshGenerator::generate(Ref<SemanticShape> shape, SemanticWorld* world) const {
-    // Возвращаем пустой меш по умолчанию. Наследники переопределят этот метод.
+Ref<ArrayMesh> MeshGenerator::generate(Ref<SemanticShape> shape) const {
     return Ref<ArrayMesh>();
 }

@@ -75,14 +75,16 @@ void SemanticWorld::unregister_shape(uint64_t id) {
 }
 
 Ref<SemanticShape> SemanticWorld::get_shape(uint64_t id) const {
+    Ref<SemanticShape> semantic_shape;
     _shapes_mutex->lock();
     auto it = _shapes.find(id);
     if (it != _shapes.end()) {
-        return it->second;
+        semantic_shape = it->second;
     } else {
-        return Ref<SemanticShape>();
+        semantic_shape = Ref<SemanticShape>();
     }
     _shapes_mutex->unlock();
+    return semantic_shape;
 }
 
 std::vector<Ref<SemanticShape>> SemanticWorld::get_shapes_snapshot() const {

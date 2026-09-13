@@ -1,5 +1,4 @@
 #include "WorldMesh.hpp"
-#include <ChunkMeshNode/ChunkMeshQueue.hpp>
 #include <SemanticShape/SemanticShape.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <MeshGenerator/MeshGenerator.hpp>
@@ -184,13 +183,7 @@ void WorldMesh::update_mesh(uint64_t id) {
     Ref<MeshGenerator> generator = shape->get_mesh_generator();
     if (generator.is_null()) return;
 
-    SemanticWorld* world_ptr = nullptr;
-    Object* sw_obj = Engine::get_singleton()->get_singleton("SemanticWorld");
-    if (sw_obj) {
-        world_ptr = Object::cast_to<SemanticWorld>(sw_obj);
-    }
-
-    Ref<ArrayMesh> mesh = generator->generate(shape, world_ptr);
+    Ref<ArrayMesh> mesh = generator->generate(shape);
     if (mesh.is_null()) return;
 
     MeshInstance3D* mesh_instance = memnew(MeshInstance3D);
@@ -219,7 +212,6 @@ ChunkNode* WorldMesh::find_leaf_chunk(const Vector3& pos) const {
 
     ChunkNode* current = it->second;
     
-    // Спускаемся по дереву до листового узла, содержащего точку
     while (!current->is_leaf()) {
         ChunkNode* next_child = nullptr;
         for (int i = 0; i < 8; i++) {
@@ -256,9 +248,11 @@ void WorldMesh::complete_mesh(uint64_t id, Ref<ArrayMesh> mesh) {
     Vector3 center = shape->get_aabb().get_center();
     ChunkNode* target_chunk = find_leaf_chunk(center);
 
+    print_line(target_chunk);
     if (target_chunk) {
         MeshInstance3D* mesh_instance = memnew(MeshInstance3D);
         mesh_instance->set_mesh(mesh);
         target_chunk->add_mesh_instance(mesh_instance);
+        print_line("register mesh complete");
     }
 }

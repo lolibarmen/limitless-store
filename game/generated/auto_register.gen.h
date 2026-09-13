@@ -3,9 +3,10 @@
 #include <godot_cpp/classes/engine.hpp>
 using namespace godot;
 
+#include "SurfaceGenerator/SurfaceGenerator.hpp"
 #include "MeshPrimitive/MeshPrimitive.hpp"
-#include "ChunkMeshNode/ChunkMeshNode.hpp"
 #include "Tool/Tool.hpp"
+#include "StoneSphere/StoneSphere.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "SemanticCurve/SemanticCurve.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
@@ -34,17 +35,18 @@ inline void auto_register_virtual_classes() {
 
 inline void auto_register_classes() {
     ClassDB::register_class<SemanticShape>();
+    ClassDB::register_class<SemanticSphere>();
+    ClassDB::register_class<MeshGenerator>();
+    ClassDB::register_class<SurfaceGenerator>();
     ClassDB::register_class<MeshPrimitive>();
-    ClassDB::register_class<ChunkMeshNode>();
     ClassDB::register_class<Tool>();
+    ClassDB::register_class<StoneSphere>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<SemanticCurve>();
     ClassDB::register_class<PlayerMovement>();
     ClassDB::register_class<MeshYJoint>();
     ClassDB::register_class<MeshCylinder>();
-    ClassDB::register_class<MeshGenerator>();
     ClassDB::register_class<TreeGenerator>();
-    ClassDB::register_class<SemanticSphere>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<ChunkNode>();
     ClassDB::register_class<PickableTool>();

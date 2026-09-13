@@ -6,7 +6,6 @@
 namespace godot {
 
 class SemanticShape;
-class SemanticWorld;
 
 class MeshGenerator : public Resource {
     GDCLASS(MeshGenerator, Resource)
@@ -18,7 +17,7 @@ public:
     MeshGenerator() = default;
     ~MeshGenerator() = default;
 
-    virtual Ref<ArrayMesh> generate(Ref<SemanticShape> shape, SemanticWorld* world) const;
+    virtual Ref<ArrayMesh> generate(Ref<SemanticShape> shape) const;
 };
 
 } // namespace godot
