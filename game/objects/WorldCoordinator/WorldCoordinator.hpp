@@ -1,6 +1,5 @@
 #pragma once
 #include <godot_cpp/classes/node3d.hpp>
-#include <NeochunkManager/NeochunkManager.hpp>
 
 namespace godot {
 
@@ -9,8 +8,6 @@ class WorldCoordinator : public Node3D {
 
 private:
     int seed = 1;
-
-    NeochunkManager*  chunk_manager  = nullptr;
     
 protected:
     static void _bind_methods();

@@ -9,14 +9,16 @@
 
 namespace godot {
 
-class SemanticWorld; 
+class MeshGenerator;
 
 class SemanticShape : public Resource {
     GDCLASS(SemanticShape, Resource)
 
 private:
     uint64_t _id = 0;
-    SemanticWorld* _world = nullptr;
+
+    godot::PackedInt64Array _owned_shape_ids;
+    godot::PackedInt64Array _needed_shape_ids;
 
 protected:
     AABB _aabb;
@@ -31,9 +33,6 @@ public:
     void set_id(uint64_t id) { _id = id; }
     uint64_t get_id() const { return _id; }
 
-    void set_world(SemanticWorld* world) { _world = world; }
-    SemanticWorld* get_world() const { return _world; }
-
     virtual AABB get_aabb() const;
     virtual void recompute_aabb() { _aabb_dirty = true; }
     
@@ -41,6 +40,22 @@ public:
 
     virtual String get_shape_type() const { return "shape"; }
     virtual float evaluate_sdf(const Vector3& world_pos) const;
+
+    // --- OWN (Владелец) ---
+    void add_owned_shape(uint64_t id);
+    void remove_owned_shape(uint64_t id);
+    bool has_owned_shape(uint64_t id) const;
+    godot::PackedInt64Array get_owned_shapes() const;
+    void set_owned_shapes(const godot::PackedInt64Array& ids);
+
+    // --- NEED (Зависимость) ---
+    void add_needed_shape(uint64_t id);
+    void remove_needed_shape(uint64_t id);
+    bool has_needed_shape(uint64_t id) const;
+    godot::PackedInt64Array get_needed_shapes() const;
+    void set_needed_shapes(const godot::PackedInt64Array& ids);
+
+    virtual Ref<MeshGenerator> get_mesh_generator() const;
 };
 
 } // namespace godot

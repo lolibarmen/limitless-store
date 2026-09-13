@@ -4,7 +4,7 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
-#include <SemanticSphere/SemanticSphere.hpp>
+#include <WorldMesh/WorldMesh.hpp>
 
 using namespace godot;
 
@@ -19,6 +19,5 @@ void WorldCoordinator::_bind_methods() {
 void WorldCoordinator::_ready() {
     ChunkMaterialManager::get_singleton().initialize();
 
-    chunk_manager = memnew(NeochunkManager);
-    add_child(chunk_manager);
+    add_child(WorldMesh::get_singleton());
 }

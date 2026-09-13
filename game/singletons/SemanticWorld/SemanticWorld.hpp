@@ -3,6 +3,7 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/mutex.hpp>
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/variant/aabb.hpp>
 #include <SemanticShape/SemanticShape.hpp>
 #include <unordered_map>
@@ -27,8 +28,12 @@ public:
     SemanticWorld();
     ~SemanticWorld() override = default;
 
+    static SemanticWorld* get_singleton();
+
     uint64_t register_shape(Ref<SemanticShape> shape);
     void unregister_shape(uint64_t id);
+
+    Ref<SemanticShape> get_shape(uint64_t id) const;
     
     std::vector<Ref<SemanticShape>> get_shapes_snapshot() const;
 
