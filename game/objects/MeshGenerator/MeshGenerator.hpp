@@ -2,6 +2,7 @@
 
 #include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/array_mesh.hpp>
+#include <godot_cpp/variant/aabb.hpp>
 
 namespace godot {
 
@@ -17,7 +18,7 @@ public:
     MeshGenerator() = default;
     ~MeshGenerator() = default;
 
-    virtual Ref<ArrayMesh> generate(Ref<SemanticShape> shape) const;
+    virtual Ref<ArrayMesh> generate(uint64_t shape_id, const AABB& bounds) const;
 };
 
 } // namespace godot

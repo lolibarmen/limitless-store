@@ -1,6 +1,7 @@
 #include "SemanticShape.hpp"
 #include <MeshGenerator/MeshGenerator.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
+#include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
 using namespace godot;
@@ -24,9 +25,19 @@ AABB SemanticShape::get_aabb() const {
 
 void SemanticShape::notify_shape_changed() {
     recompute_aabb();
-    
-    SemanticWorld* world = SemanticWorld::get_singleton();
-    world->mark_shape_dirty(_id);
+}
+
+void SemanticShape::on_zone_changed(const AABB& zone, int lod_level) {
+    WorldMesh* wm = WorldMesh::get_singleton();
+    if (!wm) return;
+
+    if (!get_aabb().intersects(zone)) return;
+
+    if (is_render_in(zone, lod_level)) {
+        wm->request_render(_id, zone);
+    } else {
+        wm->cancel_render(_id, zone);
+    }
 }
 
 float SemanticShape::evaluate_sdf(const Vector3& world_pos) const {
@@ -37,10 +48,8 @@ Ref<MeshGenerator> SemanticShape::get_mesh_generator() const {
     return Ref<MeshGenerator>(); 
 }
 
-// OWN
-
 void SemanticShape::add_owned_shape(uint64_t id) {
-    if (!_owned_shape_ids.has(id)) { // Примечание: has() имеет сложность O(N)
+    if (!_owned_shape_ids.has(id)) {
         _owned_shape_ids.push_back(id);
         notify_shape_changed();
     }
@@ -69,7 +78,6 @@ void SemanticShape::set_owned_shapes(const PackedInt64Array& ids) {
     }
 }
 
-// --- NEED ---
 void SemanticShape::add_needed_shape(uint64_t id) {
     if (!_needed_shape_ids.has(id)) {
         _needed_shape_ids.push_back(id);

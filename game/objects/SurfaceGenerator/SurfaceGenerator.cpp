@@ -16,21 +16,15 @@ void SurfaceGenerator::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_voxel_count"), &SurfaceGenerator::get_voxel_count);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "voxel_count"), "set_voxel_count", "get_voxel_count");
 
-    ClassDB::bind_method(D_METHOD("_on_mesh_generated", "shape_id", "mesh"), &SurfaceGenerator::_on_mesh_generated);
+    // ОБНОВЛЕНО: Добавлен аргумент chunk_key в привязку метода
+    ClassDB::bind_method(D_METHOD("_on_mesh_generated", "shape_id", "chunk_key", "mesh"), &SurfaceGenerator::_on_mesh_generated);
 }
 
-Ref<ArrayMesh> SurfaceGenerator::generate(Ref<SemanticShape> shape) const {
-    if (shape.is_null()) {
-        return Ref<ArrayMesh>();
-    }
-
-    SemanticWorld* world = SemanticWorld::get_singleton();
-
-    uint64_t shape_id = shape->get_id();
+Ref<ArrayMesh> SurfaceGenerator::generate(uint64_t shape_id, const AABB& bounds) const {
     uint64_t generator_id = get_instance_id();
 
     WorkerThreadPool::get_singleton()->add_task(
-        callable_mp_static(&SurfaceGenerator::_build_mesh_task).bind(generator_id, shape_id),
+        callable_mp_static(&SurfaceGenerator::_build_mesh_task).bind(generator_id, shape_id, bounds),
         false,
         "SurfaceGenerator::generate"
     );
@@ -38,7 +32,7 @@ Ref<ArrayMesh> SurfaceGenerator::generate(Ref<SemanticShape> shape) const {
     return Ref<ArrayMesh>();
 }
 
-void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id) {
+void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id, const AABB& bounds) {
     Object* obj = ObjectDB::get_instance(generator_id);
     SurfaceGenerator* gen = Object::cast_to<SurfaceGenerator>(obj);
     
@@ -57,9 +51,9 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
         return;
     }
 
-    AABB aabb = shape->get_aabb();
-    Vector3 chunk_pos = aabb.get_center();
-    float chunk_size = aabb.get_size().x; 
+    Vector3 chunk_pos = bounds.get_center();
+    Vector3 chunk_size_vec = bounds.get_size();
+    float chunk_size = chunk_size_vec.x; 
     
     auto inp = std::make_shared<ChunkBuildInput>();
     inp->lod_level   = gen->_lod_level;
@@ -67,20 +61,22 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     inp->chunk_size  = chunk_size;
     inp->stride      = (int)gen->_voxel_count + 4;
     inp->step        = 1 << gen->_lod_level;
+    
     inp->chunk_coord = Vector3i(
-        (int)(chunk_pos.x - chunk_size / 2.0f),
-        (int)(chunk_pos.y - chunk_size / 2.0f),
-        (int)(chunk_pos.z - chunk_size / 2.0f)
+        (int)Math::floor(chunk_pos.x - chunk_size / 2.0f),
+        (int)Math::floor(chunk_pos.y - chunk_size / 2.0f),
+        (int)Math::floor(chunk_pos.z - chunk_size / 2.0f)
     );
 
     inp->cache = std::make_shared<VoxelCache>(inp->stride, inp->step, inp->chunk_coord);
-    
+
     std::vector<Ref<SemanticShape>> shapes = sw->get_shapes_snapshot();
     VoxelBaker::bake(*(inp->cache), shapes);
 
     const MeshData data = build_neochunk_mesh(*inp);
 
     if (data.vertices.is_empty()) {
+        // ОБНОВЛЕНО: Передаем chunk_key в call_deferred
         gen->call_deferred("_on_mesh_generated", shape_id, Ref<ArrayMesh>());
         return;
     }
@@ -97,9 +93,9 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     gen->call_deferred("_on_mesh_generated", shape_id, mesh);
 }
 
-void SurfaceGenerator::_on_mesh_generated(uint64_t shape_id, Ref<ArrayMesh> mesh) {
+void SurfaceGenerator::_on_mesh_generated(uint64_t shape_id, const AABB& bounds, Ref<ArrayMesh> mesh) {
     WorldMesh* wm = WorldMesh::get_singleton();
     if (wm) {
-        wm->complete_mesh(shape_id, mesh);
+        wm->complete_mesh(shape_id, bounds, mesh); 
     }
 }

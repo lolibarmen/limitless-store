@@ -5,6 +5,7 @@
 #include <godot_cpp/classes/scene_tree.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <WorldMesh/WorldMesh.hpp>
+#include <SpatialStreaming/SpatialStreaming.hpp>
 #include <StoneSphere/StoneSphere.hpp>
 
 using namespace godot;
@@ -23,10 +24,12 @@ void WorldCoordinator::_bind_methods() {
 void WorldCoordinator::_ready() {
     ChunkMaterialManager::get_singleton().initialize();
 
+    SpatialStreaming* ss = SpatialStreaming::get_singleton();
+    add_child(ss);
+
     WorldMesh* wm = WorldMesh::get_singleton();
     add_child(wm);
-
-    // Вместо call_deferred включаем ежедневный вызов _process для подсчета кадров
+    
     set_process(true);
 }
 

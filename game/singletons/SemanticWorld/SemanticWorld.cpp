@@ -1,7 +1,6 @@
 #include "SemanticWorld.hpp"
 #include <godot_cpp/core/class_db.hpp>
 #include <WorldMesh/WorldMesh.hpp>
-#include <MeshGenerator/MeshGenerator.hpp>
 
 using namespace godot;
 
@@ -15,18 +14,13 @@ void SemanticWorld::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_shape_count"), &SemanticWorld::get_shape_count);
     ClassDB::bind_method(D_METHOD("get_all_shapes"), &SemanticWorld::get_all_shapes);
     ClassDB::bind_method(D_METHOD("get_shapes_by_type", "type"), &SemanticWorld::get_shapes_by_type);
-    ClassDB::bind_method(D_METHOD("mark_shape_dirty", "id"), &SemanticWorld::mark_shape_dirty);
-    ClassDB::bind_method(D_METHOD("clear_dirty_flags"), &SemanticWorld::clear_dirty_flags);
 }
 
 SemanticWorld* SemanticWorld::get_singleton() {
     Engine* engine = Engine::get_singleton();
-    if (!engine) {
-        return nullptr;
-    }
+    if (!engine) return nullptr;
 
     Object* obj = engine->get_singleton("SemanticWorld");
-    
     return Object::cast_to<SemanticWorld>(obj);
 }
 
@@ -40,18 +34,9 @@ uint64_t SemanticWorld::register_shape(Ref<SemanticShape> shape) {
     id = _next_id++;
     shape->set_id(id);
     _shapes[id] = shape;
-    
     has_mesh_generator = shape->get_mesh_generator().is_valid();
-    
     _shapes_mutex->unlock();
-    
-    if (has_mesh_generator) {
-        WorldMesh* wm = WorldMesh::get_singleton();
-        if (wm) {
-            wm->register_shape(id);
-        }
-    }
-    
+
     return id;
 }
 
@@ -65,37 +50,15 @@ void SemanticWorld::unregister_shape(uint64_t id) {
         _shapes.erase(it);
     }
     _shapes_mutex->unlock();
-
-    if (had_mesh_generator) {
-        WorldMesh* wm = WorldMesh::get_singleton();
-        if (wm) {
-            wm->unregister_shape(id);
-        }
-    }
 }
 
 Ref<SemanticShape> SemanticWorld::get_shape(uint64_t id) const {
-    Ref<SemanticShape> semantic_shape;
+    Ref<SemanticShape> result;
     _shapes_mutex->lock();
     auto it = _shapes.find(id);
-    if (it != _shapes.end()) {
-        semantic_shape = it->second;
-    } else {
-        semantic_shape = Ref<SemanticShape>();
-    }
+    if (it != _shapes.end()) result = it->second;
     _shapes_mutex->unlock();
-    return semantic_shape;
-}
-
-std::vector<Ref<SemanticShape>> SemanticWorld::get_shapes_snapshot() const {
-    std::vector<Ref<SemanticShape>> snapshot;
-    _shapes_mutex->lock();
-    snapshot.reserve(_shapes.size());
-    for (const auto& pair : _shapes) {
-        snapshot.push_back(pair.second);
-    }
-    _shapes_mutex->unlock();
-    return snapshot;
+    return result;
 }
 
 int SemanticWorld::get_shape_count() const {
@@ -108,9 +71,7 @@ int SemanticWorld::get_shape_count() const {
 TypedArray<SemanticShape> SemanticWorld::get_all_shapes() const {
     TypedArray<SemanticShape> result;
     _shapes_mutex->lock();
-    for (const auto& pair : _shapes) {
-        result.push_back(pair.second);
-    }
+    for (const auto& pair : _shapes) result.push_back(pair.second);
     _shapes_mutex->unlock();
     return result;
 }
@@ -119,22 +80,47 @@ TypedArray<SemanticShape> SemanticWorld::get_shapes_by_type(const String& type) 
     TypedArray<SemanticShape> result;
     _shapes_mutex->lock();
     for (const auto& pair : _shapes) {
-        if (pair.second->get_shape_type() == type) {
-            result.push_back(pair.second);
-        }
+        if (pair.second->get_shape_type() == type) result.push_back(pair.second);
     }
     _shapes_mutex->unlock();
     return result;
 }
 
-void SemanticWorld::mark_shape_dirty(uint64_t id) {
+std::vector<Ref<SemanticShape>> SemanticWorld::get_shapes_snapshot() const {
+    std::vector<Ref<SemanticShape>> snapshot;
     _shapes_mutex->lock();
-    _dirty_shapes.push_back(id);
+    snapshot.reserve(_shapes.size());
+    for (const auto& pair : _shapes) snapshot.push_back(pair.second);
     _shapes_mutex->unlock();
+    return snapshot;
 }
 
-void SemanticWorld::clear_dirty_flags() {
-    _shapes_mutex->lock();
-    _dirty_shapes.clear();
-    _shapes_mutex->unlock();
+void SemanticWorld::on_zone_changed(const std::vector<ZoneLODUpdate>& updates) {
+    if (updates.empty()) return;
+
+    // Проходим по каждому обновлению зоны
+    for (const auto& update : updates) {
+        std::vector<uint64_t> affected_shape_ids;
+
+        // 1. Быстро находим фигуры, которые пересекают ЭТУ КОНКРЕТНУЮ зону
+        _shapes_mutex->lock();
+        for (const auto& pair : _shapes) {
+            if (pair.second.is_valid() && pair.second->get_aabb().intersects(update.bounds)) {
+                affected_shape_ids.push_back(pair.first);
+            }
+        }
+        _shapes_mutex->unlock();
+
+        if(affected_shape_ids.size() != 0) print_line(affected_shape_ids.size());
+
+        // 2. Уведомляем только эти фигуры об изменении в этой конкретной зоне
+        // (Делаем это вне мьютекса, чтобы избежать потенциальных дедлоков,
+        // если внутри фигуры будут сложные вызовы)
+        for (uint64_t id : affected_shape_ids) {
+            Ref<SemanticShape> shape = get_shape(id);
+            if (shape.is_valid()) {
+                shape->on_zone_changed(update.bounds, update.lod_level);
+            }
+        }
+    }
 }

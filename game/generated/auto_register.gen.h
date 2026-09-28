@@ -22,10 +22,12 @@ using namespace godot;
 #include "PlayerInteraction/PlayerInteraction.hpp"
 #include "SemanticShape/SemanticShape.hpp"
 #include "ToolManager/ToolManager.hpp"
+#include "SpatialStreaming/SpatialStreaming.hpp"
 #include "WorldMesh/WorldMesh.hpp"
 #include "SemanticWorld/SemanticWorld.hpp"
 #include "BuildGraph/BuildGraph.hpp"
 
+static SpatialStreaming *SpatialStreaming_instance = nullptr;
 static WorldMesh *WorldMesh_instance = nullptr;
 static SemanticWorld *SemanticWorld_instance = nullptr;
 static BuildGraph *BuildGraph_instance = nullptr;
@@ -53,12 +55,15 @@ inline void auto_register_classes() {
     ClassDB::register_class<WorldCoordinator>();
     ClassDB::register_class<PlayerInteraction>();
     ClassDB::register_class<ToolManager>();
+    ClassDB::register_class<SpatialStreaming>();
     ClassDB::register_class<WorldMesh>();
     ClassDB::register_class<SemanticWorld>();
     ClassDB::register_class<BuildGraph>();
 }
 
 inline void auto_register_singletons() {
+    SpatialStreaming_instance = memnew(SpatialStreaming);
+    Engine::get_singleton()->register_singleton("SpatialStreaming", SpatialStreaming_instance);
     WorldMesh_instance = memnew(WorldMesh);
     Engine::get_singleton()->register_singleton("WorldMesh", WorldMesh_instance);
     SemanticWorld_instance = memnew(SemanticWorld);
@@ -68,6 +73,9 @@ inline void auto_register_singletons() {
 }
 
 inline void auto_unregister_singletons() {
+    Engine::get_singleton()->unregister_singleton("SpatialStreaming");
+    memdelete(SpatialStreaming_instance);
+    SpatialStreaming_instance = nullptr;
     Engine::get_singleton()->unregister_singleton("WorldMesh");
     memdelete(WorldMesh_instance);
     WorldMesh_instance = nullptr;

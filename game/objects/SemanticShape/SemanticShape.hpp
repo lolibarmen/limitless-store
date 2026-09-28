@@ -16,7 +16,6 @@ class SemanticShape : public Resource {
 
 private:
     uint64_t _id = 0;
-
     godot::PackedInt64Array _owned_shape_ids;
     godot::PackedInt64Array _needed_shape_ids;
 
@@ -41,14 +40,16 @@ public:
     virtual String get_shape_type() const { return "shape"; }
     virtual float evaluate_sdf(const Vector3& world_pos) const;
 
-    // --- OWN (Владелец) ---
+    virtual void on_zone_changed(const AABB& zone, int lod_level);
+    
+    virtual bool is_render_in(const AABB& zone, int lod_level) const { return false; }
+
     void add_owned_shape(uint64_t id);
     void remove_owned_shape(uint64_t id);
     bool has_owned_shape(uint64_t id) const;
     godot::PackedInt64Array get_owned_shapes() const;
     void set_owned_shapes(const godot::PackedInt64Array& ids);
 
-    // --- NEED (Зависимость) ---
     void add_needed_shape(uint64_t id);
     void remove_needed_shape(uint64_t id);
     bool has_needed_shape(uint64_t id) const;
