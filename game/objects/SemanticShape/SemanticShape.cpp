@@ -27,19 +27,6 @@ void SemanticShape::notify_shape_changed() {
     recompute_aabb();
 }
 
-void SemanticShape::on_zone_changed(const AABB& zone, int lod_level) {
-    WorldMesh* wm = WorldMesh::get_singleton();
-    if (!wm) return;
-
-    if (!get_aabb().intersects(zone)) return;
-
-    if (is_render_in(zone, lod_level)) {
-        wm->request_render(_id, zone);
-    } else {
-        wm->cancel_render(_id, zone);
-    }
-}
-
 float SemanticShape::evaluate_sdf(const Vector3& world_pos) const {
     return 1e10f; 
 }

@@ -111,8 +111,6 @@ void SemanticWorld::on_zone_changed(const std::vector<ZoneLODUpdate>& updates) {
         }
         _shapes_mutex->unlock();
 
-        if(affected_shape_ids.size() != 0) print_line(affected_shape_ids.size());
-
         // 2. Уведомляем только эти фигуры об изменении в этой конкретной зоне
         // (Делаем это вне мьютекса, чтобы избежать потенциальных дедлоков,
         // если внутри фигуры будут сложные вызовы)

@@ -7,6 +7,7 @@
 #include <WorldMesh/WorldMesh.hpp>
 #include <SpatialStreaming/SpatialStreaming.hpp>
 #include <StoneSphere/StoneSphere.hpp>
+#include <DebugZoneShape/DebugZoneShape.hpp>
 
 using namespace godot;
 
@@ -45,10 +46,13 @@ void WorldCoordinator::_process(double delta) {
 void WorldCoordinator::_register_initial_shapes() {
     Ref<StoneSphere> stone_sphere;
     stone_sphere.instantiate();
-
     stone_sphere->set_radius(10.0f);
     stone_sphere->set_center(Vector3(0, 0, 0));
 
+    Ref<DebugZoneShape> debug_shape;
+    debug_shape.instantiate();
+
     SemanticWorld* sw = SemanticWorld::get_singleton();
     sw->register_shape(stone_sphere);
+    sw->register_shape(debug_shape);
 }

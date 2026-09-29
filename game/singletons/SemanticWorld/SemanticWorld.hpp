@@ -13,7 +13,7 @@
 
 namespace godot {
 
-constexpr int LOD_UNLOADED = 1000000;
+constexpr int LOD_UNLOADED = -1;
 
 struct ZoneLODUpdate {
     AABB bounds;

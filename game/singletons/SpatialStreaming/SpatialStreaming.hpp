@@ -10,10 +10,9 @@
 #include <vector>
 #include <memory>
 
-// Forward declaration, чтобы не тянуть весь SemanticWorld в заголовок
-namespace godot { class SemanticWorld; }
-
 namespace godot {
+
+class SemanticWorld;
 
 constexpr int   MAX_DEPTH = 2;
 constexpr float ROOT_SIZE = 64.0f;

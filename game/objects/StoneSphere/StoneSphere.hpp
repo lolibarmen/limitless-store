@@ -23,6 +23,8 @@ public:
     String get_shape_type() const override { return "stone_sphere"; }
 
     virtual Ref<MeshGenerator> get_mesh_generator() const override;
+
+    virtual void on_zone_changed(const AABB& zone, int lod_level) override;
 };
 
 } // namespace godot

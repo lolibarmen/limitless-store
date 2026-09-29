@@ -41,13 +41,13 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     SemanticWorld* sw = SemanticWorld::get_singleton();
     
     if (!sw) {
-        gen->call_deferred("_on_mesh_generated", shape_id, Ref<ArrayMesh>());
+        gen->call_deferred("_on_mesh_generated", shape_id, bounds, Ref<ArrayMesh>());
         return;
     }
     
     Ref<SemanticShape> shape = sw->get_shape(shape_id);
     if (shape.is_null()) {
-        gen->call_deferred("_on_mesh_generated", shape_id, Ref<ArrayMesh>());
+        gen->call_deferred("_on_mesh_generated", shape_id, bounds, Ref<ArrayMesh>());
         return;
     }
 
@@ -77,7 +77,7 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
 
     if (data.vertices.is_empty()) {
         // ОБНОВЛЕНО: Передаем chunk_key в call_deferred
-        gen->call_deferred("_on_mesh_generated", shape_id, Ref<ArrayMesh>());
+        gen->call_deferred("_on_mesh_generated", shape_id, bounds, Ref<ArrayMesh>());
         return;
     }
 
@@ -90,7 +90,7 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     mesh.instantiate();
     mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
 
-    gen->call_deferred("_on_mesh_generated", shape_id, mesh);
+    gen->call_deferred("_on_mesh_generated", shape_id, bounds, mesh);
 }
 
 void SurfaceGenerator::_on_mesh_generated(uint64_t shape_id, const AABB& bounds, Ref<ArrayMesh> mesh) {

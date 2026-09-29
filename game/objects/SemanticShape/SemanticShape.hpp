@@ -40,9 +40,8 @@ public:
     virtual String get_shape_type() const { return "shape"; }
     virtual float evaluate_sdf(const Vector3& world_pos) const;
 
-    virtual void on_zone_changed(const AABB& zone, int lod_level);
-    
-    virtual bool is_render_in(const AABB& zone, int lod_level) const { return false; }
+    // Передаёться зона, которая задевает фигуру и её LOD
+    virtual void on_zone_changed(const AABB& zone, int lod_level) {}
 
     void add_owned_shape(uint64_t id);
     void remove_owned_shape(uint64_t id);

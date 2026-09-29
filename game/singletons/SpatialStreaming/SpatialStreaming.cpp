@@ -158,11 +158,12 @@ void SpatialStreaming::_notify_changes() {
     std::unordered_map<Vector3i, AABB, Vector3iHash> current_zones;
     current_zones.reserve(leaf_chunks.size());
     
+    // 1. Собираем текущие зоны (ключ -> AABB)
     for (const auto& [key, chunk] : leaf_chunks) {
         current_zones[key] = chunk->get_aabb();
     }
 
-    // Оптимизация: если размеры совпадают и все ключи на месте, изменений нет
+    // 2. Оптимизация: если набор ключей идентичен, значит, сплитов/мерджей не было
     if (current_zones.size() == _prev_active_zones.size()) {
         bool identical = true;
         for (const auto& [key, _] : current_zones) {
@@ -171,26 +172,28 @@ void SpatialStreaming::_notify_changes() {
                 break;
             }
         }
-        if (identical) return; // Выходим без лишних вычислений
+        if (identical) return; // Выходим, ничего не изменилось
     }
 
     std::vector<ZoneLODUpdate> updates;
 
-    // Находим добавленные зоны (LOD = 0, базовый уровень)
+    // 3. Находим НОВЫЕ зоны (это и есть зоны с повышенным LOD после сплита)
     for (const auto& [key, aabb] : current_zones) {
         if (_prev_active_zones.find(key) == _prev_active_zones.end()) {
-            updates.push_back({aabb, 0}); 
+            // Берем реальный depth чанка как его LOD
+            int lod = leaf_chunks.at(key)->depth; 
+            updates.push_back({aabb, lod}); 
         }
     }
 
-    // Находим удаленные зоны (LOD = LOD_UNLOADED)
+    // 4. Находим УДАЛЕННЫЕ зоны (это зоны, которые схлопнулись или ушли за радиус)
     for (const auto& [key, aabb] : _prev_active_zones) {
         if (current_zones.find(key) == current_zones.end()) {
             updates.push_back({aabb, LOD_UNLOADED}); 
         }
     }
 
-    // Уведомляем SemanticWorld только если есть реальные изменения
+    // 5. Уведомляем SemanticWorld
     if (!updates.empty()) {
         SemanticWorld* world = SemanticWorld::get_singleton();
         if (world) {
@@ -198,6 +201,6 @@ void SpatialStreaming::_notify_changes() {
         }
     }
 
-    // Сохраняем текущее состояние для сравнения в следующем кадре
+    // 6. Сохраняем состояние
     _prev_active_zones = std::move(current_zones);
 }
