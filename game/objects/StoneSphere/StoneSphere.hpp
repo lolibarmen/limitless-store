@@ -11,7 +11,9 @@ class StoneSphere : public SemanticSphere {
 
 private:
 
-    Ref<SurfaceGenerator> _generator;
+    Ref<SurfaceGenerator> _generator_lod0;
+    Ref<SurfaceGenerator> _generator_lod1;
+    Ref<SurfaceGenerator> _generator_lod2;
 
 protected:
     static void _bind_methods();

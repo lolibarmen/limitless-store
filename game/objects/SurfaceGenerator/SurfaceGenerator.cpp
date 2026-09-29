@@ -47,6 +47,7 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     
     Ref<SemanticShape> shape = sw->get_shape(shape_id);
     if (shape.is_null()) {
+        print_line("[SurfaceGenerator] Not found shape with id ", shape_id);
         gen->call_deferred("_on_mesh_generated", shape_id, bounds, Ref<ArrayMesh>());
         return;
     }
@@ -76,7 +77,7 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     const MeshData data = build_neochunk_mesh(*inp);
 
     if (data.vertices.is_empty()) {
-        // ОБНОВЛЕНО: Передаем chunk_key в call_deferred
+        print_line("[SurfaceGenerator] Mesh have not a vertices");
         gen->call_deferred("_on_mesh_generated", shape_id, bounds, Ref<ArrayMesh>());
         return;
     }

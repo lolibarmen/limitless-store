@@ -102,7 +102,6 @@ void SemanticWorld::on_zone_changed(const std::vector<ZoneLODUpdate>& updates) {
     for (const auto& update : updates) {
         std::vector<uint64_t> affected_shape_ids;
 
-        // 1. Быстро находим фигуры, которые пересекают ЭТУ КОНКРЕТНУЮ зону
         _shapes_mutex->lock();
         for (const auto& pair : _shapes) {
             if (pair.second.is_valid() && pair.second->get_aabb().intersects(update.bounds)) {
@@ -111,9 +110,6 @@ void SemanticWorld::on_zone_changed(const std::vector<ZoneLODUpdate>& updates) {
         }
         _shapes_mutex->unlock();
 
-        // 2. Уведомляем только эти фигуры об изменении в этой конкретной зоне
-        // (Делаем это вне мьютекса, чтобы избежать потенциальных дедлоков,
-        // если внутри фигуры будут сложные вызовы)
         for (uint64_t id : affected_shape_ids) {
             Ref<SemanticShape> shape = get_shape(id);
             if (shape.is_valid()) {

@@ -16,7 +16,7 @@ class SemanticWorld;
 
 constexpr int   MAX_DEPTH = 2;
 constexpr float ROOT_SIZE = 64.0f;
-constexpr int   ROOT_RADIUS = 8;
+constexpr int   ROOT_RADIUS = 2;
 
 class SpatialStreaming : public Node {
     GDCLASS(SpatialStreaming, Node)
@@ -38,8 +38,9 @@ private:
     void delete_children(Chunk* n);
     void spawn_chunk(std::unique_ptr<Chunk> chunk_ptr, const Vector3i& key);
 
-    // Уведомление об изменениях зон
     void _notify_changes();
+
+    void _sync_debug_mesh(Chunk* chunk);
 
 protected:
     static void _bind_methods();

@@ -9,6 +9,8 @@
 
 namespace godot {
 
+class MeshGenerator;
+
 class WorldMesh : public Node3D {
     GDCLASS(WorldMesh, Node3D)
     
@@ -26,6 +28,7 @@ public:
     void _process(double delta) override;
 
     void request_render(uint64_t shape_id, const AABB& bounds);
+    void request_render(uint64_t shape_id, const AABB& bounds, Ref<MeshGenerator> generator);
 
     void cancel_render(uint64_t shape_id, const AABB& bounds);
 
