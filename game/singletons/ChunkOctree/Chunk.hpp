@@ -7,9 +7,6 @@
 
 namespace godot {
 
-// Forward declaration
-class Chunk;
-
 class Chunk {
 public:
     Vector3 center;

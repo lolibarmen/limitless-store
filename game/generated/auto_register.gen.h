@@ -28,11 +28,13 @@ using namespace godot;
 #include "WorldMesh/WorldMesh.hpp"
 #include "SemanticWorld/SemanticWorld.hpp"
 #include "BuildGraph/BuildGraph.hpp"
+#include "ChunkOctree/ChunkOctree.hpp"
 
 static SpatialStreaming *SpatialStreaming_instance = nullptr;
 static WorldMesh *WorldMesh_instance = nullptr;
 static SemanticWorld *SemanticWorld_instance = nullptr;
 static BuildGraph *BuildGraph_instance = nullptr;
+static ChunkOctree *ChunkOctree_instance = nullptr;
 
 inline void auto_register_virtual_classes() {
 }
@@ -63,6 +65,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<WorldMesh>();
     ClassDB::register_class<SemanticWorld>();
     ClassDB::register_class<BuildGraph>();
+    ClassDB::register_class<ChunkOctree>();
 }
 
 inline void auto_register_singletons() {
@@ -74,6 +77,8 @@ inline void auto_register_singletons() {
     Engine::get_singleton()->register_singleton("SemanticWorld", SemanticWorld_instance);
     BuildGraph_instance = memnew(BuildGraph);
     Engine::get_singleton()->register_singleton("BuildGraph", BuildGraph_instance);
+    ChunkOctree_instance = memnew(ChunkOctree);
+    Engine::get_singleton()->register_singleton("ChunkOctree", ChunkOctree_instance);
 }
 
 inline void auto_unregister_singletons() {
@@ -89,4 +94,7 @@ inline void auto_unregister_singletons() {
     Engine::get_singleton()->unregister_singleton("BuildGraph");
     memdelete(BuildGraph_instance);
     BuildGraph_instance = nullptr;
+    Engine::get_singleton()->unregister_singleton("ChunkOctree");
+    memdelete(ChunkOctree_instance);
+    ChunkOctree_instance = nullptr;
 }
