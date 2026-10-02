@@ -15,10 +15,8 @@ using namespace godot;
 #include "MeshGenerator/MeshGenerator.hpp"
 #include "TreeGenerator/TreeGenerator.hpp"
 #include "SemanticSphere/SemanticSphere.hpp"
-#include "DebugZoneShape/DebugZoneShape.hpp"
 #include "Player/Player.hpp"
 #include "ChunkNode/ChunkNode.hpp"
-#include "AABBBoxGenerator/AABBBoxGenerator.hpp"
 #include "PickableTool/PickableTool.hpp"
 #include "WorldCoordinator/WorldCoordinator.hpp"
 #include "PlayerInteraction/PlayerInteraction.hpp"
@@ -53,10 +51,8 @@ inline void auto_register_classes() {
     ClassDB::register_class<MeshYJoint>();
     ClassDB::register_class<MeshCylinder>();
     ClassDB::register_class<TreeGenerator>();
-    ClassDB::register_class<DebugZoneShape>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<ChunkNode>();
-    ClassDB::register_class<AABBBoxGenerator>();
     ClassDB::register_class<PickableTool>();
     ClassDB::register_class<WorldCoordinator>();
     ClassDB::register_class<PlayerInteraction>();

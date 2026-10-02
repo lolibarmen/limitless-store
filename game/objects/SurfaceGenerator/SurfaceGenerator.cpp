@@ -1,5 +1,6 @@
 #include "SurfaceGenerator.hpp"
 #include <Utils/VoxelBaker.hpp>
+#include <ChunkOctree/ChunkOctree.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -20,11 +21,11 @@ void SurfaceGenerator::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_on_mesh_generated", "shape_id", "chunk_key", "mesh"), &SurfaceGenerator::_on_mesh_generated);
 }
 
-Ref<ArrayMesh> SurfaceGenerator::generate(uint64_t shape_id, const AABB& bounds) const {
+Ref<ArrayMesh> SurfaceGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
     uint64_t generator_id = get_instance_id();
 
     WorkerThreadPool::get_singleton()->add_task(
-        callable_mp_static(&SurfaceGenerator::_build_mesh_task).bind(generator_id, shape_id, bounds),
+        callable_mp_static(&SurfaceGenerator::_build_mesh_task).bind(generator_id, shape_id, chunk_id),
         false,
         "SurfaceGenerator::generate"
     );
@@ -32,29 +33,21 @@ Ref<ArrayMesh> SurfaceGenerator::generate(uint64_t shape_id, const AABB& bounds)
     return Ref<ArrayMesh>();
 }
 
-void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id, const AABB& bounds) {
+void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id, uint64_t chunk_id) {
     Object* obj = ObjectDB::get_instance(generator_id);
     SurfaceGenerator* gen = Object::cast_to<SurfaceGenerator>(obj);
     
     if (!gen) return;
 
     SemanticWorld* sw = SemanticWorld::get_singleton();
-    
-    if (!sw) {
-        gen->call_deferred("_on_mesh_generated", shape_id, bounds, Ref<ArrayMesh>());
-        return;
-    }
-    
     Ref<SemanticShape> shape = sw->get_shape(shape_id);
-    if (shape.is_null()) {
-        print_line("[SurfaceGenerator] Not found shape with id ", shape_id);
-        gen->call_deferred("_on_mesh_generated", shape_id, bounds, Ref<ArrayMesh>());
-        return;
-    }
+    if (shape.is_null()) return;
 
-    Vector3 chunk_pos = bounds.get_center();
-    Vector3 chunk_size_vec = bounds.get_size();
-    float chunk_size = chunk_size_vec.x; 
+    Chunk* chunk = ChunkOctree::get_singleton()->find(chunk_id);
+    if(!chunk) return;
+
+    Vector3 chunk_pos = chunk->center;
+    float chunk_size = chunk->size; 
     
     auto inp = std::make_shared<ChunkBuildInput>();
     inp->lod_level   = gen->_lod_level;
@@ -77,8 +70,7 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     const MeshData data = build_neochunk_mesh(*inp);
 
     if (data.vertices.is_empty()) {
-        print_line("[SurfaceGenerator] Mesh have not a vertices");
-        gen->call_deferred("_on_mesh_generated", shape_id, bounds, Ref<ArrayMesh>());
+        gen->call_deferred("_on_mesh_generated", shape_id, chunk_id, Ref<ArrayMesh>());
         return;
     }
 
@@ -91,12 +83,12 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     mesh.instantiate();
     mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
 
-    gen->call_deferred("_on_mesh_generated", shape_id, bounds, mesh);
+    gen->call_deferred("_on_mesh_generated", shape_id, chunk_id, mesh);
 }
 
-void SurfaceGenerator::_on_mesh_generated(uint64_t shape_id, const AABB& bounds, Ref<ArrayMesh> mesh) {
+void SurfaceGenerator::_on_mesh_generated(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMesh> mesh) {
     WorldMesh* wm = WorldMesh::get_singleton();
     if (wm) {
-        wm->complete_mesh(shape_id, bounds, mesh); 
+        wm->complete_mesh(shape_id, chunk_id, mesh); 
     }
 }

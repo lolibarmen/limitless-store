@@ -1,19 +1,18 @@
 #include "SpatialStreaming.hpp"
 #include <ChunkOctree/ChunkOctree.hpp>
-#include <ChunkOctree/Chunk.hpp>
+#include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/core/math.hpp>
+#include <vector>
 
-using namespace godot;
+namespace godot {
 
-// Вспомогательная функция вне класса, так как это чистая математика
+// Расстояние Чебышёва (максимальная разница по осям)
 static float cube_distance(const Vector3& a, const Vector3& b) {
     return Math::max(Math::max(Math::abs(a.x - b.x), Math::abs(a.y - b.y)), Math::abs(a.z - b.z));
 }
-
-void SpatialStreaming::_bind_methods() {}
 
 SpatialStreaming* SpatialStreaming::get_singleton() {
     Engine* engine = Engine::get_singleton();
@@ -22,7 +21,13 @@ SpatialStreaming* SpatialStreaming::get_singleton() {
     return Object::cast_to<SpatialStreaming>(obj);
 }
 
-void SpatialStreaming::_ready() {}
+void SpatialStreaming::_bind_methods() {
+    // ClassDB::bind_method(D_METHOD("set_player_pos", "pos"), &SpatialStreaming::set_player_pos);
+}
+
+void SpatialStreaming::_ready() {
+    // Инициализация
+}
 
 void SpatialStreaming::_process(double delta) {
     auto* vp = get_viewport();
@@ -34,36 +39,60 @@ void SpatialStreaming::_process(double delta) {
 
     update_root_zones();
 
-    ChunkOctree::get_singleton()->for_each_root([this](Chunk* root) {
-        evaluate_and_update_tree(root);
-    });
+    auto* octree = ChunkOctree::get_singleton();
+    if (octree) {
+        octree->for_each_root([this](Chunk* root) {
+            evaluate_and_update_tree(root);
+        });
+    }
 
-    // 3. Уведомление SemanticWorld об изменениях в листьях
     _notify_changes();
 }
 
-void SpatialStreaming::update_root_zones() {
-    Vector3i pc = Vector3i(
-        (int)Math::floor(player_pos.x / ROOT_SIZE),
-        (int)Math::floor(player_pos.y / ROOT_SIZE),
-        (int)Math::floor(player_pos.z / ROOT_SIZE)
+Vector3i SpatialStreaming::get_cell_from_pos(const Vector3& pos) const {
+    return Vector3i(
+        static_cast<int32_t>(Math::floor(pos.x / ROOT_SIZE)),
+        static_cast<int32_t>(Math::floor(pos.y / ROOT_SIZE)),
+        static_cast<int32_t>(Math::floor(pos.z / ROOT_SIZE))
     );
+}
 
-    std::vector<Vector3i> roots_to_remove;
+void SpatialStreaming::update_root_zones() {
+    Vector3i pc = get_cell_from_pos(player_pos);
+    auto* octree = ChunkOctree::get_singleton();
+    if (!octree) return;
 
-    for (const auto& key : roots_to_remove) {
-        ChunkOctree::get_singleton()->remove_root(key);
+    // 1. Находим и удаляем корни, вышедшие за пределы радиуса
+    std::vector<Vector3i> cells_to_remove;
+    for (const auto& pair : _active_roots) {
+        if (Math::abs(pair.first.x - pc.x) > root_radius ||
+            Math::abs(pair.first.y - pc.y) > root_radius ||
+            Math::abs(pair.first.z - pc.z) > root_radius) {
+            cells_to_remove.push_back(pair.first);
+        }
     }
 
-    // Добавляем новые корни в радиусе
+    for (const Vector3i& cell : cells_to_remove) {
+        uint64_t root_id = _active_roots[cell];
+        octree->remove_root(root_id);
+        _active_roots.erase(cell);
+    }
+
+    // 2. Добавляем новые корни в радиусе
     for (int dx = -root_radius; dx <= root_radius; dx++) {
         for (int dy = -root_radius; dy <= root_radius; dy++) {
             for (int dz = -root_radius; dz <= root_radius; dz++) {
                 Vector3i cell = pc + Vector3i(dx, dy, dz);
-                // Нужен способ проверить, существует ли уже корень. Добавим has_root(key) в ChunkOctree
-                if (!ChunkOctree::get_singleton()->has_root(cell)) {
-                    Vector3 center = (Vector3(cell) + Vector3(0.5f, 0.5f, 0.5f)) * ROOT_SIZE;
-                    ChunkOctree::get_singleton()->add_root(cell, center, ROOT_SIZE);
+                
+                // Проверяем по координатам ячейки, а не по ID, так как ID генерирует сам ChunkOctree
+                if (_active_roots.find(cell) == _active_roots.end()) {
+                    Vector3 center(
+                        (static_cast<float>(cell.x) + 0.5f) * ROOT_SIZE,
+                        (static_cast<float>(cell.y) + 0.5f) * ROOT_SIZE,
+                        (static_cast<float>(cell.z) + 0.5f) * ROOT_SIZE
+                    );
+                    uint64_t new_id = octree->add_root(center, ROOT_SIZE);
+                    _active_roots[cell] = new_id;
                 }
             }
         }
@@ -73,18 +102,28 @@ void SpatialStreaming::update_root_zones() {
 void SpatialStreaming::evaluate_and_update_tree(Chunk* node) {
     if (!node) return;
 
+    // Использование расстояния Чебышёва и гистерезиса
     float dist = cube_distance(node->center, player_pos);
     bool should_split = dist < node->size * 4.0f;
     bool should_collapse = dist > node->size * 4.1f;
 
+    auto* octree = ChunkOctree::get_singleton();
+    if (!octree) return;
+
     if (node->is_leaf() && should_split && node->depth < MAX_DEPTH) {
-        ChunkOctree::get_singleton()->split_node(node);
+        octree->split(node);
+        // Рекурсивно оцениваем только что созданных детей
+        for (auto& child_ptr : node->children) {
+            if (child_ptr) {
+                evaluate_and_update_tree(child_ptr.get());
+            }
+        }
     }
     else if (!node->is_leaf() && should_collapse) {
-        ChunkOctree::get_singleton()->collapse_node(node);
+        octree->collapse(node);
     }
     else if (!node->is_leaf()) {
-        // Рекурсивный обход детей
+        // Рекурсивно оцениваем существующих детей
         for (auto& child_ptr : node->children) {
             if (child_ptr) {
                 evaluate_and_update_tree(child_ptr.get());
@@ -94,38 +133,30 @@ void SpatialStreaming::evaluate_and_update_tree(Chunk* node) {
 }
 
 void SpatialStreaming::_notify_changes() {
-    const auto& current_leaves = ChunkOctree::get_singleton()->get_leaf_chunks();
-    std::unordered_map<Vector3i, AABB, Vector3iHash> current_zones;
-    current_zones.reserve(current_leaves.size());
+    auto* octree = ChunkOctree::get_singleton();
+    if (!octree) return;
+
+    std::unordered_set<uint64_t> current_zones;
     
-    for (const auto& [key, chunk] : current_leaves) {
-        current_zones[key] = chunk->get_aabb();
+    octree->for_each_leaf([&](Chunk* chunk) {
+        current_zones.insert(chunk->id);
+    });
+
+    if (current_zones == _prev_active_zones) {
+        return;
     }
 
-    // Оптимизация: если зоны идентичны, выходим
-    if (current_zones.size() == _prev_active_zones.size()) {
-        bool identical = true;
-        for (const auto& [key, _] : current_zones) {
-            if (_prev_active_zones.find(key) == _prev_active_zones.end()) {
-                identical = false;
-                break;
-            }
-        }
-        if (identical) return;
-    }
+    std::vector<uint64_t> updates;
 
-    std::vector<ZoneLODUpdate> updates;
-
-    for (const auto& [key, aabb] : current_zones) {
-        if (_prev_active_zones.find(key) == _prev_active_zones.end()) {
-            int lod = MAX_DEPTH - current_leaves.at(key)->depth; 
-            updates.push_back({aabb, lod}); 
+    for (uint64_t id : current_zones) {
+        if (_prev_active_zones.find(id) == _prev_active_zones.end()) {
+            updates.push_back(id);
         }
     }
 
-    for (const auto& [key, aabb] : _prev_active_zones) {
-        if (current_zones.find(key) == current_zones.end()) {
-            updates.push_back({aabb, LOD_UNLOADED}); 
+    for (uint64_t id : _prev_active_zones) {
+        if (current_zones.find(id) == current_zones.end()) {
+            updates.push_back(id);
         }
     }
 
@@ -138,3 +169,5 @@ void SpatialStreaming::_notify_changes() {
 
     _prev_active_zones = std::move(current_zones);
 }
+
+} // namespace godot

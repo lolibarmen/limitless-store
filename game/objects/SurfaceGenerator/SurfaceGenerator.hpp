@@ -15,8 +15,8 @@ private:
     int _lod_level = 0;
     float _voxel_count = 16.0f;
 
-    static void _build_mesh_task(uint64_t generator_id, uint64_t shape_id, const AABB& bounds);
-    void _on_mesh_generated(uint64_t shape_id, const AABB& bounds, Ref<ArrayMesh> mesh);
+    static void _build_mesh_task(uint64_t generator_id, uint64_t shape_id, uint64_t chunk_id);
+    void _on_mesh_generated(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMesh> mesh);
 
 protected:
     static void _bind_methods();
@@ -25,7 +25,7 @@ public:
     SurfaceGenerator() = default;
     ~SurfaceGenerator() override = default;
 
-    Ref<ArrayMesh> generate(uint64_t shape_id, const AABB& bounds) const override;
+    Ref<ArrayMesh> generate(uint64_t shape_id, uint64_t chunk_id) const override;
 
     void set_lod_level(int level) { _lod_level = level; }
     int get_lod_level() const { return _lod_level; }

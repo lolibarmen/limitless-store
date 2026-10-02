@@ -26,7 +26,7 @@ public:
 
     virtual Ref<MeshGenerator> get_mesh_generator() const override;
 
-    virtual void on_zone_changed(const AABB& zone, int lod_level) override;
+    virtual void on_zone_changed(uint64_t chunk_id) override;
 };
 
 } // namespace godot

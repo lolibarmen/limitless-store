@@ -1,38 +1,41 @@
 #pragma once
 #include <godot_cpp/variant/vector3.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
+#include <godot_cpp/variant/aabb.hpp>
 #include <array>
 #include <vector>
 #include <memory>
+#include <cstdint>
+#include <unordered_map>
 
 namespace godot {
 
 class Chunk {
 public:
+    uint64_t id;
     Vector3 center;
     float size;
     int depth;
     
-    // Владелец узла в дереве. Используем unique_ptr для автоматического удаления детей при удалении родителя
     std::array<std::unique_ptr<Chunk>, 8> children;
-    
-    // Родитель нужен только если мы ходим вверх по дереву (опционально)
     Chunk* parent = nullptr;
 
-    Chunk(Vector3 c = Vector3(), float s = 0.0f, int d = 0, Chunk* p = nullptr);
+    std::unordered_map<uint64_t, MeshInstance3D*> shape_meshes;
+
+    Chunk(uint64_t id, Vector3 c = Vector3(), float s = 0.0f, int d = 0, Chunk* p = nullptr);
     ~Chunk();
 
-    // Запрещаем копирование, так как у нас есть unique_ptr
     Chunk(const Chunk&) = delete;
     Chunk& operator=(const Chunk&) = delete;
 
     bool is_leaf() const { return children[0] == nullptr; }
     
-    // Вспомогательный метод для получения AABB
     AABB get_aabb() const;
 
     MeshInstance3D* debug_mesh = nullptr;
     void clear_debug_mesh();
+
+    void remove_shape_mesh(uint64_t shape_id);
 };
 
 } // namespace godot

@@ -18,7 +18,7 @@ public:
     MeshGenerator() = default;
     ~MeshGenerator() = default;
 
-    virtual Ref<ArrayMesh> generate(uint64_t shape_id, const AABB& bounds) const;
+    virtual Ref<ArrayMesh> generate(uint64_t shape_id, uint64_t chunk_id) const;
 };
 
 } // namespace godot

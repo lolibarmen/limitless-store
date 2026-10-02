@@ -4,21 +4,17 @@
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/variant/aabb.hpp>
 #include <SemanticShape/SemanticShape.hpp>
 #include <MeshGenerator/MeshGenerator.hpp>
 #include <unordered_map>
 #include <vector>
 #include <atomic>
+#include <cstdint>
 
 namespace godot {
 
+// Константа может пригодиться SemanticShape для определения состояния выгрузки
 constexpr int LOD_UNLOADED = -1;
-
-struct ZoneLODUpdate {
-    AABB bounds;
-    int lod_level;
-};
 
 class SemanticWorld : public Object {
     GDCLASS(SemanticWorld, Object)
@@ -48,7 +44,8 @@ public:
     TypedArray<SemanticShape> get_all_shapes() const;
     TypedArray<SemanticShape> get_shapes_by_type(const String& type) const;
 
-    void on_zone_changed(const std::vector<ZoneLODUpdate>& updates);
+    // Теперь принимаем только массив ID чанков
+    void on_zone_changed(const std::vector<uint64_t>& chunk_ids);
 };
 
 } // namespace godot

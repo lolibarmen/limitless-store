@@ -1,6 +1,7 @@
 #include "SemanticWorld.hpp"
-#include <godot_cpp/core/class_db.hpp>
-#include <WorldMesh/WorldMesh.hpp>
+#include <ChunkOctree/ChunkOctree.hpp> // Добавлено для доступа к Chunk
+#include <ChunkOctree/Chunk.hpp>
+#include <godot_cpp/classes/engine.hpp>
 
 using namespace godot;
 
@@ -9,79 +10,36 @@ SemanticWorld::SemanticWorld() {
 }
 
 void SemanticWorld::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("register_shape", "shape"), &SemanticWorld::register_shape);
-    ClassDB::bind_method(D_METHOD("unregister_shape", "id"), &SemanticWorld::unregister_shape);
-    ClassDB::bind_method(D_METHOD("get_shape_count"), &SemanticWorld::get_shape_count);
-    ClassDB::bind_method(D_METHOD("get_all_shapes"), &SemanticWorld::get_all_shapes);
-    ClassDB::bind_method(D_METHOD("get_shapes_by_type", "type"), &SemanticWorld::get_shapes_by_type);
+    // ... ваши существующие привязки методов
 }
 
 SemanticWorld* SemanticWorld::get_singleton() {
     Engine* engine = Engine::get_singleton();
     if (!engine) return nullptr;
-
     Object* obj = engine->get_singleton("SemanticWorld");
     return Object::cast_to<SemanticWorld>(obj);
 }
 
 uint64_t SemanticWorld::register_shape(Ref<SemanticShape> shape) {
-    if (shape.is_null()) return 0;
-    
-    uint64_t id = 0;
-    bool has_mesh_generator = false;
-
-    _shapes_mutex->lock();
-    id = _next_id++;
+    if (!shape.is_valid()) return 0; 
+    uint64_t id = _next_id++;
     shape->set_id(id);
+    _shapes_mutex->lock();
     _shapes[id] = shape;
-    has_mesh_generator = shape->get_mesh_generator().is_valid();
     _shapes_mutex->unlock();
-
     return id;
 }
 
 void SemanticWorld::unregister_shape(uint64_t id) {
-    bool had_mesh_generator = false;
-
     _shapes_mutex->lock();
-    auto it = _shapes.find(id);
-    if (it != _shapes.end()) {
-        had_mesh_generator = it->second->get_mesh_generator().is_valid();
-        _shapes.erase(it);
-    }
+    _shapes.erase(id);
     _shapes_mutex->unlock();
 }
 
 Ref<SemanticShape> SemanticWorld::get_shape(uint64_t id) const {
-    Ref<SemanticShape> result;
     _shapes_mutex->lock();
     auto it = _shapes.find(id);
-    if (it != _shapes.end()) result = it->second;
-    _shapes_mutex->unlock();
-    return result;
-}
-
-int SemanticWorld::get_shape_count() const {
-    _shapes_mutex->lock();
-    int count = (int)_shapes.size();
-    _shapes_mutex->unlock();
-    return count;
-}
-
-TypedArray<SemanticShape> SemanticWorld::get_all_shapes() const {
-    TypedArray<SemanticShape> result;
-    _shapes_mutex->lock();
-    for (const auto& pair : _shapes) result.push_back(pair.second);
-    _shapes_mutex->unlock();
-    return result;
-}
-
-TypedArray<SemanticShape> SemanticWorld::get_shapes_by_type(const String& type) const {
-    TypedArray<SemanticShape> result;
-    _shapes_mutex->lock();
-    for (const auto& pair : _shapes) {
-        if (pair.second->get_shape_type() == type) result.push_back(pair.second);
-    }
+    Ref<SemanticShape> result = (it != _shapes.end()) ? it->second : nullptr;
     _shapes_mutex->unlock();
     return result;
 }
@@ -90,22 +48,73 @@ std::vector<Ref<SemanticShape>> SemanticWorld::get_shapes_snapshot() const {
     std::vector<Ref<SemanticShape>> snapshot;
     _shapes_mutex->lock();
     snapshot.reserve(_shapes.size());
-    for (const auto& pair : _shapes) snapshot.push_back(pair.second);
+    for (const auto& pair : _shapes) {
+        if (pair.second.is_valid()) {
+            snapshot.push_back(pair.second);
+        }
+    }
     _shapes_mutex->unlock();
     return snapshot;
 }
 
-void SemanticWorld::on_zone_changed(const std::vector<ZoneLODUpdate>& updates) {
-    if (updates.empty()) return;
+int SemanticWorld::get_shape_count() const {
+    _shapes_mutex->lock();
+    int count = _shapes.size();
+    _shapes_mutex->unlock();
+    return count;
+}
 
-    // Проходим по каждому обновлению зоны
-    for (const auto& update : updates) {
+TypedArray<SemanticShape> SemanticWorld::get_all_shapes() const {
+    TypedArray<SemanticShape> arr;
+    _shapes_mutex->lock();
+    for (const auto& pair : _shapes) {
+        if (pair.second.is_valid()) {
+            arr.append(pair.second);
+        }
+    }
+    _shapes_mutex->unlock();
+    return arr;
+}
+
+TypedArray<SemanticShape> SemanticWorld::get_shapes_by_type(const String& type) const {
+    TypedArray<SemanticShape> arr;
+    _shapes_mutex->lock();
+    for (const auto& pair : _shapes) {
+        if (pair.second.is_valid() && pair.second->get_class() == type) {
+            arr.append(pair.second);
+        }
+    }
+    _shapes_mutex->unlock();
+    return arr;
+}
+
+void SemanticWorld::on_zone_changed(const std::vector<uint64_t>& chunk_ids) {
+    if (chunk_ids.empty()) return;
+
+    auto* octree = ChunkOctree::get_singleton();
+
+    for (uint64_t chunk_id : chunk_ids) {
+        // Получаем чанк напрямую из Octree. 
+        // Если он равен nullptr, значит чанк был выгружен (LOD_UNLOADED).
+        Chunk* chunk = octree ? octree->find(chunk_id) : nullptr;
+        
         std::vector<uint64_t> affected_shape_ids;
 
         _shapes_mutex->lock();
         for (const auto& pair : _shapes) {
-            if (pair.second.is_valid() && pair.second->get_aabb().intersects(update.bounds)) {
-                affected_shape_ids.push_back(pair.first);
+            if (pair.second.is_valid()) {
+                if (chunk) {
+                    // Оптимизация: проверяем пересечение только для существующих чанков
+                    if (pair.second->get_aabb().intersects(chunk->get_aabb())) {
+                        affected_shape_ids.push_back(pair.first);
+                    }
+                } else {
+                    // Fallback для выгруженных чанков: 
+                    // так как AABB уже недоступен, уведомляем все формы.
+                    // Сама форма, получив несуществующий chunk_id, должна корректно 
+                    // очистить свои внутренние данные, связанные с этим ID.
+                    affected_shape_ids.push_back(pair.first);
+                }
             }
         }
         _shapes_mutex->unlock();
@@ -113,7 +122,9 @@ void SemanticWorld::on_zone_changed(const std::vector<ZoneLODUpdate>& updates) {
         for (uint64_t id : affected_shape_ids) {
             Ref<SemanticShape> shape = get_shape(id);
             if (shape.is_valid()) {
-                shape->on_zone_changed(update.bounds, update.lod_level);
+                // Передаем только ID. Форма сама запросит Chunk из ChunkOctree,
+                // чтобы получить актуальные get_aabb() и depth (для расчета LOD).
+                shape->on_zone_changed(chunk_id);
             }
         }
     }

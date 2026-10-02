@@ -41,7 +41,7 @@ public:
     virtual float evaluate_sdf(const Vector3& world_pos) const;
 
     // Передаёться зона, которая задевает фигуру и её LOD
-    virtual void on_zone_changed(const AABB& zone, int lod_level) {}
+    virtual void on_zone_changed(uint64_t chunk_id) {}
 
     void add_owned_shape(uint64_t id);
     void remove_owned_shape(uint64_t id);

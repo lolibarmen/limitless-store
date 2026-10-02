@@ -1,10 +1,10 @@
 #pragma once
 #include "Chunk.hpp"
-#include <godot_cpp/variant/vector3i.hpp>
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 #include <functional>
-#include <Utils/SpatialHash.hpp>
+#include <cstdint>
 
 namespace godot {
 
@@ -12,10 +12,12 @@ class ChunkOctree : public Object {
     GDCLASS(ChunkOctree, Object)
 
 private:
-    std::unordered_map<Vector3i, std::unique_ptr<Chunk>, Vector3iHash> roots;
-    std::unordered_map<Vector3i, Chunk*, Vector3iHash> leaf_chunks;
+    uint64_t _next_id = 1;
 
-    // Внутренний помощник для рекурсивной очистки (используется при удалении корня)
+    std::unordered_map<uint64_t, Chunk*> roots;
+    std::unordered_set<Chunk*> leaf_chunks;
+    std::unordered_map<uint64_t, Chunk*> id_to_chunk;
+
     void destroy_subtree(Chunk* node);
 
 protected:
@@ -27,30 +29,18 @@ public:
 
     static ChunkOctree* get_singleton();
 
-    // Управление корнями
-    void add_root(const Vector3i& key, const Vector3& center, float size);
-    void remove_root(const Vector3i& key);
+    uint64_t add_root(const Vector3& center, float size);
+    void remove_root(uint64_t id);
     
-    bool has_root(const Vector3i& key) const { return roots.count(key) > 0; }
-    void for_each_root(std::function<void(Chunk*)> func) {
-        for (auto& [key, ptr] : roots) {
-            if (ptr) func(ptr.get());
-        }
-    }
+    void for_each_root(std::function<void(Chunk*)> func);
 
-    // Операции над структурой дерева
-    // Разделяет узел на 8 детей. Узел должен быть листом.
-    void split_node(Chunk* node);
-    
-    // Удаляет всех детей узла, превращая его обратно в лист.
-    void collapse_node(Chunk* node);
+    void split(Chunk* node);
+    void collapse(Chunk* node);
 
-    // Доступ к текущим активным листьям (для рендеринга или уведомлений)
-    const std::unordered_map<Vector3i, Chunk*, Vector3iHash>& get_leaf_chunks() const {
-        return leaf_chunks;
-    }
+    void for_each_leaf(std::function<void(Chunk*)> func);
 
-    // Полная очистка дерева
+    Chunk* find(uint64_t id) const;
+
     void clear();
 };
 
