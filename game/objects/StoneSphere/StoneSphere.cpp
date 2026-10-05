@@ -23,10 +23,14 @@ Ref<MeshGenerator> StoneSphere::get_mesh_generator() const {
 
 void StoneSphere::on_zone_changed(uint64_t chunk_id) {
     WorldMesh* wm = WorldMesh::get_singleton();
-    if (!wm) return;
+    if (!wm) {
+        return;
+    }
 
     Chunk* chunk = ChunkOctree::get_singleton()->find(chunk_id);
-    if(!chunk) return;
+    if (!chunk || !chunk->is_leaf()) {
+        return;
+    }
 
     Ref<MeshGenerator> active_generator;
     switch (chunk->depth) {

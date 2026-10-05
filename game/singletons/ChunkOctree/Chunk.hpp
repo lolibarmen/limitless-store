@@ -32,10 +32,9 @@ public:
     
     AABB get_aabb() const;
 
-    MeshInstance3D* debug_mesh = nullptr;
-    void clear_debug_mesh();
-
     void remove_shape_mesh(uint64_t shape_id);
+
+    void clear_all_shape_meshes();
 };
 
 } // namespace godot

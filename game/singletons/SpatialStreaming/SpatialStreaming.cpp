@@ -7,7 +7,7 @@
 #include <godot_cpp/core/math.hpp>
 #include <vector>
 
-namespace godot {
+using namespace godot;
 
 // Расстояние Чебышёва (максимальная разница по осям)
 static float cube_distance(const Vector3& a, const Vector3& b) {
@@ -154,12 +154,6 @@ void SpatialStreaming::_notify_changes() {
         }
     }
 
-    for (uint64_t id : _prev_active_zones) {
-        if (current_zones.find(id) == current_zones.end()) {
-            updates.push_back(id);
-        }
-    }
-
     if (!updates.empty()) {
         SemanticWorld* world = SemanticWorld::get_singleton();
         if (world) {
@@ -169,5 +163,3 @@ void SpatialStreaming::_notify_changes() {
 
     _prev_active_zones = std::move(current_zones);
 }
-
-} // namespace godot

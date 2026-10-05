@@ -22,7 +22,7 @@ private:
     std::unordered_set<uint64_t> _prev_active_zones;
     
     Vector3 player_pos = {};
-    int root_radius = 2;
+    int root_radius = 9;
     
     static constexpr float ROOT_SIZE = 64.0f;
     static constexpr int MAX_DEPTH = 2;

@@ -15,27 +15,20 @@ ChunkOctree* ChunkOctree::get_singleton() {
 void ChunkOctree::destroy_subtree(Chunk* node) {
     if (!node) return;
 
-    // Удаляем из карт ДО физического уничтожения дочерних элементов
     id_to_chunk.erase(node->id);
-    if (node->is_leaf()) {
-        leaf_chunks.erase(node);
-    }
-    
-    node->clear_debug_mesh();
+    leaf_chunks.erase(node);
 
-    if (!node->is_leaf()) {
-        for (auto& child_ptr : node->children) {
-            if (child_ptr) {
-                destroy_subtree(child_ptr.get());
-                child_ptr.reset(); // Уникальный указатель автоматически удалит объект
-            }
+    for (auto& child_ptr : node->children) {
+        if (child_ptr) {
+            destroy_subtree(child_ptr.get());
+            child_ptr.reset();
         }
     }
 }
 
 uint64_t ChunkOctree::add_root(const Vector3& center, float size) {
     uint64_t new_id = _next_id++;
-    // Используем new, так как в заголовке roots хранит сырые указатели (Chunk*)
+
     Chunk* root = new Chunk(new_id, center, size, 0, nullptr);
     
     roots[new_id] = root;
@@ -51,7 +44,7 @@ void ChunkOctree::remove_root(uint64_t id) {
         Chunk* root = it->second;
         destroy_subtree(root);
         roots.erase(it);
-        delete root; // Освобождаем память корневого элемента
+        delete root;
     }
 }
 
@@ -67,12 +60,14 @@ void ChunkOctree::split(Chunk* node) {
     if (!node || !node->is_leaf()) return;
 
     leaf_chunks.erase(node);
+    id_to_chunk.erase(node->id); // <--- ЭТОЙ СТРОКИ НЕ ХВАТАЛО
+    
+    node->clear_all_shape_meshes(); 
 
     float h = node->size / 2.0f;
     float q = h / 2.0f;
     int i = 0;
     
-    // Иерархическая генерация ID для детей
     for (int x : {-1, 1}) {
         for (int y : {-1, 1}) {
             for (int z : {-1, 1}) {
@@ -106,6 +101,7 @@ void ChunkOctree::collapse(Chunk* node) {
     }
     
     leaf_chunks.insert(node);
+    id_to_chunk[node->id] = node;
 }
 
 void ChunkOctree::for_each_leaf(std::function<void(Chunk*)> func) {
