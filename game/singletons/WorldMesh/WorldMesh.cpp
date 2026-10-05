@@ -95,7 +95,7 @@ void WorldMesh::cancel_render(uint64_t shape_id, uint64_t chunk_id) {
 
 void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMesh> mesh) {
     if (mesh.is_null()) {
-        print_error(vformat("[WorldMesh] ERROR: generator return NULL mesh for chunk_id=%llu", chunk_id));
+        // print_error("[WorldMesh] ERROR: generator return NULL mesh for chunk_id=", chunk_id);
         return;
     }
 

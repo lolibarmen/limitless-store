@@ -6,13 +6,14 @@ using namespace godot;
 #include "SurfaceGenerator/SurfaceGenerator.hpp"
 #include "MeshPrimitive/MeshPrimitive.hpp"
 #include "Tool/Tool.hpp"
-#include "StoneSphere/StoneSphere.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "SemanticCurve/SemanticCurve.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
 #include "MeshYJoint/MeshYJoint.hpp"
 #include "MeshCylinder/MeshCylinder.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
+#include "MaterialTerrainShape/MaterialTerrainShape.hpp"
+#include "TestSphere/TestSphere.hpp"
 #include "TreeGenerator/TreeGenerator.hpp"
 #include "SemanticSphere/SemanticSphere.hpp"
 #include "Player/Player.hpp"
@@ -44,12 +45,13 @@ inline void auto_register_classes() {
     ClassDB::register_class<SurfaceGenerator>();
     ClassDB::register_class<MeshPrimitive>();
     ClassDB::register_class<Tool>();
-    ClassDB::register_class<StoneSphere>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<SemanticCurve>();
     ClassDB::register_class<PlayerMovement>();
     ClassDB::register_class<MeshYJoint>();
     ClassDB::register_class<MeshCylinder>();
+    ClassDB::register_class<MaterialTerrainShape>();
+    ClassDB::register_class<TestSphere>();
     ClassDB::register_class<TreeGenerator>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<ChunkNode>();

@@ -94,8 +94,6 @@ void SemanticWorld::on_zone_changed(const std::vector<uint64_t>& chunk_ids) {
     auto* octree = ChunkOctree::get_singleton();
 
     for (uint64_t chunk_id : chunk_ids) {
-        // Получаем чанк напрямую из Octree. 
-        // Если он равен nullptr, значит чанк был выгружен (LOD_UNLOADED).
         Chunk* chunk = octree ? octree->find(chunk_id) : nullptr;
         
         std::vector<uint64_t> affected_shape_ids;
@@ -104,15 +102,10 @@ void SemanticWorld::on_zone_changed(const std::vector<uint64_t>& chunk_ids) {
         for (const auto& pair : _shapes) {
             if (pair.second.is_valid()) {
                 if (chunk) {
-                    // Оптимизация: проверяем пересечение только для существующих чанков
                     if (pair.second->get_aabb().intersects(chunk->get_aabb())) {
                         affected_shape_ids.push_back(pair.first);
                     }
                 } else {
-                    // Fallback для выгруженных чанков: 
-                    // так как AABB уже недоступен, уведомляем все формы.
-                    // Сама форма, получив несуществующий chunk_id, должна корректно 
-                    // очистить свои внутренние данные, связанные с этим ID.
                     affected_shape_ids.push_back(pair.first);
                 }
             }
@@ -122,8 +115,6 @@ void SemanticWorld::on_zone_changed(const std::vector<uint64_t>& chunk_ids) {
         for (uint64_t id : affected_shape_ids) {
             Ref<SemanticShape> shape = get_shape(id);
             if (shape.is_valid()) {
-                // Передаем только ID. Форма сама запросит Chunk из ChunkOctree,
-                // чтобы получить актуальные get_aabb() и depth (для расчета LOD).
                 shape->on_zone_changed(chunk_id);
             }
         }

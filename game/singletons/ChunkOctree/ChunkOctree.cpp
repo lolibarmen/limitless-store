@@ -60,7 +60,7 @@ void ChunkOctree::split(Chunk* node) {
     if (!node || !node->is_leaf()) return;
 
     leaf_chunks.erase(node);
-    id_to_chunk.erase(node->id); // <--- ЭТОЙ СТРОКИ НЕ ХВАТАЛО
+    id_to_chunk.erase(node->id);
     
     node->clear_all_shape_meshes(); 
 

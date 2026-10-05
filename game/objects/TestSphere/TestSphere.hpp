@@ -6,8 +6,8 @@
 
 namespace godot {
 
-class StoneSphere : public SemanticSphere {
-    GDCLASS(StoneSphere, SemanticSphere)
+class TestSphere : public SemanticSphere {
+    GDCLASS(TestSphere, SemanticSphere)
 
 private:
 
@@ -19,8 +19,8 @@ protected:
     static void _bind_methods();
 
 public:
-    StoneSphere();
-    virtual ~StoneSphere() = default;
+    TestSphere();
+    virtual ~TestSphere() = default;
 
     String get_shape_type() const override { return "stone_sphere"; }
 

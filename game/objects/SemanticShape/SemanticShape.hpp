@@ -32,7 +32,7 @@ public:
     void set_id(uint64_t id) { _id = id; }
     uint64_t get_id() const { return _id; }
 
-    virtual AABB get_aabb() const;
+    AABB get_aabb() const;
     virtual void recompute_aabb() { _aabb_dirty = true; }
     
     void notify_shape_changed();

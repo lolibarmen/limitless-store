@@ -6,7 +6,6 @@
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <SpatialStreaming/SpatialStreaming.hpp>
-#include <StoneSphere/StoneSphere.hpp>
 
 using namespace godot;
 
@@ -42,12 +41,20 @@ void WorldCoordinator::_process(double delta) {
     }
 }
 
+#include <TestSphere/TestSphere.hpp>
+#include <MaterialTerrainShape/MaterialTerrainShape.hpp>
 void WorldCoordinator::_register_initial_shapes() {
-    Ref<StoneSphere> stone_sphere;
-    stone_sphere.instantiate();
-    stone_sphere->set_radius(10.0f);
-    stone_sphere->set_center(Vector3(0, 0, 0));
-
     SemanticWorld* sw = SemanticWorld::get_singleton();
-    sw->register_shape(stone_sphere);
+
+    // Ref<TestSphere> test_sphere;
+    // test_sphere.instantiate();
+    // test_sphere->set_radius(10.0f);
+    // test_sphere->set_center(Vector3(0, 0, 0));
+
+    // sw->register_shape(test_sphere);
+
+    Ref<MaterialTerrainShape> mat_ter_shape;
+    mat_ter_shape.instantiate();
+    mat_ter_shape->set_frequency(0.005f);
+    sw->register_shape(mat_ter_shape);
 }
