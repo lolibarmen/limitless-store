@@ -54,8 +54,6 @@ public:
     bool has_needed_shape(uint64_t id) const;
     godot::PackedInt64Array get_needed_shapes() const;
     void set_needed_shapes(const godot::PackedInt64Array& ids);
-
-    virtual Ref<MeshGenerator> get_mesh_generator() const;
 };
 
 } // namespace godot

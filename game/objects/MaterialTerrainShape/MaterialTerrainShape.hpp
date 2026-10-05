@@ -56,7 +56,6 @@ public:
     // Этот метод будет вызываться SurfaceGenerator для построения сетки
     float evaluate_sdf(const Vector3& world_pos) const override;
     
-    virtual Ref<MeshGenerator> get_mesh_generator() const override;
     virtual void on_zone_changed(uint64_t chunk_id) override;
     
     void recompute_aabb() override;

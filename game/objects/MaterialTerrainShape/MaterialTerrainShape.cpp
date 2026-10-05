@@ -55,10 +55,6 @@ float MaterialTerrainShape::evaluate_sdf(const Vector3& world_pos) const {
     return world_pos.y - terrain_height;
 }
 
-Ref<MeshGenerator> MaterialTerrainShape::get_mesh_generator() const {
-    return _generator_lod0;
-}
-
 void MaterialTerrainShape::on_zone_changed(uint64_t chunk_id) {
     WorldMesh* wm = WorldMesh::get_singleton();
     if (!wm) return;
@@ -67,12 +63,11 @@ void MaterialTerrainShape::on_zone_changed(uint64_t chunk_id) {
     if (!chunk || !chunk->is_leaf()) return;
 
     Ref<MeshGenerator> active_generator;
-    // Чем больше depth, тем меньше размер чанка и тем выше детализация ему нужна
     switch (chunk->depth) {
         case 2: active_generator = _generator_lod0; break;
         case 1: active_generator = _generator_lod1; break;
         case 0: active_generator = _generator_lod2; break;
-        default: return; // Игнорируем слишком мелкие или крупные чанки, если не настроены
+        default: return;
     }
 
     if (active_generator.is_null()) return;

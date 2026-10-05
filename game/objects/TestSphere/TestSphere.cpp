@@ -17,10 +17,6 @@ TestSphere::TestSphere() {
     _generator_lod2->set_lod_level(2);
 }
 
-Ref<MeshGenerator> TestSphere::get_mesh_generator() const {
-    return _generator_lod0;
-}
-
 void TestSphere::on_zone_changed(uint64_t chunk_id) {
     WorldMesh* wm = WorldMesh::get_singleton();
     if (!wm) {

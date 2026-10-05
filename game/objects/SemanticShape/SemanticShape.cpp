@@ -31,10 +31,6 @@ float SemanticShape::evaluate_sdf(const Vector3& world_pos) const {
     return 1e10f; 
 }
 
-Ref<MeshGenerator> SemanticShape::get_mesh_generator() const { 
-    return Ref<MeshGenerator>(); 
-}
-
 void SemanticShape::add_owned_shape(uint64_t id) {
     if (!_owned_shape_ids.has(id)) {
         _owned_shape_ids.push_back(id);

@@ -16,10 +16,6 @@ DebugZoneShape::DebugZoneShape() {
     _aabb_dirty = false; // Говорим системе, что AABB уже посчитан и не требует пересчета
 }
 
-Ref<MeshGenerator> DebugZoneShape::get_mesh_generator() const {
-    return _generator;
-}
-
 void DebugZoneShape::on_zone_changed(const AABB& zone, int lod_level) {
     WorldMesh* wm = WorldMesh::get_singleton();
     if (!wm) return;

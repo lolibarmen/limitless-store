@@ -18,9 +18,6 @@ public:
     DebugZoneShape();
     ~DebugZoneShape() override = default;
 
-    // Возвращаем наш генератор боксов
-    Ref<MeshGenerator> get_mesh_generator() const override;
-
     // Реагируем на любую зону
     void on_zone_changed(const AABB& zone, int lod_level) override;
 };
