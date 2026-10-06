@@ -6,6 +6,7 @@
 namespace godot {
 
 class MeshGenerator;
+class MaterialGenerator;
 class Chunk;
 
 class WorldMesh : public Node3D {
@@ -24,7 +25,7 @@ public:
     void _ready() override;
     void _process(double delta) override;
 
-    void request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGenerator> generator);
+    void request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGenerator> generator, Ref<MaterialGenerator> material_generator);
     void cancel_render(uint64_t shape_id, uint64_t chunk_id);
     void complete_mesh(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMesh> mesh);
 };

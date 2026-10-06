@@ -6,6 +6,7 @@ using namespace godot;
 #include "SurfaceGenerator/SurfaceGenerator.hpp"
 #include "MeshPrimitive/MeshPrimitive.hpp"
 #include "Tool/Tool.hpp"
+#include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "SemanticCurve/SemanticCurve.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
@@ -17,8 +18,8 @@ using namespace godot;
 #include "TreeGenerator/TreeGenerator.hpp"
 #include "SemanticSphere/SemanticSphere.hpp"
 #include "Player/Player.hpp"
-#include "ChunkNode/ChunkNode.hpp"
 #include "PickableTool/PickableTool.hpp"
+#include "MaterialGenerator/MaterialGenerator.hpp"
 #include "WorldCoordinator/WorldCoordinator.hpp"
 #include "PlayerInteraction/PlayerInteraction.hpp"
 #include "SemanticShape/SemanticShape.hpp"
@@ -40,11 +41,13 @@ inline void auto_register_virtual_classes() {
 
 inline void auto_register_classes() {
     ClassDB::register_class<SemanticShape>();
+    ClassDB::register_class<MaterialGenerator>();
     ClassDB::register_class<SemanticSphere>();
     ClassDB::register_class<MeshGenerator>();
     ClassDB::register_class<SurfaceGenerator>();
     ClassDB::register_class<MeshPrimitive>();
     ClassDB::register_class<Tool>();
+    ClassDB::register_class<TriplanarMaterialGenerator>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<SemanticCurve>();
     ClassDB::register_class<PlayerMovement>();
@@ -54,7 +57,6 @@ inline void auto_register_classes() {
     ClassDB::register_class<TestSphere>();
     ClassDB::register_class<TreeGenerator>();
     ClassDB::register_class<Player>();
-    ClassDB::register_class<ChunkNode>();
     ClassDB::register_class<PickableTool>();
     ClassDB::register_class<WorldCoordinator>();
     ClassDB::register_class<PlayerInteraction>();

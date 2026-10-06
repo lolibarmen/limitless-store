@@ -1,4 +1,5 @@
 #pragma once
+#include <MaterialGenerator/MaterialGenerator.hpp>
 #include <godot_cpp/variant/vector3.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 #include <godot_cpp/variant/aabb.hpp>
@@ -21,6 +22,7 @@ public:
     Chunk* parent = nullptr;
 
     std::unordered_map<uint64_t, MeshInstance3D*> shape_meshes;
+    std::unordered_map<uint64_t, Ref<MaterialGenerator>> shape_material_generators;
 
     Chunk(uint64_t id, Vector3 c = Vector3(), float s = 0.0f, int d = 0, Chunk* p = nullptr);
     ~Chunk();

@@ -2,6 +2,7 @@
 
 #include <SemanticShape/SemanticShape.hpp>
 #include <SurfaceGenerator/SurfaceGenerator.hpp>
+#include <TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp>
 #include <godot_cpp/classes/fast_noise_lite.hpp>
 #include <godot_cpp/classes/ref.hpp>
 
@@ -22,6 +23,8 @@ private:
     Ref<SurfaceGenerator> _generator_lod0;
     Ref<SurfaceGenerator> _generator_lod1;
     Ref<SurfaceGenerator> _generator_lod2;
+
+    Ref<TriplanarMaterialGenerator> _material_generator;
 
 protected:
     static void _bind_methods();

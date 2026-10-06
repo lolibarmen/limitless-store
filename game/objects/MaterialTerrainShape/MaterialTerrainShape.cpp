@@ -1,25 +1,10 @@
 #include "MaterialTerrainShape.hpp"
 #include <WorldMesh/WorldMesh.hpp>
 #include <ChunkOctree/ChunkOctree.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-namespace godot {
-
-MaterialTerrainShape::MaterialTerrainShape() {
-    _noise.instantiate();
-    _noise->set_noise_type(FastNoiseLite::TYPE_SIMPLEX);
-    _noise->set_frequency(_frequency);
-    _noise->set_seed(_seed);
-
-    _generator_lod0.instantiate();
-    _generator_lod0->set_lod_level(0);
-    
-    _generator_lod1.instantiate();
-    _generator_lod1->set_lod_level(1);
-    
-    _generator_lod2.instantiate();
-    _generator_lod2->set_lod_level(3);
-}
+using namespace godot;
 
 void MaterialTerrainShape::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_material_type", "type"), &MaterialTerrainShape::set_material_type);
@@ -43,6 +28,36 @@ void MaterialTerrainShape::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::INT, "seed"), "set_seed", "get_seed");
 }
 
+MaterialTerrainShape::MaterialTerrainShape() {
+    _noise.instantiate();
+    _noise->set_noise_type(FastNoiseLite::TYPE_SIMPLEX);
+    _noise->set_frequency(_frequency);
+    _noise->set_seed(_seed);
+
+    _generator_lod0.instantiate();
+    _generator_lod0->set_lod_level(0);
+    
+    _generator_lod1.instantiate();
+    _generator_lod1->set_lod_level(1);
+    
+    _generator_lod2.instantiate();
+    _generator_lod2->set_lod_level(3);
+
+    _material_generator.instantiate();
+    _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load("res://assets/Chunk/grass.png"));
+}
+
+void MaterialTerrainShape::recompute_aabb() {
+    float max_h = _base_height + _amplitude;
+    float min_h = _base_height - _amplitude;
+    float size_y = (max_h + 10.0f) - (min_h - 10.0f); 
+    
+    _aabb.position = Vector3(-2000.0f, min_h - 10.0f, -2000.0f);
+    _aabb.size = Vector3(4000.0f, size_y, 4000.0f);
+    
+    _aabb_dirty = false;
+}
+
 float MaterialTerrainShape::evaluate_sdf(const Vector3& world_pos) const {
     if (!_noise.is_valid()) {
         return world_pos.y - _base_height;
@@ -62,28 +77,26 @@ void MaterialTerrainShape::on_zone_changed(uint64_t chunk_id) {
     Chunk* chunk = ChunkOctree::get_singleton()->find(chunk_id);
     if (!chunk || !chunk->is_leaf()) return;
 
-    Ref<MeshGenerator> active_generator;
+    Ref<MeshGenerator> mesh_gen;
+    Ref<MaterialGenerator> mat_gen;
+
+    // ЕДИНСТВЕННАЯ проверка LOD для обоих генераторов
     switch (chunk->depth) {
-        case 2: active_generator = _generator_lod0; break;
-        case 1: active_generator = _generator_lod1; break;
-        case 0: active_generator = _generator_lod2; break;
-        default: return;
+        case 2: // Высокая детализация
+            mesh_gen = _generator_lod0;
+            break;
+        case 1: // Средняя детализация
+            mesh_gen = _generator_lod1;
+            break;
+        case 0: // Низкая детализация
+            mesh_gen = _generator_lod2;
+            break;
+        default:
+            return; // Не поддерживаемый depth
     }
 
-    if (active_generator.is_null()) return;
+    if (mesh_gen.is_null()) return;
 
-    wm->request_render(get_id(), chunk_id, active_generator);
+    // Передаем оба генератора в WorldMesh
+    wm->request_render(get_id(), chunk_id, mesh_gen, _material_generator);
 }
-
-void MaterialTerrainShape::recompute_aabb() {
-    float max_h = _base_height + _amplitude;
-    float min_h = _base_height - _amplitude;
-    float size_y = (max_h + 10.0f) - (min_h - 10.0f); 
-    
-    _aabb.position = Vector3(-2000.0f, min_h - 10.0f, -2000.0f);
-    _aabb.size = Vector3(4000.0f, size_y, 4000.0f);
-    
-    _aabb_dirty = false;
-}
-
-} // namespace godot
