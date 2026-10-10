@@ -33,7 +33,7 @@ public:
     void set_id(uint64_t id) { _id = id; }
     uint64_t get_id() const { return _id; }
 
-    AABB get_aabb() const;
+    AABB get_aabb();
     
     /// @brief Пересчитывает AABB фигуры при вызове
     virtual void recompute_aabb() { }

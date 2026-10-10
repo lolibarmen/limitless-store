@@ -29,7 +29,7 @@ public:
     virtual ~SemanticCurve() = default;
 
     // --- Переопределения SemanticShape ---
-    String get_shape_type() const override { return "curve"; }
+    StringName get_shape_type() const override { return StringName("curve"); }
     void recompute_aabb() override;
 
     float evaluate_sdf(const Vector3& world_pos) const override;

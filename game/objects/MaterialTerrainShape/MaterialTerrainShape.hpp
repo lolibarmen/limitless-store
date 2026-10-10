@@ -54,7 +54,7 @@ public:
     }
     int get_seed() const { return _seed; }
 
-    String get_shape_type() const override { return "material_terrain"; }
+    StringName get_shape_type() const override { return "material_terrain"; }
     
     // Этот метод будет вызываться SurfaceGenerator для построения сетки
     float evaluate_sdf(const Vector3& world_pos) const override;

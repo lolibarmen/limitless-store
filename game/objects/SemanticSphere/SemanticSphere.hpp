@@ -20,7 +20,7 @@ public:
     virtual ~SemanticSphere() = default;
 
     // --- Переопределения SemanticShape ---
-    String get_shape_type() const override { return "sphere"; }
+    StringName get_shape_type() const override { return StringName("sphere"); }
     void recompute_aabb() override;
     float evaluate_sdf(const Vector3& world_pos) const override;
 

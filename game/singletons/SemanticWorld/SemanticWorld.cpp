@@ -121,7 +121,7 @@ void SemanticWorld::propose_shape_change(uint64_t old_id, Ref<SemanticShape> pro
 
             Ref<SemanticShape> owner_reaction = owner->evaluate_reaction(current.target_old_id, current.new_shape);
 
-            if (owner_reaction.is_valid() && owner_reaction->get_shape_type() != "shape") {
+            if (owner_reaction.is_valid() && owner_reaction->get_shape_type() != StringName("shape")) {
                 if (accepted_changes.find(owner_id) == accepted_changes.end()) {
                     accepted_changes[owner_id] = owner_reaction;
                     evaluation_queue.push_back({owner_id, owner_reaction});

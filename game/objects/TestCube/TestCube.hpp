@@ -25,7 +25,7 @@ public:
     TestCube();
     virtual ~TestCube() {};
 
-    String get_shape_type() const override { return "test_cube"; }
+    StringName get_shape_type() const override { return StringName("test_cube"); }
 
     void recompute_aabb();
 

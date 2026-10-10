@@ -15,7 +15,7 @@ void SemanticShape::_bind_methods() {
 SemanticShape::SemanticShape() = default;
 SemanticShape::~SemanticShape() = default;
 
-AABB SemanticShape::get_aabb() const {
+AABB SemanticShape::get_aabb() {
     if (_aabb_dirty) {
         recompute_aabb();
         _aabb_dirty = false;
