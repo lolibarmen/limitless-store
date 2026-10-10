@@ -41,15 +41,14 @@ void WorldCoordinator::_process(double delta) {
     }
 }
 
-#include <TestCube/TestCube.hpp>
 #include <MaterialTerrainShape/MaterialTerrainShape.hpp>
 void WorldCoordinator::_register_initial_shapes() {
-    SemanticWorld* sw = SemanticWorld::get_singleton();
+    // SemanticWorld* sw = SemanticWorld::get_singleton();
 
-    Ref<TestCube> test_sphere;
-    test_sphere.instantiate();
+    // Ref<TestCube> test_sphere;
+    // test_sphere.instantiate();
 
-    sw->register_shape(test_sphere);
+    // sw->register_shape(test_sphere);
 
     // Ref<MaterialTerrainShape> mat_ter_shape;
     // mat_ter_shape.instantiate();
