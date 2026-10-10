@@ -5,7 +5,6 @@
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 #include <godot_cpp/variant/aabb.hpp>
 #include <array>
-#include <vector>
 #include <memory>
 #include <cstdint>
 #include <unordered_map>
@@ -13,7 +12,7 @@
 namespace godot {
 
 /// @brief Узел октодерева, представляющий пространственный объем (чанк) и хранящий его визуальные данные.
-/// Примечание: Экземпляры этого класса управляются классом ChunkOctree. 
+/// Примечание: Экземпляры этого класса управляются классом ChunkOctree.
 /// Получение указателя Chunk* по его ID осуществляется через ChunkOctree::get_singleton()->find(id).
 class Chunk {
 public:
@@ -21,13 +20,13 @@ public:
     Vector3 center; ///< Центр чанка в мировых координатах.
     float size; ///< Длина стороны чанка.
     int depth; ///< Глубина чанка в октодереве (0 = корневой чанк).
-    
+
     std::array<std::unique_ptr<Chunk>, 8> children; ///< Дочерние чанки (nullptr, если является листом).
     Chunk* parent = nullptr; ///< Указатель на родительский чанк.
 
     /// @brief Словарь визуальных представлений фигур в этом чанке (ID фигуры -> MeshInstance3D).
     std::unordered_map<uint64_t, MeshInstance3D*> shape_meshes;
-    
+
     /// @brief Словарь генераторов материалов для фигур, ожидающих завершения асинхронной генерации меша.
     std::unordered_map<uint64_t, Ref<MaterialGenerator>> shape_material_generators;
 
@@ -38,7 +37,7 @@ public:
     /// @param d Глубина в октодереве.
     /// @param p Указатель на родительский чанк.
     Chunk(uint64_t id, Vector3 c = Vector3(), float s = 0.0f, int d = 0, Chunk* p = nullptr);
-    
+
     /// @brief Деструктор. Автоматически очищает дочерние чанки и удаляет связанные MeshInstance3D из сцены.
     ~Chunk();
 
@@ -48,7 +47,7 @@ public:
 
     /// @brief Возвращает true, если чанк не имеет дочерних элементов (является листом октодерева).
     bool is_leaf() const { return children[0] == nullptr; }
-    
+
     /// @brief Вычисляет и возвращает ограничивающий объем (AABB) данного чанка на основе его центра и размера.
     AABB get_aabb() const;
 

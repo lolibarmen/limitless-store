@@ -2,9 +2,6 @@ import os
 
 env = SConscript("godot-cpp/SConstruct")
 
-env.Tool('compilation_db')
-env.CompilationDatabase('compile_commands.json')
-
 if env["platform"] == "windows" and env.get("use_mingw"):
     if "CPATH" in os.environ:
         env["ENV"]["CPATH"] = os.environ["CPATH"]
