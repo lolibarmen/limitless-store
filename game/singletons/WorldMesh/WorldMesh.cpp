@@ -58,15 +58,26 @@ void WorldMesh::request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGen
         }
         current_parent = current_parent->parent;
     }
-
-    chunk->shape_material_generators[shape_id] = material_generator;
     
+    Ref<ArrayMesh> mesh = mesh_generator->generate(shape_id, chunk_id);
+
     MeshInstance3D* mesh_instance = memnew(MeshInstance3D);
     add_child(mesh_instance);
-    mesh_instance->set_global_position(chunk->center);
-    chunk->shape_meshes[shape_id] = mesh_instance;
-
-    mesh_generator->generate(shape_id, chunk_id);
+    // mesh_instance->set_global_position(chunk->center);
+    
+    if (mesh.is_valid() && mesh->get_surface_count() > 0) {
+        mesh_instance->set_mesh(mesh);
+        
+        Ref<Material> material = material_generator->generate(shape_id, chunk_id);;
+        if (material.is_valid()) {
+            mesh_instance->set_surface_override_material(0, material);
+        }
+        
+        chunk->shape_meshes[shape_id] = mesh_instance;
+    } else {
+        chunk->shape_meshes[shape_id] = mesh_instance;
+        chunk->shape_material_generators[shape_id] = material_generator;
+    }    
 }
 
 void WorldMesh::cancel_render(uint64_t shape_id, uint64_t chunk_id) {

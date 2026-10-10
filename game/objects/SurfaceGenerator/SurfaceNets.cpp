@@ -115,22 +115,6 @@ MeshData godot::build_neochunk_mesh(const ChunkBuildInput& input) {
 
             bool flip = (dB >= 0);
 
-            // Определяем, какой воксель "твёрдый" (внутри), чтобы взять его материал
-            // Vector3i solid_coord = (dA > 0) ? coord : coord + n12;
-            // uint16_t material_id = input.get_material(solid_coord);
-            
-            // Нормализуем material_id в диапазон [0, 1] для цвета
-            // float id = static_cast<float>(material_id) / 255.0f;
-
-            // auto getVertexColor = [&](Vector3i gridCoord) -> Color {
-            //     return Color(id, id, 0.0f, 1.0f);
-            // };
-
-            // Color col00 = getVertexColor(c00);
-            // Color col10 = getVertexColor(c10);
-            // Color col01 = getVertexColor(c01);
-            // Color col11 = getVertexColor(c11);
-
             if (flip) {
                 normal = -normal;
                 // Треугольник 1: v00, v01, v11

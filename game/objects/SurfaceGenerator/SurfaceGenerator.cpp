@@ -64,7 +64,7 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
 
     inp->cache = std::make_shared<VoxelCache>(inp->stride, inp->step, inp->chunk_coord);
 
-    std::vector<Ref<SemanticShape>> shapes = sw->get_shapes_snapshot();
+    std::vector<Ref<SemanticShape>> shapes = {shape};
     VoxelBaker::bake(*(inp->cache), shapes);
 
     const MeshData data = build_neochunk_mesh(*inp);

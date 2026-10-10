@@ -18,7 +18,7 @@ struct MeshData {
 
 // ЕДИНОЕ ОПРЕДЕЛЕНИЕ: используется и здесь, и в ChunkMeshNode
 struct ChunkBuildInput {
-    Vector3i chunk_coord;
+    Vector3 chunk_coord;
     float chunk_size;
     float voxel_count;
     int lod_level;
@@ -35,15 +35,6 @@ struct ChunkBuildInput {
         if (x < 0 || x >= n || y < 0 || y >= n || z < 0 || z >= n) return 1.0f;
         return cache->get_sdf(x, y, z);
     }
-
-    // inline uint16_t get_material(Vector3i block_coords) const {
-    //     int x = block_coords.x + 2;
-    //     int y = block_coords.y + 2;
-    //     int z = block_coords.z + 2;
-    //     int n = stride;
-    //     if (x < 0 || x >= n || y < 0 || y >= n || z < 0 || z >= n) return 0;
-    //     return cache->get_material(x, y, z);
-    // }
 };
 
 // Функция принимает ссылку на эту единую структуру

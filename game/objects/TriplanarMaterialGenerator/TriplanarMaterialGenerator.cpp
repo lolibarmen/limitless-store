@@ -43,7 +43,7 @@ Ref<Material> TriplanarMaterialGenerator::generate(uint64_t shape_id, uint64_t c
     material->set_flag(BaseMaterial3D::FLAG_UV1_USE_TRIPLANAR, true);
     material->set_flag(BaseMaterial3D::FLAG_UV1_USE_WORLD_TRIPLANAR, true);
 
-    material->set_uv1_triplanar_blend_sharpness(0.01);
+    material->set_uv1_triplanar_blend_sharpness(10);
 
     float scale = _texture_scale > 0.0f ? _texture_scale : 1.0f;
     material->set_uv1_scale(Vector3(scale, scale, scale));

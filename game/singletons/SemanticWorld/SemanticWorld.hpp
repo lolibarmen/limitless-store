@@ -13,9 +13,8 @@
 
 namespace godot {
 
-// Константа может пригодиться SemanticShape для определения состояния выгрузки
-constexpr int LOD_UNLOADED = -1;
-
+/// @brief Глобальный менеджер семантических фигур.
+/// Управляет их жизненным циклом, графом зависимостей и транзакционными изменениями состояния.
 class SemanticWorld : public Object {
     GDCLASS(SemanticWorld, Object)
 
@@ -31,21 +30,34 @@ public:
     SemanticWorld();
     ~SemanticWorld() override = default;
 
+    /// @brief Возвращает глобальный экземпляр SemanticWorld, зарегистрированный в Godot Engine.
     static SemanticWorld* get_singleton();
 
+    /// @brief Регистрирует новую фигуру в мире, присваивает ей уникальный ID и возвращает его.
+    /// @param shape Ссылка на фигуру (должна быть валидной).
+    /// @return Уникальный ID зарегистрированной фигуры. Поточно-безопасен.
     uint64_t register_shape(Ref<SemanticShape> shape);
+
+    /// @brief Удаляет фигуру из мира по её ID. Поточно-безопасен.
+    /// @param id Уникальный ID удаляемой фигуры.
     void unregister_shape(uint64_t id);
 
+    /// @brief Возвращает ссылку на фигуру по её ID.
+    /// @param id Уникальный ID фигуры.
+    /// @return Ref на фигуру. Возвращает невалидный Ref, если фигура не найдена. Поточно-безопасен.
     Ref<SemanticShape> get_shape(uint64_t id) const;
-    
-    std::vector<Ref<SemanticShape>> get_shapes_snapshot() const;
 
-    int get_shape_count() const;
-    TypedArray<SemanticShape> get_all_shapes() const;
-    TypedArray<SemanticShape> get_shapes_by_type(const String& type) const;
-
-    // Теперь принимаем только массив ID чанков
+    /// @brief Уведомляет фигуры об изменении состояния чанков (зон).
+    /// Используется системой LOD для обновления состояния фигур при загрузке/выгрузке областей.
+    /// @param chunk_ids Вектор ID чанков, состояние которых изменилось.
     void on_zone_changed(const std::vector<uint64_t>& chunk_ids);
+
+    /// @brief Инициирует транзакционное изменение состояния фигуры.
+    /// Запускает каскадную оценку реакций (evaluate_reaction) у зависимых объектов и атомарно 
+    /// применяет все одобренные изменения, обновляя граф зависимостей.
+    /// @param old_id ID фигуры, которая должна быть заменена.
+    /// @param proposed_shape Предложение (Ref) новой, еще не зарегистрированной фигуры.
+    void propose_shape_change(uint64_t old_id, Ref<SemanticShape> proposed_shape);
 };
 
 } // namespace godot

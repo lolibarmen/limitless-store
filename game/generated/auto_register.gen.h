@@ -4,6 +4,7 @@
 using namespace godot;
 
 #include "SurfaceGenerator/SurfaceGenerator.hpp"
+#include "TestCube/TestCube.hpp"
 #include "MeshPrimitive/MeshPrimitive.hpp"
 #include "Tool/Tool.hpp"
 #include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
@@ -14,7 +15,6 @@ using namespace godot;
 #include "MeshCylinder/MeshCylinder.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
 #include "MaterialTerrainShape/MaterialTerrainShape.hpp"
-#include "TestSphere/TestSphere.hpp"
 #include "TreeGenerator/TreeGenerator.hpp"
 #include "SemanticSphere/SemanticSphere.hpp"
 #include "Player/Player.hpp"
@@ -23,6 +23,7 @@ using namespace godot;
 #include "WorldCoordinator/WorldCoordinator.hpp"
 #include "PlayerInteraction/PlayerInteraction.hpp"
 #include "SemanticShape/SemanticShape.hpp"
+#include "CubeMeshGenerator/CubeMeshGenerator.hpp"
 #include "ToolManager/ToolManager.hpp"
 #include "SpatialStreaming/SpatialStreaming.hpp"
 #include "WorldMesh/WorldMesh.hpp"
@@ -45,6 +46,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<SemanticSphere>();
     ClassDB::register_class<MeshGenerator>();
     ClassDB::register_class<SurfaceGenerator>();
+    ClassDB::register_class<TestCube>();
     ClassDB::register_class<MeshPrimitive>();
     ClassDB::register_class<Tool>();
     ClassDB::register_class<TriplanarMaterialGenerator>();
@@ -54,12 +56,12 @@ inline void auto_register_classes() {
     ClassDB::register_class<MeshYJoint>();
     ClassDB::register_class<MeshCylinder>();
     ClassDB::register_class<MaterialTerrainShape>();
-    ClassDB::register_class<TestSphere>();
     ClassDB::register_class<TreeGenerator>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<PickableTool>();
     ClassDB::register_class<WorldCoordinator>();
     ClassDB::register_class<PlayerInteraction>();
+    ClassDB::register_class<CubeMeshGenerator>();
     ClassDB::register_class<ToolManager>();
     ClassDB::register_class<SpatialStreaming>();
     ClassDB::register_class<WorldMesh>();

@@ -17,8 +17,8 @@ SemanticShape::~SemanticShape() = default;
 
 AABB SemanticShape::get_aabb() const {
     if (_aabb_dirty) {
-        const_cast<SemanticShape*>(this)->recompute_aabb();
-        const_cast<SemanticShape*>(this)->_aabb_dirty = false;
+        recompute_aabb();
+        _aabb_dirty = false;
     }
     return _aabb;
 }
@@ -28,7 +28,7 @@ void SemanticShape::notify_shape_changed() {
 }
 
 float SemanticShape::evaluate_sdf(const Vector3& world_pos) const {
-    return 1e10f; 
+    return 1e10f;
 }
 
 void SemanticShape::add_owned_shape(uint64_t id) {
@@ -61,32 +61,10 @@ void SemanticShape::set_owned_shapes(const PackedInt64Array& ids) {
     }
 }
 
-void SemanticShape::add_needed_shape(uint64_t id) {
-    if (!_needed_shape_ids.has(id)) {
-        _needed_shape_ids.push_back(id);
-        notify_shape_changed();
-    }
-}
-
-void SemanticShape::remove_needed_shape(uint64_t id) {
-    int64_t idx = _needed_shape_ids.find(id);
+void SemanticShape::replace_owned_id(uint64_t old_id, uint64_t new_id) {
+    int64_t idx = _owned_shape_ids.find(old_id);
     if (idx != -1) {
-        _needed_shape_ids.remove_at(idx);
-        notify_shape_changed();
-    }
-}
-
-bool SemanticShape::has_needed_shape(uint64_t id) const {
-    return _needed_shape_ids.has(id);
-}
-
-PackedInt64Array SemanticShape::get_needed_shapes() const {
-    return _needed_shape_ids;
-}
-
-void SemanticShape::set_needed_shapes(const PackedInt64Array& ids) {
-    if (_needed_shape_ids != ids) {
-        _needed_shape_ids = ids;
+        _owned_shape_ids[idx] = new_id;
         notify_shape_changed();
     }
 }

@@ -10,7 +10,7 @@ SemanticWorld::SemanticWorld() {
 }
 
 void SemanticWorld::_bind_methods() {
-    // ... ваши существующие привязки методов
+
 }
 
 SemanticWorld* SemanticWorld::get_singleton() {
@@ -21,7 +21,7 @@ SemanticWorld* SemanticWorld::get_singleton() {
 }
 
 uint64_t SemanticWorld::register_shape(Ref<SemanticShape> shape) {
-    if (!shape.is_valid()) return 0; 
+    if (!shape.is_valid()) return 0;
     uint64_t id = _next_id++;
     shape->set_id(id);
     _shapes_mutex->lock();
@@ -44,50 +44,6 @@ Ref<SemanticShape> SemanticWorld::get_shape(uint64_t id) const {
     return result;
 }
 
-std::vector<Ref<SemanticShape>> SemanticWorld::get_shapes_snapshot() const {
-    std::vector<Ref<SemanticShape>> snapshot;
-    _shapes_mutex->lock();
-    snapshot.reserve(_shapes.size());
-    for (const auto& pair : _shapes) {
-        if (pair.second.is_valid()) {
-            snapshot.push_back(pair.second);
-        }
-    }
-    _shapes_mutex->unlock();
-    return snapshot;
-}
-
-int SemanticWorld::get_shape_count() const {
-    _shapes_mutex->lock();
-    int count = _shapes.size();
-    _shapes_mutex->unlock();
-    return count;
-}
-
-TypedArray<SemanticShape> SemanticWorld::get_all_shapes() const {
-    TypedArray<SemanticShape> arr;
-    _shapes_mutex->lock();
-    for (const auto& pair : _shapes) {
-        if (pair.second.is_valid()) {
-            arr.append(pair.second);
-        }
-    }
-    _shapes_mutex->unlock();
-    return arr;
-}
-
-TypedArray<SemanticShape> SemanticWorld::get_shapes_by_type(const String& type) const {
-    TypedArray<SemanticShape> arr;
-    _shapes_mutex->lock();
-    for (const auto& pair : _shapes) {
-        if (pair.second.is_valid() && pair.second->get_class() == type) {
-            arr.append(pair.second);
-        }
-    }
-    _shapes_mutex->unlock();
-    return arr;
-}
-
 void SemanticWorld::on_zone_changed(const std::vector<uint64_t>& chunk_ids) {
     if (chunk_ids.empty()) return;
 
@@ -95,7 +51,7 @@ void SemanticWorld::on_zone_changed(const std::vector<uint64_t>& chunk_ids) {
 
     for (uint64_t chunk_id : chunk_ids) {
         Chunk* chunk = octree ? octree->find(chunk_id) : nullptr;
-        
+
         std::vector<uint64_t> affected_shape_ids;
 
         _shapes_mutex->lock();
@@ -119,4 +75,95 @@ void SemanticWorld::on_zone_changed(const std::vector<uint64_t>& chunk_ids) {
             }
         }
     }
+}
+
+void SemanticWorld::propose_shape_change(uint64_t old_id, Ref<SemanticShape> proposed_shape) {
+    if (!proposed_shape.is_valid()) {
+        ERR_PRINT("propose_shape_change: proposed_shape is invalid.");
+        return;
+    }
+
+    struct ChangeProposal {
+        uint64_t target_old_id;
+        Ref<SemanticShape> new_shape;
+    };
+
+    std::vector<ChangeProposal> evaluation_queue;
+    std::unordered_map<uint64_t, Ref<SemanticShape>> accepted_changes;
+
+    // 1. Инициализация
+    evaluation_queue.push_back({old_id, proposed_shape});
+    accepted_changes[old_id] = proposed_shape;
+
+    // 2. Фаза оценки (Evaluation Phase)
+    int max_iterations = 100;
+    int iteration = 0;
+
+    while (!evaluation_queue.empty() && iteration < max_iterations) {
+        iteration++;
+        ChangeProposal current = evaluation_queue.back();
+        evaluation_queue.pop_back();
+
+        // Находим всех "владельцев" изменяемой фигуры
+        _shapes_mutex->lock();
+        std::vector<uint64_t> owners;
+        for (const auto& pair : _shapes) {
+            if (pair.second->has_owned_shape(current.target_old_id)) {
+                owners.push_back(pair.first);
+            }
+        }
+        _shapes_mutex->unlock();
+
+        // Спрашиваем каждого владельца, как он хочет отреагировать
+        for (uint64_t owner_id : owners) {
+            Ref<SemanticShape> owner = get_shape(owner_id);
+            if (!owner.is_valid()) continue;
+
+            Ref<SemanticShape> owner_reaction = owner->evaluate_reaction(current.target_old_id, current.new_shape);
+
+            if (owner_reaction.is_valid() && owner_reaction->get_shape_type() != "shape") {
+                if (accepted_changes.find(owner_id) == accepted_changes.end()) {
+                    accepted_changes[owner_id] = owner_reaction;
+                    evaluation_queue.push_back({owner_id, owner_reaction});
+                }
+            }
+        }
+    }
+
+    if (iteration >= max_iterations) {
+        print_error("propose_shape_change: Max iterations reached. Possible infinite loop in shape reactions.");
+    }
+
+    // 3. Фаза финализации (Commit Phase) - ИСПРАВЛЕННАЯ ВЕРСИЯ
+    std::unordered_map<uint64_t, uint64_t> id_mapping; // old_id -> new_id
+
+    for (auto& pair : accepted_changes) {
+        uint64_t old = pair.first;
+        Ref<SemanticShape> new_shape = pair.second;
+
+        // А. Удаляем старую фигуру через официальный метод
+        // (Внутри он сам захватит и отпустит мьютекс)
+        unregister_shape(old);
+
+        // Б. Регистрируем новую фигуру через официальный метод
+        // (Внутри он сам сгенерирует ID, вызовет set_id, захватит мьютекс и добавит в _shapes)
+        uint64_t new_id = register_shape(new_shape);
+
+        id_mapping[old] = new_id;
+    }
+
+    // В. Обновляем граф зависимостей (_owned_shape_ids) для ВСЕХ фигур
+    // Поскольку register_shape/unregister_shape уже отработали, нам нужно 
+    // снова безопасно захватить мьютекс для пакетного обновления ссылок.
+    _shapes_mutex->lock();
+    for (auto& pair : _shapes) {
+        for (const auto& mapping : id_mapping) {
+            // Вызываем наш новый метод замены ID внутри фигуры
+            pair.second->replace_owned_id(mapping.first, mapping.second);
+        }
+    }
+    _shapes_mutex->unlock();
+
+    // 4. Уведомление внешних систем
+    // notify_mesh_generator_of_changes(id_mapping);
 }

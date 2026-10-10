@@ -11,13 +11,14 @@ namespace godot {
 
 class MeshGenerator;
 
+/// @brief Базовый класс для семантических фигур.
+/// Управляет графом зависимостей и участвует в системе транзакционных изменений состояния.
 class SemanticShape : public Resource {
     GDCLASS(SemanticShape, Resource)
 
 private:
     uint64_t _id = 0;
     godot::PackedInt64Array _owned_shape_ids;
-    godot::PackedInt64Array _needed_shape_ids;
 
 protected:
     AABB _aabb;
@@ -27,33 +28,42 @@ protected:
 
 public:
     SemanticShape();
-    virtual ~SemanticShape(); 
+    virtual ~SemanticShape();
 
     void set_id(uint64_t id) { _id = id; }
     uint64_t get_id() const { return _id; }
 
     AABB get_aabb() const;
-    virtual void recompute_aabb() { _aabb_dirty = true; }
     
+    /// @brief Пересчитывает AABB фигуры при вызове
+    virtual void recompute_aabb() { }
+
     void notify_shape_changed();
 
-    virtual String get_shape_type() const { return "shape"; }
+    /// @brief Возвращает тип фигуры. Использует StringName для быстрого сравнения O(1).
+    virtual StringName get_shape_type() const { return StringName("shape"); }
+    
+    /// @brief Вычисляет значение SDF (Signed Distance Field) для точки в мировом пространстве.
     virtual float evaluate_sdf(const Vector3& world_pos) const;
 
-    // Передаёться зона, которая задевает фигуру и её LOD
+    /// @brief Ядро системы LOD. Вызывается при изменении состояния чанка, в котором находится фигура.
+    /// @param chunk_id ID изменившегося чанка.
     virtual void on_zone_changed(uint64_t chunk_id) {}
+
+    /// @brief Ядро системы транзакций. Реакция фигуры на изменение зависимого объекта.
+    /// @param triggered_old_id ID фигуры, инициировавшей изменение.
+    /// @param proposed_shape Предложение (Ref) новой фигуры, в которую переходит triggered_old_id.
+    /// @return Ref на новую фигуру для текущей фигуры, или nullptr, если изменений не требуется.
+    virtual Ref<SemanticShape> evaluate_reaction(uint64_t triggered_old_id, Ref<SemanticShape> proposed_shape) const {
+        return nullptr;
+    }
 
     void add_owned_shape(uint64_t id);
     void remove_owned_shape(uint64_t id);
     bool has_owned_shape(uint64_t id) const;
     godot::PackedInt64Array get_owned_shapes() const;
     void set_owned_shapes(const godot::PackedInt64Array& ids);
-
-    void add_needed_shape(uint64_t id);
-    void remove_needed_shape(uint64_t id);
-    bool has_needed_shape(uint64_t id) const;
-    godot::PackedInt64Array get_needed_shapes() const;
-    void set_needed_shapes(const godot::PackedInt64Array& ids);
+    void replace_owned_id(uint64_t old_id, uint64_t new_id);
 };
 
 } // namespace godot
