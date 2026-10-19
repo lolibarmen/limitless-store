@@ -2,6 +2,7 @@
 #include <ChunkOctree/ChunkOctree.hpp> // Добавлено для доступа к Chunk
 #include <ChunkOctree/Chunk.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
 
@@ -10,7 +11,7 @@ SemanticWorld::SemanticWorld() {
 }
 
 void SemanticWorld::_bind_methods() {
-
+    // Binding'и для Godot, если нужны
 }
 
 SemanticWorld* SemanticWorld::get_singleton() {
@@ -148,7 +149,6 @@ void SemanticWorld::propose_shape_change(uint64_t old_id, Ref<SemanticShape> pro
         // Б. Регистрируем новую фигуру через официальный метод
         // (Внутри он сам сгенерирует ID, вызовет set_id, захватит мьютекс и добавит в _shapes)
         uint64_t new_id = register_shape(new_shape);
-
         id_mapping[old] = new_id;
     }
 

@@ -41,17 +41,18 @@ void WorldCoordinator::_process(double delta) {
     }
 }
 
-#include <MaterialTerrainShape/MaterialTerrainShape.hpp>
+// #include <StarSystem/StarSystem.hpp>
+#include <TestCube/TestCube.hpp>
 void WorldCoordinator::_register_initial_shapes() {
-    // SemanticWorld* sw = SemanticWorld::get_singleton();
+    SemanticWorld* sw = SemanticWorld::get_singleton();
 
-    // Ref<TestCube> test_sphere;
-    // test_sphere.instantiate();
+    Ref<TestCube> test_sphere;
+    test_sphere.instantiate();
 
-    // sw->register_shape(test_sphere);
-
-    // Ref<MaterialTerrainShape> mat_ter_shape;
-    // mat_ter_shape.instantiate();
-    // mat_ter_shape->set_frequency(0.005f);
-    // sw->register_shape(mat_ter_shape);
+    sw->register_shape(test_sphere);
+    
+    // Ref<StarSystem> star_system;
+    // star_system.instantiate();
+    
+    // sw->register_shape(star_system);
 }

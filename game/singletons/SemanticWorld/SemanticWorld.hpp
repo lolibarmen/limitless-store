@@ -7,7 +7,6 @@
 #include <SemanticShape/SemanticShape.hpp>
 #include <MeshGenerator/MeshGenerator.hpp>
 #include <unordered_map>
-#include <vector>
 #include <atomic>
 #include <cstdint>
 

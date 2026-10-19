@@ -9,14 +9,11 @@ using namespace godot;
 #include "Tool/Tool.hpp"
 #include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
-#include "SemanticCurve/SemanticCurve.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
 #include "MeshYJoint/MeshYJoint.hpp"
 #include "MeshCylinder/MeshCylinder.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
-#include "MaterialTerrainShape/MaterialTerrainShape.hpp"
 #include "TreeGenerator/TreeGenerator.hpp"
-#include "SemanticSphere/SemanticSphere.hpp"
 #include "Player/Player.hpp"
 #include "PickableTool/PickableTool.hpp"
 #include "MaterialGenerator/MaterialGenerator.hpp"
@@ -43,7 +40,6 @@ inline void auto_register_virtual_classes() {
 inline void auto_register_classes() {
     ClassDB::register_class<SemanticShape>();
     ClassDB::register_class<MaterialGenerator>();
-    ClassDB::register_class<SemanticSphere>();
     ClassDB::register_class<MeshGenerator>();
     ClassDB::register_class<SurfaceGenerator>();
     ClassDB::register_class<TestCube>();
@@ -51,11 +47,9 @@ inline void auto_register_classes() {
     ClassDB::register_class<Tool>();
     ClassDB::register_class<TriplanarMaterialGenerator>();
     ClassDB::register_class<PlayerCamera>();
-    ClassDB::register_class<SemanticCurve>();
     ClassDB::register_class<PlayerMovement>();
     ClassDB::register_class<MeshYJoint>();
     ClassDB::register_class<MeshCylinder>();
-    ClassDB::register_class<MaterialTerrainShape>();
     ClassDB::register_class<TreeGenerator>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<PickableTool>();

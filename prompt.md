@@ -204,8 +204,6 @@ public:
 
 namespace godot {
 
-class MeshGenerator;
-
 /// @brief Базовый класс для семантических фигур.
 /// Управляет графом зависимостей и участвует в системе транзакционных изменений состояния.
 class SemanticShape : public Resource {
@@ -214,6 +212,10 @@ class SemanticShape : public Resource {
 private:
     uint64_t _id = 0;
     godot::PackedInt64Array _owned_shape_ids;
+    
+    /// @brief Список модифицированных дочерних фигур
+    /// Ключ - детерминированый локальный ключ, получаемый только из свойств дочерней фигуры и сида
+    std::unordered_map<uint64_t, Ref<SemanticShape>> _needed_shapes_map;
 
 protected:
     AABB _aabb;
@@ -228,7 +230,7 @@ public:
     void set_id(uint64_t id) { _id = id; }
     uint64_t get_id() const { return _id; }
 
-    AABB get_aabb() const;
+    AABB get_aabb();
     
     /// @brief Пересчитывает AABB фигуры при вызове
     virtual void recompute_aabb() { }
@@ -297,6 +299,41 @@ public:
 };
 
 } // namespace godot
+```
+```
+#pragma once
+
+#include <godot_cpp/classes/resource.hpp>
+#include <godot_cpp/classes/material.hpp>
+
+namespace godot {
+
+class MaterialGenerator : public Resource {
+    GDCLASS(MaterialGenerator, Resource)
+
+protected:
+    static void _bind_methods();
+
+public:
+    MaterialGenerator() {};
+    virtual ~MaterialGenerator() {};
+
+    virtual Ref<Material> generate(uint64_t shape_id, uint64_t chunk_id) const;
+};
+
+} // namespace godot
+```
+```
+#include "MaterialGenerator.hpp"
+#include <godot_cpp/core/class_db.hpp>
+
+using namespace godot;
+
+void MaterialGenerator::_bind_methods() {}
+
+Ref<Material> MaterialGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
+    return Ref<Material>();
+}
 ```
 
 ***
@@ -535,3 +572,9 @@ Ref<ArrayMesh> CubeMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id)
     return mesh;
 }
 ```
+
+Тебе нужно написать новую семантическую фигуру. Пиши минимум кода. Вводи минимум параметров.
+
+Описывает:
+Генератор:
+Вид фигуры(при наличии генератора):

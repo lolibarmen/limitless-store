@@ -35,7 +35,7 @@ public:
 
     AABB get_aabb();
     
-    /// @brief Пересчитывает AABB фигуры при вызове
+    /// @brief Пересчитывает AABB фигуры при вызове.
     virtual void recompute_aabb() { }
 
     void notify_shape_changed();

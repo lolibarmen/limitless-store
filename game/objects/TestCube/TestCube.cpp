@@ -1,25 +1,24 @@
 #include "TestCube.hpp"
 #include <WorldMesh/WorldMesh.hpp>
-#include <ChunkOctree/ChunkOctree.hpp>
-#include <MaterialGenerator/MaterialGenerator.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/core/math.hpp>
 
 using namespace godot;
 
 void TestCube::_bind_methods() {
-
+    // Binding'и для Godot, если нужны
 }
 
 TestCube::TestCube() {
     _pos = Vector3(-10.0, -10.0, -10.0);
-    _size = Vector3( 20.0,  20.0,  20.0);
+    _size = Vector3(20.0, 20.0, 20.0);
 
     _mesh_generator.instantiate();
     _mesh_generator->set_pos(_pos);
     _mesh_generator->set_size(_size);
 
     _material_generator.instantiate();
-    _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load("res://assets/test_texture.png"));
+    _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load("res://assets/test_texture.jpg"));
 }
 
 void TestCube::recompute_aabb() {
