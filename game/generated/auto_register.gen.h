@@ -5,15 +5,11 @@ using namespace godot;
 
 #include "SurfaceGenerator/SurfaceGenerator.hpp"
 #include "TestCube/TestCube.hpp"
-#include "MeshPrimitive/MeshPrimitive.hpp"
 #include "Tool/Tool.hpp"
 #include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
-#include "MeshYJoint/MeshYJoint.hpp"
-#include "MeshCylinder/MeshCylinder.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
-#include "TreeGenerator/TreeGenerator.hpp"
 #include "Player/Player.hpp"
 #include "PickableTool/PickableTool.hpp"
 #include "MaterialGenerator/MaterialGenerator.hpp"
@@ -43,14 +39,10 @@ inline void auto_register_classes() {
     ClassDB::register_class<MeshGenerator>();
     ClassDB::register_class<SurfaceGenerator>();
     ClassDB::register_class<TestCube>();
-    ClassDB::register_class<MeshPrimitive>();
     ClassDB::register_class<Tool>();
     ClassDB::register_class<TriplanarMaterialGenerator>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<PlayerMovement>();
-    ClassDB::register_class<MeshYJoint>();
-    ClassDB::register_class<MeshCylinder>();
-    ClassDB::register_class<TreeGenerator>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<PickableTool>();
     ClassDB::register_class<WorldCoordinator>();

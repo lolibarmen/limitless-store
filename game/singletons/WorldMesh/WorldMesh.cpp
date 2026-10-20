@@ -63,7 +63,7 @@ void WorldMesh::request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGen
 
     MeshInstance3D* mesh_instance = memnew(MeshInstance3D);
     add_child(mesh_instance);
-    // mesh_instance->set_global_position(chunk->center);
+    mesh_instance->set_global_position(chunk->center);
     
     if (mesh.is_valid() && mesh->get_surface_count() > 0) {
         mesh_instance->set_mesh(mesh);

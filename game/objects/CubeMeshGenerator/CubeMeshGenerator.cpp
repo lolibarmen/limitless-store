@@ -24,11 +24,14 @@ Ref<ArrayMesh> CubeMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id)
 
     AABB chunk_aabb = chunk->get_aabb();
     
-    Vector3 c_min = pos;
-    Vector3 c_max = pos + size;
+    // ПЕРЕНОС КООРДИНАТ В ЛОКАЛЬНОЕ ПРОСТРАНСТВО ЧАНКА
+    // Вычитаем позицию чанка из позиции фигуры, чтобы сделать её локальной
+    Vector3 c_min = pos - chunk_aabb.get_center();
+    Vector3 c_max = pos + size - chunk_aabb.get_center();
     
-    Vector3 ch_min = chunk_aabb.position;
-    Vector3 ch_max = chunk_aabb.position + chunk_aabb.size;
+    // Локальные границы чанка всегда начинаются с 0 и равны его размеру
+    Vector3 ch_min = Vector3(0, 0, 0);
+    Vector3 ch_max = chunk_aabb.size;
 
     PackedVector3Array vertices;
     PackedVector3Array normals;
