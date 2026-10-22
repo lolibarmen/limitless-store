@@ -1,5 +1,6 @@
 #include "CubeMeshGenerator.hpp"
-#include <ChunkOctree/ChunkOctree.hpp>
+#include <ShapeSpatialManager/ShapeSpatialManager.hpp> // <-- ДОБАВЛЕНО
+#include <SemanticWorld/SemanticWorld.hpp>             // <-- ДОБАВЛЕНО
 #include <godot_cpp/classes/array_mesh.hpp>
 #include <godot_cpp/variant/aabb.hpp>
 #include <godot_cpp/variant/packed_vector3_array.hpp>
@@ -19,19 +20,35 @@ Ref<ArrayMesh> CubeMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id)
     Ref<ArrayMesh> mesh;
     mesh.instantiate();
 
-    Chunk* chunk = ChunkOctree::get_singleton()->find(chunk_id);
+    auto* mgr = ShapeSpatialManager::get_singleton();
+    if (!mgr) return mesh;
+
+    ChunkOctree* octree = mgr->get_octree(shape_id);
+    if (!octree) return mesh;
+
+    Chunk* chunk = octree->find(chunk_id);
     if (!chunk) return mesh;
 
+    auto* world = SemanticWorld::get_singleton();
+    Ref<SemanticShape> shape = world->get_shape(shape_id);
+    if (!shape.is_valid()) return mesh;
+
+    // 1. Получаем AABB в мировых координатах
+    AABB shape_aabb = shape->get_aabb();
     AABB chunk_aabb = chunk->get_aabb();
+
+    // 2. Находим реальное пересечение фигуры и чанка
+    AABB intersect = shape_aabb.intersection(chunk_aabb);
     
-    // ПЕРЕНОС КООРДИНАТ В ЛОКАЛЬНОЕ ПРОСТРАНСТВО ЧАНКА
-    // Вычитаем позицию чанка из позиции фигуры, чтобы сделать её локальной
-    Vector3 c_min = pos - chunk_aabb.get_center();
-    Vector3 c_max = pos + size - chunk_aabb.get_center();
-    
-    // Локальные границы чанка всегда начинаются с 0 и равны его размеру
-    Vector3 ch_min = Vector3(0, 0, 0);
-    Vector3 ch_max = chunk_aabb.size;
+    // Если пересечения нет (или оно вырождено), меш не нужен
+    if (intersect.size.x <= 0.001f || intersect.size.y <= 0.001f || intersect.size.z <= 0.001f) {
+        return mesh;
+    }
+
+    // 3. Переводим координаты пересечения в локальное пространство чанка (относительно его центра)
+    Vector3 center = chunk_aabb.get_center();
+    Vector3 local_min = intersect.position - center;
+    Vector3 local_max = intersect.position + intersect.size - center;
 
     PackedVector3Array vertices;
     PackedVector3Array normals;
@@ -52,49 +69,19 @@ Ref<ArrayMesh> CubeMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id)
         indices.push_back(base); indices.push_back(base + 3); indices.push_back(base + 2);
     };
 
-    float x0, x1, y0, y1, z0, z1;
-
-    if (c_max.x >= ch_min.x && c_max.x <= ch_max.x) {
-        y0 = MAX(c_min.y, ch_min.y); y1 = MIN(c_max.y, ch_max.y);
-        z0 = MAX(c_min.z, ch_min.z); z1 = MIN(c_max.z, ch_max.z);
-        if (y0 < y1 && z0 < z1) 
-            add_quad(Vector3(c_max.x, y0, z0), Vector3(c_max.x, y1, z0), Vector3(c_max.x, y1, z1), Vector3(c_max.x, y0, z1), Vector3(1, 0, 0));
-    }
-
-    if (c_min.x >= ch_min.x && c_min.x <= ch_max.x) {
-        y0 = MAX(c_min.y, ch_min.y); y1 = MIN(c_max.y, ch_max.y);
-        z0 = MAX(c_min.z, ch_min.z); z1 = MIN(c_max.z, ch_max.z);
-        if (y0 < y1 && z0 < z1) 
-            add_quad(Vector3(c_min.x, y0, z1), Vector3(c_min.x, y1, z1), Vector3(c_min.x, y1, z0), Vector3(c_min.x, y0, z0), Vector3(-1, 0, 0));
-    }
-
-    if (c_max.y >= ch_min.y && c_max.y <= ch_max.y) {
-        x0 = MAX(c_min.x, ch_min.x); x1 = MIN(c_max.x, ch_max.x);
-        z0 = MAX(c_min.z, ch_min.z); z1 = MIN(c_max.z, ch_max.z);
-        if (x0 < x1 && z0 < z1) 
-            add_quad(Vector3(x0, c_max.y, z1), Vector3(x1, c_max.y, z1), Vector3(x1, c_max.y, z0), Vector3(x0, c_max.y, z0), Vector3(0, 1, 0));
-    }
-
-    if (c_min.y >= ch_min.y && c_min.y <= ch_max.y) {
-        x0 = MAX(c_min.x, ch_min.x); x1 = MIN(c_max.x, ch_max.x);
-        z0 = MAX(c_min.z, ch_min.z); z1 = MIN(c_max.z, ch_max.z);
-        if (x0 < x1 && z0 < z1) 
-            add_quad(Vector3(x0, c_min.y, z0), Vector3(x1, c_min.y, z0), Vector3(x1, c_min.y, z1), Vector3(x0, c_min.y, z1), Vector3(0, -1, 0));
-    }
-
-    if (c_max.z >= ch_min.z && c_max.z <= ch_max.z) {
-        x0 = MAX(c_min.x, ch_min.x); x1 = MIN(c_max.x, ch_max.x);
-        y0 = MAX(c_min.y, ch_min.y); y1 = MIN(c_max.y, ch_max.y);
-        if (x0 < x1 && y0 < y1) 
-            add_quad(Vector3(x0, y0, c_max.z), Vector3(x1, y0, c_max.z), Vector3(x1, y1, c_max.z), Vector3(x0, y1, c_max.z), Vector3(0, 0, 1));
-    }
-
-    if (c_min.z >= ch_min.z && c_min.z <= ch_max.z) {
-        x0 = MAX(c_min.x, ch_min.x); x1 = MIN(c_max.x, ch_max.x);
-        y0 = MAX(c_min.y, ch_min.y); y1 = MIN(c_max.y, ch_max.y);
-        if (x0 < x1 && y0 < y1) 
-            add_quad(Vector3(x1, y0, c_min.z), Vector3(x0, y0, c_min.z), Vector3(x0, y1, c_min.z), Vector3(x1, y1, c_min.z), Vector3(0, 0, -1));
-    }
+    // Генерируем 6 граней строго для области пересечения
+    // Правая (X+)
+    add_quad(Vector3(local_max.x, local_min.y, local_min.z), Vector3(local_max.x, local_max.y, local_min.z), Vector3(local_max.x, local_max.y, local_max.z), Vector3(local_max.x, local_min.y, local_max.z), Vector3(1, 0, 0));
+    // Левая (X-)
+    add_quad(Vector3(local_min.x, local_min.y, local_max.z), Vector3(local_min.x, local_max.y, local_max.z), Vector3(local_min.x, local_max.y, local_min.z), Vector3(local_min.x, local_min.y, local_min.z), Vector3(-1, 0, 0));
+    // Верхняя (Y+)
+    add_quad(Vector3(local_min.x, local_max.y, local_max.z), Vector3(local_max.x, local_max.y, local_max.z), Vector3(local_max.x, local_max.y, local_min.z), Vector3(local_min.x, local_max.y, local_min.z), Vector3(0, 1, 0));
+    // Нижняя (Y-)
+    add_quad(Vector3(local_min.x, local_min.y, local_min.z), Vector3(local_max.x, local_min.y, local_min.z), Vector3(local_max.x, local_min.y, local_max.z), Vector3(local_min.x, local_min.y, local_max.z), Vector3(0, -1, 0));
+    // Передняя (Z+)
+    add_quad(Vector3(local_min.x, local_min.y, local_max.z), Vector3(local_max.x, local_min.y, local_max.z), Vector3(local_max.x, local_max.y, local_max.z), Vector3(local_min.x, local_max.y, local_max.z), Vector3(0, 0, 1));
+    // Задняя (Z-)
+    add_quad(Vector3(local_max.x, local_min.y, local_min.z), Vector3(local_min.x, local_min.y, local_min.z), Vector3(local_min.x, local_max.y, local_min.z), Vector3(local_max.x, local_max.y, local_min.z), Vector3(0, 0, -1));
 
     if (vertices.is_empty()) return mesh;
 
@@ -106,6 +93,5 @@ Ref<ArrayMesh> CubeMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id)
     mesh_array[Mesh::ARRAY_INDEX] = indices;
 
     mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, mesh_array);
-
     return mesh;
 }

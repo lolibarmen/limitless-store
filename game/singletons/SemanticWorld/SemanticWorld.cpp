@@ -1,6 +1,5 @@
 #include "SemanticWorld.hpp"
-#include <ChunkOctree/ChunkOctree.hpp> // Добавлено для доступа к Chunk
-#include <ChunkOctree/Chunk.hpp>
+#include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -28,6 +27,13 @@ uint64_t SemanticWorld::register_shape(Ref<SemanticShape> shape) {
     _shapes_mutex->lock();
     _shapes[id] = shape;
     _shapes_mutex->unlock();
+    
+    // Уведомляем пространственный менеджер
+    auto* spatial_mgr = ShapeSpatialManager::get_singleton();
+    if (spatial_mgr) {
+        spatial_mgr->register_shape(id, shape);
+    }
+    
     return id;
 }
 
@@ -35,6 +41,11 @@ void SemanticWorld::unregister_shape(uint64_t id) {
     _shapes_mutex->lock();
     _shapes.erase(id);
     _shapes_mutex->unlock();
+    
+    auto* spatial_mgr = ShapeSpatialManager::get_singleton();
+    if (spatial_mgr) {
+        spatial_mgr->unregister_shape(id);
+    }
 }
 
 Ref<SemanticShape> SemanticWorld::get_shape(uint64_t id) const {
@@ -45,35 +56,17 @@ Ref<SemanticShape> SemanticWorld::get_shape(uint64_t id) const {
     return result;
 }
 
-void SemanticWorld::on_zone_changed(const std::vector<uint64_t>& chunk_ids) {
+void SemanticWorld::on_zone_changed(uint64_t shape_id, const std::vector<uint64_t>& chunk_ids) {
     if (chunk_ids.empty()) return;
 
-    auto* octree = ChunkOctree::get_singleton();
+    _shapes_mutex->lock();
+    auto it = _shapes.find(shape_id);
+    Ref<SemanticShape> shape = (it != _shapes.end()) ? it->second : nullptr;
+    _shapes_mutex->unlock();
 
-    for (uint64_t chunk_id : chunk_ids) {
-        Chunk* chunk = octree ? octree->find(chunk_id) : nullptr;
-
-        std::vector<uint64_t> affected_shape_ids;
-
-        _shapes_mutex->lock();
-        for (const auto& pair : _shapes) {
-            if (pair.second.is_valid()) {
-                if (chunk) {
-                    if (pair.second->get_aabb().intersects(chunk->get_aabb())) {
-                        affected_shape_ids.push_back(pair.first);
-                    }
-                } else {
-                    affected_shape_ids.push_back(pair.first);
-                }
-            }
-        }
-        _shapes_mutex->unlock();
-
-        for (uint64_t id : affected_shape_ids) {
-            Ref<SemanticShape> shape = get_shape(id);
-            if (shape.is_valid()) {
-                shape->on_zone_changed(chunk_id);
-            }
+    if (shape.is_valid()) {
+        for (uint64_t chunk_id : chunk_ids) {
+            shape->on_zone_changed(chunk_id);
         }
     }
 }

@@ -7,26 +7,20 @@
 
 namespace godot {
 
-class ChunkOctree : public Object {
-    GDCLASS(ChunkOctree, Object)
-
+class ChunkOctree {
+    
 private:
-    uint64_t _next_id = 1;
-
     std::unordered_map<uint64_t, Chunk*> roots;
     std::unordered_set<Chunk*> leaf_chunks;
     std::unordered_map<uint64_t, Chunk*> id_to_chunk;
 
     void destroy_subtree(Chunk* node);
 
-protected:
-    static void _bind_methods() {};
-
+    /// @brief Рекурсивно оценивает и обновляет LOD для конкретного узла и его потомков.
+    void evaluate_node(Chunk* node, const Vector3& viewer_pos, int max_depth);
+    
 public:
-    ChunkOctree() = default;
     ~ChunkOctree() { clear(); }
-
-    static ChunkOctree* get_singleton();
 
     uint64_t add_root(const Vector3& center, float size);
     void remove_root(uint64_t id);
@@ -35,6 +29,9 @@ public:
 
     void split(Chunk* node);
     void collapse(Chunk* node);
+    
+    /// @brief Автоматически оценивает и обновляет LOD дерева на основе позиции наблюдателя.
+    void evaluate_and_update_lod(const Vector3& viewer_pos, int max_depth);
 
     void for_each_leaf(std::function<void(Chunk*)> func);
 

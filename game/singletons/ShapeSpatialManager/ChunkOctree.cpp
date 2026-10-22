@@ -1,15 +1,12 @@
 #include "ChunkOctree.hpp"
 #include "Chunk.hpp"
-#include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/classes/engine.hpp>
+#include <ShapeSpatialManager/ShapeSpatialManager.hpp> // Для глобального счетчика ID
+#include <godot_cpp/core/math.hpp>
 
 namespace godot {
 
-ChunkOctree* ChunkOctree::get_singleton() {
-    Engine* engine = Engine::get_singleton();
-    if (!engine) return nullptr;
-    Object* obj = engine->get_singleton("ChunkOctree");
-    return Object::cast_to<ChunkOctree>(obj);
+static float cube_distance(const Vector3& a, const Vector3& b) {
+    return Math::max(Math::max(Math::abs(a.x - b.x), Math::abs(a.y - b.y)), Math::abs(a.z - b.z));
 }
 
 void ChunkOctree::destroy_subtree(Chunk* node) {
@@ -27,7 +24,7 @@ void ChunkOctree::destroy_subtree(Chunk* node) {
 }
 
 uint64_t ChunkOctree::add_root(const Vector3& center, float size) {
-    uint64_t new_id = _next_id++;
+    uint64_t new_id = ShapeSpatialManager::get_singleton()->get_next_chunk_id();
 
     Chunk* root = new Chunk(new_id, center, size, 0, nullptr);
     
@@ -61,7 +58,6 @@ void ChunkOctree::split(Chunk* node) {
 
     leaf_chunks.erase(node);
     id_to_chunk.erase(node->id);
-    
     node->clear_all_shape_meshes(); 
 
     float h = node->size / 2.0f;
@@ -71,7 +67,8 @@ void ChunkOctree::split(Chunk* node) {
     for (int x : {-1, 1}) {
         for (int y : {-1, 1}) {
             for (int z : {-1, 1}) {
-                uint64_t child_id = (node->id << 3) | i;
+                // ИСПОЛЬЗУЕМ ГЛОБАЛЬНЫЙ СЧЕТЧИК ДЛЯ УНИКАЛЬНОСТИ ID ВО ВСЕЙ СЦЕНЕ
+                uint64_t child_id = ShapeSpatialManager::get_singleton()->get_next_chunk_id();
                 
                 node->children[i] = std::make_unique<Chunk>(
                     child_id, 
@@ -104,20 +101,52 @@ void ChunkOctree::collapse(Chunk* node) {
     id_to_chunk[node->id] = node;
 }
 
+void ChunkOctree::evaluate_node(Chunk* node, const Vector3& viewer_pos, int max_depth) {
+    if (!node) return;
+
+    float dist = cube_distance(node->center, viewer_pos);
+    bool should_split = dist < node->size * 4.0f;
+    bool should_collapse = dist > node->size * 4.1f;
+
+    if (node->is_leaf() && should_split && node->depth < max_depth) {
+        split(node);
+        // Рекурсивно оцениваем только что созданных детей
+        for (auto& child_ptr : node->children) {
+            if (child_ptr) {
+                evaluate_node(child_ptr.get(), viewer_pos, max_depth);
+            }
+        }
+    }
+    else if (!node->is_leaf() && should_collapse) {
+        collapse(node);
+        // После коллапса узел стал листом, рекурсия остановится сама
+    }
+    else if (!node->is_leaf()) {
+        // Если узел уже разделен, рекурсивно оцениваем его детей
+        for (auto& child_ptr : node->children) {
+            if (child_ptr) {
+                evaluate_node(child_ptr.get(), viewer_pos, max_depth);
+            }
+        }
+    }
+}
+
+void ChunkOctree::evaluate_and_update_lod(const Vector3& viewer_pos, int max_depth) {
+    // Проходим только по корням, а рекурсию делает evaluate_node
+    for_each_root([this, &viewer_pos, max_depth](Chunk* root) {
+        evaluate_node(root, viewer_pos, max_depth);
+    });
+}
+
 void ChunkOctree::for_each_leaf(std::function<void(Chunk*)> func) {
     for (Chunk* leaf : leaf_chunks) {
-        if (leaf) {
-            func(leaf);
-        }
+        if (leaf) func(leaf);
     }
 }
 
 Chunk* ChunkOctree::find(uint64_t id) const {
     auto it = id_to_chunk.find(id);
-    if (it != id_to_chunk.end()) {
-        return it->second;
-    }
-    return nullptr;
+    return (it != id_to_chunk.end()) ? it->second : nullptr;
 }
 
 void ChunkOctree::clear() {
@@ -128,7 +157,6 @@ void ChunkOctree::clear() {
     roots.clear();
     leaf_chunks.clear();
     id_to_chunk.clear();
-    _next_id = 1;
 }
 
 } // namespace godot

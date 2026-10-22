@@ -10,6 +10,8 @@ void TestCube::_bind_methods() {
 }
 
 TestCube::TestCube() {
+    _is_relative = true;
+    
     _pos = Vector3(-10.0, -10.0, -10.0);
     _size = Vector3(20.0, 20.0, 20.0);
 

@@ -1,6 +1,5 @@
 #include "WorldMesh.hpp"
-#include <ChunkOctree/Chunk.hpp>
-#include <ChunkOctree/ChunkOctree.hpp>
+#include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <SemanticShape/SemanticShape.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <MeshGenerator/MeshGenerator.hpp>
@@ -40,12 +39,29 @@ void WorldMesh::_clear_shape_in_subtree(Chunk* node, uint64_t shape_id) {
 }
 
 void WorldMesh::request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGenerator> mesh_generator, Ref<MaterialGenerator> material_generator) {
-    if (shape_id == 0 || mesh_generator.is_null() || material_generator.is_null()) return;
+    if (shape_id == 0 || mesh_generator.is_null() || material_generator.is_null()) {
+        UtilityFunctions::printerr("WorldMesh::request_render: Неверные входные данные.");
+        return;
+    }
 
-    auto* octree = ChunkOctree::get_singleton();
-    
+    auto* mgr = ShapeSpatialManager::get_singleton();
+    if (!mgr) {
+        UtilityFunctions::printerr("WorldMesh::request_render: ShapeSpatialManager не найден.");
+        return;
+    }
+
+    ChunkOctree* octree = mgr->get_octree(shape_id);
+    if (!octree) {
+        // ВОТ ЗДЕСЬ СКОРЕЕ ВСЕГО ПРОИСХОДИТ ОБРЫВ
+        UtilityFunctions::printerr("WorldMesh::request_render: Октодерево для shape_id ", shape_id, " не найдено! Проверьте, что is_relative == true.");
+        return;
+    }
+
     Chunk* chunk = octree->find(chunk_id);
-    if (!chunk) return;
+    if (!chunk) {
+        UtilityFunctions::printerr("WorldMesh::request_render: Чанк ", chunk_id, " не найден в октодереве фигуры ", shape_id, ".");
+        return;
+    }
 
     _clear_shape_in_subtree(chunk, shape_id);
 
@@ -60,19 +76,17 @@ void WorldMesh::request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGen
     }
     
     Ref<ArrayMesh> mesh = mesh_generator->generate(shape_id, chunk_id);
-
     MeshInstance3D* mesh_instance = memnew(MeshInstance3D);
     add_child(mesh_instance);
+    
     mesh_instance->set_global_position(chunk->center);
     
     if (mesh.is_valid() && mesh->get_surface_count() > 0) {
         mesh_instance->set_mesh(mesh);
-        
-        Ref<Material> material = material_generator->generate(shape_id, chunk_id);;
+        Ref<Material> material = material_generator->generate(shape_id, chunk_id);
         if (material.is_valid()) {
             mesh_instance->set_surface_override_material(0, material);
         }
-        
         chunk->shape_meshes[shape_id] = mesh_instance;
     } else {
         chunk->shape_meshes[shape_id] = mesh_instance;
@@ -82,45 +96,37 @@ void WorldMesh::request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGen
 
 void WorldMesh::cancel_render(uint64_t shape_id, uint64_t chunk_id) {
     if (shape_id == 0) return;
+    auto* mgr = ShapeSpatialManager::get_singleton();
+    if (!mgr) return;
 
-    auto* octree = ChunkOctree::get_singleton();
-    if (!octree) return;
-
-    // Пытаемся найти чанк. 
-    Chunk* chunk = octree->find(chunk_id);
-    if (chunk) {
-        // Если чанк жив, удаляем меш из него (и вызываем queue_free)
-        chunk->remove_shape_mesh(shape_id);
+    ChunkOctree* octree = mgr->get_octree(shape_id);
+    if (octree) {
+        Chunk* chunk = octree->find(chunk_id);
+        if (chunk) chunk->remove_shape_mesh(shape_id);
     }
 }
 
 void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMesh> mesh) {
     if (mesh.is_null()) return;
+    auto* mgr = ShapeSpatialManager::get_singleton();
+    if (!mgr) return;
 
-    auto* octree = ChunkOctree::get_singleton();
+    ChunkOctree* octree = mgr->get_octree(shape_id);
     if (!octree) return;
 
     Chunk* chunk = octree->find(chunk_id);
     if (!chunk) return; 
 
     auto it = chunk->shape_meshes.find(shape_id);
-    if (it == chunk->shape_meshes.end()) {
-        return; // Чанк удален или свернут, результат неактуален
-    }
+    if (it == chunk->shape_meshes.end()) return;
 
     MeshInstance3D* mesh_instance = it->second;
-    
     mesh_instance->set_mesh(mesh);
 
     if (mesh->get_surface_count() > 0) {
-        
-        // 3. Берем генератор материала, который фигура выбрала для этого LOD
         auto mat_it = chunk->shape_material_generators.find(shape_id);
         if (mat_it != chunk->shape_material_generators.end() && mat_it->second.is_valid()) {
-            
-            // 4. Генерируем материал (для StandardMaterial3D это мгновенно)
             Ref<Material> material = mat_it->second->generate(shape_id, chunk_id);
-            
             if (material.is_valid()) {
                 mesh_instance->set_surface_override_material(0, material);
             }

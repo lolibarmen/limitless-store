@@ -17,10 +17,12 @@ class SemanticShape : public Resource {
     GDCLASS(SemanticShape, Resource)
 
 private:
-    uint64_t _id = 0;
-    godot::PackedInt64Array _owned_shape_ids;
 
 protected:
+    uint64_t _id = 0;
+    godot::PackedInt64Array _owned_shape_ids;
+    bool _is_relative = false; ///< Движется ли фигура относительно своего пространственного родителя.
+    
     AABB _aabb;
     bool _aabb_dirty = true;
 
@@ -32,6 +34,11 @@ public:
 
     void set_id(uint64_t id) { _id = id; }
     uint64_t get_id() const { return _id; }
+    
+    /// @brief Возвращает true, если фигура имеет собственное независимое пространство 
+    /// (движется относительно родителя, имеет свою физику и т.д.).
+    virtual bool is_relative() const { return _is_relative; }
+    void set_relative(bool value) { _is_relative = value; }
 
     AABB get_aabb();
     

@@ -1,18 +1,12 @@
 #include "SpatialStreaming.hpp"
-#include <ChunkOctree/ChunkOctree.hpp>
+#include <ShapeSpatialManager/ShapeSpatialManager.hpp>
+#include <SemanticWorld/SemanticWorld.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
-#include <godot_cpp/core/math.hpp>
-#include <vector>
 
 using namespace godot;
-
-// Расстояние Чебышёва (максимальная разница по осям)
-static float cube_distance(const Vector3& a, const Vector3& b) {
-    return Math::max(Math::max(Math::abs(a.x - b.x), Math::abs(a.y - b.y)), Math::abs(a.z - b.z));
-}
 
 SpatialStreaming* SpatialStreaming::get_singleton() {
     Engine* engine = Engine::get_singleton();
@@ -21,13 +15,8 @@ SpatialStreaming* SpatialStreaming::get_singleton() {
     return Object::cast_to<SpatialStreaming>(obj);
 }
 
-void SpatialStreaming::_bind_methods() {
-    // ClassDB::bind_method(D_METHOD("set_player_pos", "pos"), &SpatialStreaming::set_player_pos);
-}
-
-void SpatialStreaming::_ready() {
-    // Инициализация
-}
+void SpatialStreaming::_bind_methods() {}
+void SpatialStreaming::_ready() {}
 
 void SpatialStreaming::_process(double delta) {
     auto* vp = get_viewport();
@@ -37,129 +26,40 @@ void SpatialStreaming::_process(double delta) {
 
     player_pos = cam->get_global_position();
 
-    update_root_zones();
+    auto* mgr = ShapeSpatialManager::get_singleton();
+    auto* world = SemanticWorld::get_singleton();
+    if (!mgr || !world) return;
 
-    auto* octree = ChunkOctree::get_singleton();
-    if (octree) {
-        octree->for_each_root([this](Chunk* root) {
-            evaluate_and_update_tree(root);
+    // Обновляем LOD только для фигур, владеющих собственным октодеревом
+    mgr->for_each_owned_octree([this, world](uint64_t shape_id, ChunkOctree* octree) {
+        Ref<SemanticShape> shape = world->get_shape(shape_id);
+        if (!shape.is_valid()) return;
+
+        // Используем центр AABB фигуры как точку отсчета для LOD
+        Vector3 shape_center = shape->get_aabb().get_center();
+        
+        // Делегируем логику сплита/коллапса самому дереву
+        octree->evaluate_and_update_lod(player_pos, max_depth);
+
+        // Собираем текущие листья для сравнения
+        std::unordered_set<uint64_t> current_zones;
+        octree->for_each_leaf([&](Chunk* chunk) {
+            current_zones.insert(chunk->id);
         });
-    }
 
-    _notify_changes();
-}
-
-Vector3i SpatialStreaming::get_cell_from_pos(const Vector3& pos) const {
-    return Vector3i(
-        static_cast<int32_t>(Math::floor(pos.x / ROOT_SIZE)),
-        static_cast<int32_t>(Math::floor(pos.y / ROOT_SIZE)),
-        static_cast<int32_t>(Math::floor(pos.z / ROOT_SIZE))
-    );
-}
-
-void SpatialStreaming::update_root_zones() {
-    Vector3i pc = get_cell_from_pos(player_pos);
-    auto* octree = ChunkOctree::get_singleton();
-    if (!octree) return;
-
-    // 1. Находим и удаляем корни, вышедшие за пределы радиуса
-    std::vector<Vector3i> cells_to_remove;
-    for (const auto& pair : _active_roots) {
-        if (Math::abs(pair.first.x - pc.x) > root_radius ||
-            Math::abs(pair.first.y - pc.y) > root_radius ||
-            Math::abs(pair.first.z - pc.z) > root_radius) {
-            cells_to_remove.push_back(pair.first);
-        }
-    }
-
-    for (const Vector3i& cell : cells_to_remove) {
-        uint64_t root_id = _active_roots[cell];
-        octree->remove_root(root_id);
-        _active_roots.erase(cell);
-    }
-
-    // 2. Добавляем новые корни в радиусе
-    for (int dx = -root_radius; dx <= root_radius; dx++) {
-        for (int dy = -root_radius; dy <= root_radius; dy++) {
-            for (int dz = -root_radius; dz <= root_radius; dz++) {
-                Vector3i cell = pc + Vector3i(dx, dy, dz);
-                
-                // Проверяем по координатам ячейки, а не по ID, так как ID генерирует сам ChunkOctree
-                if (_active_roots.find(cell) == _active_roots.end()) {
-                    Vector3 center(
-                        (static_cast<float>(cell.x) + 0.5f) * ROOT_SIZE,
-                        (static_cast<float>(cell.y) + 0.5f) * ROOT_SIZE,
-                        (static_cast<float>(cell.z) + 0.5f) * ROOT_SIZE
-                    );
-                    uint64_t new_id = octree->add_root(center, ROOT_SIZE);
-                    _active_roots[cell] = new_id;
+        auto& prev_zones = _prev_active_zones[shape_id];
+        if (current_zones != prev_zones) {
+            std::vector<uint64_t> added_zones;
+            for (uint64_t id : current_zones) {
+                if (prev_zones.find(id) == prev_zones.end()) {
+                    added_zones.push_back(id);
                 }
             }
-        }
-    }
-}
-
-void SpatialStreaming::evaluate_and_update_tree(Chunk* node) {
-    if (!node) return;
-
-    // Использование расстояния Чебышёва и гистерезиса
-    float dist = cube_distance(node->center, player_pos);
-    bool should_split = dist < node->size * 4.0f;
-    bool should_collapse = dist > node->size * 4.1f;
-
-    auto* octree = ChunkOctree::get_singleton();
-    if (!octree) return;
-
-    if (node->is_leaf() && should_split && node->depth < MAX_DEPTH) {
-        octree->split(node);
-        // Рекурсивно оцениваем только что созданных детей
-        for (auto& child_ptr : node->children) {
-            if (child_ptr) {
-                evaluate_and_update_tree(child_ptr.get());
+            
+            if (!added_zones.empty()) {
+                world->on_zone_changed(shape_id, added_zones);
             }
+            prev_zones = std::move(current_zones);
         }
-    }
-    else if (!node->is_leaf() && should_collapse) {
-        octree->collapse(node);
-    }
-    else if (!node->is_leaf()) {
-        // Рекурсивно оцениваем существующих детей
-        for (auto& child_ptr : node->children) {
-            if (child_ptr) {
-                evaluate_and_update_tree(child_ptr.get());
-            }
-        }
-    }
-}
-
-void SpatialStreaming::_notify_changes() {
-    auto* octree = ChunkOctree::get_singleton();
-    if (!octree) return;
-
-    std::unordered_set<uint64_t> current_zones;
-    
-    octree->for_each_leaf([&](Chunk* chunk) {
-        current_zones.insert(chunk->id);
     });
-
-    if (current_zones == _prev_active_zones) {
-        return;
-    }
-
-    std::vector<uint64_t> updates;
-
-    for (uint64_t id : current_zones) {
-        if (_prev_active_zones.find(id) == _prev_active_zones.end()) {
-            updates.push_back(id);
-        }
-    }
-
-    if (!updates.empty()) {
-        SemanticWorld* world = SemanticWorld::get_singleton();
-        if (world) {
-            world->on_zone_changed(updates);
-        }
-    }
-
-    _prev_active_zones = std::move(current_zones);
 }

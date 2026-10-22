@@ -4,7 +4,6 @@
 #include <MeshGenerator/MeshGenerator.hpp>
 #include <godot_cpp/classes/worker_thread_pool.hpp>
 #include <godot_cpp/variant/aabb.hpp>
-#include <memory>
 
 namespace godot {
 

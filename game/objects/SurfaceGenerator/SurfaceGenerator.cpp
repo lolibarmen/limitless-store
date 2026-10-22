@@ -1,6 +1,6 @@
 #include "SurfaceGenerator.hpp"
 #include <Utils/VoxelBaker.hpp>
-#include <ChunkOctree/ChunkOctree.hpp>
+#include <ShapeSpatialManager/ShapeSpatialManager.hpp> // <-- ДОБАВЛЕНО
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -30,6 +30,7 @@ Ref<ArrayMesh> SurfaceGenerator::generate(uint64_t shape_id, uint64_t chunk_id) 
         "SurfaceGenerator::generate"
     );
 
+    // Возвращаем пустой Ref, так как генерация асинхронная и завершится через call_deferred
     return Ref<ArrayMesh>();
 }
 
@@ -43,8 +44,17 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     Ref<SemanticShape> shape = sw->get_shape(shape_id);
     if (shape.is_null()) return;
 
-    Chunk* chunk = ChunkOctree::get_singleton()->find(chunk_id);
-    if(!chunk) return;
+    // --- НОВАЯ ЛОГИКА ПОИСКА ЧАНКА ---
+    auto* mgr = ShapeSpatialManager::get_singleton();
+    if (!mgr) return;
+
+    // Получаем октодерево, которое использует эта фигура (свое или родителя)
+    ChunkOctree* octree = mgr->get_octree(shape_id);
+    if (!octree) return; // У фигуры нет пространственного представления (например, она листовая)
+
+    Chunk* chunk = octree->find(chunk_id);
+    if (!chunk) return;
+    // -----------------------------------
 
     Vector3 chunk_pos = chunk->center;
     float chunk_size = chunk->size; 

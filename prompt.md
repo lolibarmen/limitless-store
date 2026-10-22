@@ -1,4 +1,3 @@
-```
 #pragma once
 
 #include <godot_cpp/classes/object.hpp>
@@ -8,7 +7,6 @@
 #include <SemanticShape/SemanticShape.hpp>
 #include <MeshGenerator/MeshGenerator.hpp>
 #include <unordered_map>
-#include <vector>
 #include <atomic>
 #include <cstdint>
 
@@ -48,13 +46,13 @@ public:
     /// @return Ref на фигуру. Возвращает невалидный Ref, если фигура не найдена. Поточно-безопасен.
     Ref<SemanticShape> get_shape(uint64_t id) const;
 
-    /// @brief Уведомляет фигуры об изменении состояния чанков (зон).
-    /// Используется системой LOD для обновления состояния фигур при загрузке/выгрузке областей.
-    /// @param chunk_ids Вектор ID чанков, состояние которых изменилось.
-    void on_zone_changed(const std::vector<uint64_t>& chunk_ids);
+    /// @brief Уведомляет конкретную фигуру об изменении состояния её чанков (зон).
+    /// @param shape_id ID фигуры, чьи чанки изменились.
+    /// @param chunk_ids Вектор ID добавленных чанков.
+    void on_zone_changed(uint64_t shape_id, const std::vector<uint64_t>& chunk_ids);
 
     /// @brief Инициирует транзакционное изменение состояния фигуры.
-    /// Запускает каскадную оценку реакций (evaluate_reaction) у зависимых объектов и атомарно 
+    /// Запускает каскадную оценку реакций (evaluate_reaction) у зависимых объектов и атомарно
     /// применяет все одобренные изменения, обновляя граф зависимостей.
     /// @param old_id ID фигуры, которая должна быть заменена.
     /// @param proposed_shape Предложение (Ref) новой, еще не зарегистрированной фигуры.
@@ -63,12 +61,10 @@ public:
 
 } // namespace godot
 
-```
-
-```
 #pragma once
 
 #include <godot_cpp/classes/node3d.hpp>
+#include <godot_cpp/classes/mesh_instance3d.hpp>
 #include <godot_cpp/classes/array_mesh.hpp>
 #include <cstdint>
 
@@ -124,9 +120,105 @@ public:
 };
 
 } // namespace godot
-```
 
-```
+#pragma once
+
+#include "ChunkOctree.hpp"
+#include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/classes/engine.hpp>
+#include <SemanticShape/SemanticShape.hpp>
+#include <atomic>
+#include <cstdint>
+
+namespace godot {
+
+/// @brief Глобальный менеджер пространственного разбиения.
+/// Управляет созданием ChunkOctree для фигур и обеспечивает наследование пространственной сетки.
+class ShapeSpatialManager : public Object {
+    GDCLASS(ShapeSpatialManager, Object)
+
+private:
+    /// Деревья, которыми этот менеджер владеет (созданы для is_relative == true или корневых фигур)
+    std::unordered_map<uint64_t, std::unique_ptr<ChunkOctree>> _owned_octrees;
+    
+    /// Пространственная привязка: для каждой фигуры указывает, чье дерево она использует.
+    /// Может указывать на собственное дерево или на дерево родителя.
+    std::unordered_map<uint64_t, ChunkOctree*> _shape_to_octree;
+    
+    std::atomic<uint64_t> _next_chunk_id{1};
+
+protected:
+    static void _bind_methods() {}
+
+public:
+    static ShapeSpatialManager* get_singleton();
+
+    /// @brief Регистрирует фигуру и автоматически решает, нужно ли ей собственное октодерево.
+    void register_shape(uint64_t shape_id, Ref<SemanticShape> shape);
+
+    /// @brief Связывает дочернюю фигуру с пространственной сеткой родительской.
+    void bind_spatially(uint64_t child_shape_id, uint64_t parent_shape_id);
+
+    /// @brief Удаляет фигуру и корректно очищает ссылки на её дерево у дочерних элементов.
+    void unregister_shape(uint64_t shape_id);
+
+    /// @brief Возвращает октодерево, которое должна использовать данная фигура.
+    ChunkOctree* get_octree(uint64_t shape_id) const;
+
+    /// @brief Итерация только по тем фигурам, которые владеют собственным октодеревом.
+    void for_each_owned_octree(std::function<void(uint64_t shape_id, ChunkOctree* octree)> func);
+
+    /// @brief Глобальный провайдер уникальных ID для всех чанков в сцене.
+    uint64_t get_next_chunk_id() { return _next_chunk_id++; }
+};
+
+} // namespace godot
+
+#pragma once
+#include "Chunk.hpp"
+#include <unordered_map>
+#include <unordered_set>
+#include <functional>
+#include <cstdint>
+
+namespace godot {
+
+class ChunkOctree {
+    
+private:
+    std::unordered_map<uint64_t, Chunk*> roots;
+    std::unordered_set<Chunk*> leaf_chunks;
+    std::unordered_map<uint64_t, Chunk*> id_to_chunk;
+
+    void destroy_subtree(Chunk* node);
+
+    /// @brief Рекурсивно оценивает и обновляет LOD для конкретного узла и его потомков.
+    void evaluate_node(Chunk* node, const Vector3& viewer_pos, int max_depth);
+    
+public:
+    ~ChunkOctree() { clear(); }
+
+    uint64_t add_root(const Vector3& center, float size);
+    void remove_root(uint64_t id);
+    
+    void for_each_root(std::function<void(Chunk*)> func);
+
+    void split(Chunk* node);
+    void collapse(Chunk* node);
+    
+    /// @brief Автоматически оценивает и обновляет LOD дерева на основе позиции наблюдателя.
+    void evaluate_and_update_lod(const Vector3& viewer_pos, int max_depth);
+
+    void for_each_leaf(std::function<void(Chunk*)> func);
+
+    Chunk* find(uint64_t id) const;
+
+    void clear();
+};
+
+} // namespace godot
+
 #pragma once
 
 #include <MaterialGenerator/MaterialGenerator.hpp>
@@ -134,7 +226,6 @@ public:
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 #include <godot_cpp/variant/aabb.hpp>
 #include <array>
-#include <vector>
 #include <memory>
 #include <cstdint>
 #include <unordered_map>
@@ -142,32 +233,32 @@ public:
 namespace godot {
 
 /// @brief Узел октодерева, представляющий пространственный объем (чанк) и хранящий его визуальные данные.
-/// Примечание: Экземпляры этого класса управляются классом ChunkOctree. 
-/// Получение указателя Chunk* по его ID осуществляется через ChunkOctree::get_singleton()->find(id).
+/// Примечание: Экземпляры этого класса управляются экземпляром ChunkOctree.
+/// Получение указателя Chunk* по его ID осуществляется через ShapeSpatialManager::get_singleton()->get_octree(shape_id)->find(id).
 class Chunk {
 public:
-    uint64_t id; ///< Уникальный идентификатор чанка.
+    uint64_t id; ///< Уникальный глобальный идентификатор чанка.
     Vector3 center; ///< Центр чанка в мировых координатах.
     float size; ///< Длина стороны чанка.
     int depth; ///< Глубина чанка в октодереве (0 = корневой чанк).
-    
+
     std::array<std::unique_ptr<Chunk>, 8> children; ///< Дочерние чанки (nullptr, если является листом).
     Chunk* parent = nullptr; ///< Указатель на родительский чанк.
 
     /// @brief Словарь визуальных представлений фигур в этом чанке (ID фигуры -> MeshInstance3D).
     std::unordered_map<uint64_t, MeshInstance3D*> shape_meshes;
-    
+
     /// @brief Словарь генераторов материалов для фигур, ожидающих завершения асинхронной генерации меша.
     std::unordered_map<uint64_t, Ref<MaterialGenerator>> shape_material_generators;
 
     /// @brief Создает новый чанк.
-    /// @param id Уникальный идентификатор.
+    /// @param id Уникальный глобальный идентификатор.
     /// @param c Центр чанка в мировых координатах.
     /// @param s Размер (длина стороны) чанка.
     /// @param d Глубина в октодереве.
     /// @param p Указатель на родительский чанк.
     Chunk(uint64_t id, Vector3 c = Vector3(), float s = 0.0f, int d = 0, Chunk* p = nullptr);
-    
+
     /// @brief Деструктор. Автоматически очищает дочерние чанки и удаляет связанные MeshInstance3D из сцены.
     ~Chunk();
 
@@ -177,7 +268,7 @@ public:
 
     /// @brief Возвращает true, если чанк не имеет дочерних элементов (является листом октодерева).
     bool is_leaf() const { return children[0] == nullptr; }
-    
+
     /// @brief Вычисляет и возвращает ограничивающий объем (AABB) данного чанка на основе его центра и размера.
     AABB get_aabb() const;
 
@@ -190,9 +281,7 @@ public:
 };
 
 } // namespace godot
-```
 
-```
 #pragma once
 
 #include <godot_cpp/classes/resource.hpp>
@@ -204,20 +293,20 @@ public:
 
 namespace godot {
 
+class MeshGenerator;
+
 /// @brief Базовый класс для семантических фигур.
 /// Управляет графом зависимостей и участвует в системе транзакционных изменений состояния.
 class SemanticShape : public Resource {
     GDCLASS(SemanticShape, Resource)
 
 private:
-    uint64_t _id = 0;
-    godot::PackedInt64Array _owned_shape_ids;
-    
-    /// @brief Список модифицированных дочерних фигур
-    /// Ключ - детерминированый локальный ключ, получаемый только из свойств дочерней фигуры и сида
-    std::unordered_map<uint64_t, Ref<SemanticShape>> _needed_shapes_map;
 
 protected:
+    uint64_t _id = 0;
+    godot::PackedInt64Array _owned_shape_ids;
+    bool _is_relative = false; ///< Движется ли фигура относительно своего пространственного родителя.
+    
     AABB _aabb;
     bool _aabb_dirty = true;
 
@@ -229,10 +318,15 @@ public:
 
     void set_id(uint64_t id) { _id = id; }
     uint64_t get_id() const { return _id; }
+    
+    /// @brief Возвращает true, если фигура имеет собственное независимое пространство 
+    /// (движется относительно родителя, имеет свою физику и т.д.).
+    virtual bool is_relative() const { return _is_relative; }
+    void set_relative(bool value) { _is_relative = value; }
 
     AABB get_aabb();
     
-    /// @brief Пересчитывает AABB фигуры при вызове
+    /// @brief Пересчитывает AABB фигуры при вызове.
     virtual void recompute_aabb() { }
 
     void notify_shape_changed();
@@ -264,96 +358,24 @@ public:
 };
 
 } // namespace godot
-```
-```
-#pragma once
-
-#include <godot_cpp/classes/resource.hpp>
-#include <godot_cpp/classes/array_mesh.hpp>
-#include <godot_cpp/variant/aabb.hpp>
-
-namespace godot {
-
-class SemanticShape;
-
-/// @brief Базовый класс для генерации геометрии (ArrayMesh) семантических фигур.
-class MeshGenerator : public Resource {
-    GDCLASS(MeshGenerator, Resource)
-
-protected:
-    static void _bind_methods();
-
-public:
-    MeshGenerator() = default;
-    ~MeshGenerator() = default;
-
-    /// @brief Генерирует меш для указанной фигуры в заданном чанке.
-    /// Поддерживает два режима работы:
-    /// 1. Синхронный: для простых фигур генерирует и возвращает Ref<ArrayMesh> немедленно в главном потоке.
-    /// 2. Асинхронный: для сложных вычислений возвращает nullptr, запускает фоновый поток, 
-    ///    который по завершении должен самостоятельно вызвать WorldMesh::complete_mesh().
-    /// @param shape_id Уникальный ID семантической фигуры.
-    /// @param chunk_id ID чанка, для которого производится генерация.
-    /// @return Ref<ArrayMesh> с готовой геометрией (при синхронной генерации) или nullptr (при асинхронной).
-    virtual Ref<ArrayMesh> generate(uint64_t shape_id, uint64_t chunk_id) const;
-};
-
-} // namespace godot
-```
-```
-#pragma once
-
-#include <godot_cpp/classes/resource.hpp>
-#include <godot_cpp/classes/material.hpp>
-
-namespace godot {
-
-class MaterialGenerator : public Resource {
-    GDCLASS(MaterialGenerator, Resource)
-
-protected:
-    static void _bind_methods();
-
-public:
-    MaterialGenerator() {};
-    virtual ~MaterialGenerator() {};
-
-    virtual Ref<Material> generate(uint64_t shape_id, uint64_t chunk_id) const;
-};
-
-} // namespace godot
-```
-```
-#include "MaterialGenerator.hpp"
-#include <godot_cpp/core/class_db.hpp>
-
-using namespace godot;
-
-void MaterialGenerator::_bind_methods() {}
-
-Ref<Material> MaterialGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
-    return Ref<Material>();
-}
-```
-
-***
 
 Пример фигуры:
-```
 #pragma once
 
-#include <SemanticSphere/SemanticSphere.hpp>
+#include <SemanticShape/SemanticShape.hpp>
 #include <CubeMeshGenerator/CubeMeshGenerator.hpp>
 #include <TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp>
 #include <godot_cpp/classes/ref.hpp>
 
 namespace godot {
 
+/// @brief Тестовая семантическая фигура в виде куба.
+/// Демонстрирует интеграцию с новой архитектурой локальных октодеревьев.
+/// Управляет собственным LOD через переопределённый sync_lod.
 class TestCube : public SemanticShape {
     GDCLASS(TestCube, SemanticShape)
 
 private:
-
     Ref<CubeMeshGenerator> _mesh_generator;
     Ref<TriplanarMaterialGenerator> _material_generator;
 
@@ -373,38 +395,38 @@ public:
 
     virtual void on_zone_changed(uint64_t chunk_id) override;
 
-    void set_pos(Vector3 p_pos) { _pos = p_pos; }
+    void set_pos(Vector3 p_pos) { _pos = p_pos; notify_shape_changed(); }
     Vector3 get_pos() const { return _pos; }
 
-    void set_size(Vector3 p_size) { _size = p_size; }
+    void set_size(Vector3 p_size) { _size = p_size; notify_shape_changed(); }
     Vector3 get_size() const { return _size; }
 };
 
 } // namespace godot
-```
-```
+
 #include "TestCube.hpp"
 #include <WorldMesh/WorldMesh.hpp>
-#include <ChunkOctree/ChunkOctree.hpp>
-#include <MaterialGenerator/MaterialGenerator.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
+#include <godot_cpp/core/math.hpp>
 
 using namespace godot;
 
 void TestCube::_bind_methods() {
-
+    // Binding'и для Godot, если нужны
 }
 
 TestCube::TestCube() {
+    _is_relative = true;
+    
     _pos = Vector3(-10.0, -10.0, -10.0);
-    _size = Vector3( 20.0,  20.0,  20.0);
+    _size = Vector3(20.0, 20.0, 20.0);
 
     _mesh_generator.instantiate();
     _mesh_generator->set_pos(_pos);
     _mesh_generator->set_size(_size);
 
     _material_generator.instantiate();
-    _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load("res://assets/test_texture.png"));
+    _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load("res://assets/test_texture.jpg"));
 }
 
 void TestCube::recompute_aabb() {
@@ -423,8 +445,7 @@ void TestCube::on_zone_changed(uint64_t chunk_id) {
 
     wm->request_render(get_id(), chunk_id, _mesh_generator, _material_generator);
 }
-```
-```
+
 #pragma once
 
 #include <MeshGenerator/MeshGenerator.hpp>
@@ -461,10 +482,10 @@ public:
 };
 
 } // namespace godot
-```
-```
+
 #include "CubeMeshGenerator.hpp"
-#include <ChunkOctree/ChunkOctree.hpp>
+#include <ShapeSpatialManager/ShapeSpatialManager.hpp> // <-- ДОБАВЛЕНО
+#include <SemanticWorld/SemanticWorld.hpp>             // <-- ДОБАВЛЕНО
 #include <godot_cpp/classes/array_mesh.hpp>
 #include <godot_cpp/variant/aabb.hpp>
 #include <godot_cpp/variant/packed_vector3_array.hpp>
@@ -484,16 +505,35 @@ Ref<ArrayMesh> CubeMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id)
     Ref<ArrayMesh> mesh;
     mesh.instantiate();
 
-    Chunk* chunk = ChunkOctree::get_singleton()->find(chunk_id);
+    auto* mgr = ShapeSpatialManager::get_singleton();
+    if (!mgr) return mesh;
+
+    ChunkOctree* octree = mgr->get_octree(shape_id);
+    if (!octree) return mesh;
+
+    Chunk* chunk = octree->find(chunk_id);
     if (!chunk) return mesh;
 
+    auto* world = SemanticWorld::get_singleton();
+    Ref<SemanticShape> shape = world->get_shape(shape_id);
+    if (!shape.is_valid()) return mesh;
+
+    // 1. Получаем AABB в мировых координатах
+    AABB shape_aabb = shape->get_aabb();
     AABB chunk_aabb = chunk->get_aabb();
+
+    // 2. Находим реальное пересечение фигуры и чанка
+    AABB intersect = shape_aabb.intersection(chunk_aabb);
     
-    Vector3 c_min = pos;
-    Vector3 c_max = pos + size;
-    
-    Vector3 ch_min = chunk_aabb.position;
-    Vector3 ch_max = chunk_aabb.position + chunk_aabb.size;
+    // Если пересечения нет (или оно вырождено), меш не нужен
+    if (intersect.size.x <= 0.001f || intersect.size.y <= 0.001f || intersect.size.z <= 0.001f) {
+        return mesh;
+    }
+
+    // 3. Переводим координаты пересечения в локальное пространство чанка (относительно его центра)
+    Vector3 center = chunk_aabb.get_center();
+    Vector3 local_min = intersect.position - center;
+    Vector3 local_max = intersect.position + intersect.size - center;
 
     PackedVector3Array vertices;
     PackedVector3Array normals;
@@ -514,49 +554,19 @@ Ref<ArrayMesh> CubeMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id)
         indices.push_back(base); indices.push_back(base + 3); indices.push_back(base + 2);
     };
 
-    float x0, x1, y0, y1, z0, z1;
-
-    if (c_max.x >= ch_min.x && c_max.x <= ch_max.x) {
-        y0 = MAX(c_min.y, ch_min.y); y1 = MIN(c_max.y, ch_max.y);
-        z0 = MAX(c_min.z, ch_min.z); z1 = MIN(c_max.z, ch_max.z);
-        if (y0 < y1 && z0 < z1) 
-            add_quad(Vector3(c_max.x, y0, z0), Vector3(c_max.x, y1, z0), Vector3(c_max.x, y1, z1), Vector3(c_max.x, y0, z1), Vector3(1, 0, 0));
-    }
-
-    if (c_min.x >= ch_min.x && c_min.x <= ch_max.x) {
-        y0 = MAX(c_min.y, ch_min.y); y1 = MIN(c_max.y, ch_max.y);
-        z0 = MAX(c_min.z, ch_min.z); z1 = MIN(c_max.z, ch_max.z);
-        if (y0 < y1 && z0 < z1) 
-            add_quad(Vector3(c_min.x, y0, z1), Vector3(c_min.x, y1, z1), Vector3(c_min.x, y1, z0), Vector3(c_min.x, y0, z0), Vector3(-1, 0, 0));
-    }
-
-    if (c_max.y >= ch_min.y && c_max.y <= ch_max.y) {
-        x0 = MAX(c_min.x, ch_min.x); x1 = MIN(c_max.x, ch_max.x);
-        z0 = MAX(c_min.z, ch_min.z); z1 = MIN(c_max.z, ch_max.z);
-        if (x0 < x1 && z0 < z1) 
-            add_quad(Vector3(x0, c_max.y, z1), Vector3(x1, c_max.y, z1), Vector3(x1, c_max.y, z0), Vector3(x0, c_max.y, z0), Vector3(0, 1, 0));
-    }
-
-    if (c_min.y >= ch_min.y && c_min.y <= ch_max.y) {
-        x0 = MAX(c_min.x, ch_min.x); x1 = MIN(c_max.x, ch_max.x);
-        z0 = MAX(c_min.z, ch_min.z); z1 = MIN(c_max.z, ch_max.z);
-        if (x0 < x1 && z0 < z1) 
-            add_quad(Vector3(x0, c_min.y, z0), Vector3(x1, c_min.y, z0), Vector3(x1, c_min.y, z1), Vector3(x0, c_min.y, z1), Vector3(0, -1, 0));
-    }
-
-    if (c_max.z >= ch_min.z && c_max.z <= ch_max.z) {
-        x0 = MAX(c_min.x, ch_min.x); x1 = MIN(c_max.x, ch_max.x);
-        y0 = MAX(c_min.y, ch_min.y); y1 = MIN(c_max.y, ch_max.y);
-        if (x0 < x1 && y0 < y1) 
-            add_quad(Vector3(x0, y0, c_max.z), Vector3(x1, y0, c_max.z), Vector3(x1, y1, c_max.z), Vector3(x0, y1, c_max.z), Vector3(0, 0, 1));
-    }
-
-    if (c_min.z >= ch_min.z && c_min.z <= ch_max.z) {
-        x0 = MAX(c_min.x, ch_min.x); x1 = MIN(c_max.x, ch_max.x);
-        y0 = MAX(c_min.y, ch_min.y); y1 = MIN(c_max.y, ch_max.y);
-        if (x0 < x1 && y0 < y1) 
-            add_quad(Vector3(x1, y0, c_min.z), Vector3(x0, y0, c_min.z), Vector3(x0, y1, c_min.z), Vector3(x1, y1, c_min.z), Vector3(0, 0, -1));
-    }
+    // Генерируем 6 граней строго для области пересечения
+    // Правая (X+)
+    add_quad(Vector3(local_max.x, local_min.y, local_min.z), Vector3(local_max.x, local_max.y, local_min.z), Vector3(local_max.x, local_max.y, local_max.z), Vector3(local_max.x, local_min.y, local_max.z), Vector3(1, 0, 0));
+    // Левая (X-)
+    add_quad(Vector3(local_min.x, local_min.y, local_max.z), Vector3(local_min.x, local_max.y, local_max.z), Vector3(local_min.x, local_max.y, local_min.z), Vector3(local_min.x, local_min.y, local_min.z), Vector3(-1, 0, 0));
+    // Верхняя (Y+)
+    add_quad(Vector3(local_min.x, local_max.y, local_max.z), Vector3(local_max.x, local_max.y, local_max.z), Vector3(local_max.x, local_max.y, local_min.z), Vector3(local_min.x, local_max.y, local_min.z), Vector3(0, 1, 0));
+    // Нижняя (Y-)
+    add_quad(Vector3(local_min.x, local_min.y, local_min.z), Vector3(local_max.x, local_min.y, local_min.z), Vector3(local_max.x, local_min.y, local_max.z), Vector3(local_min.x, local_min.y, local_max.z), Vector3(0, -1, 0));
+    // Передняя (Z+)
+    add_quad(Vector3(local_min.x, local_min.y, local_max.z), Vector3(local_max.x, local_min.y, local_max.z), Vector3(local_max.x, local_max.y, local_max.z), Vector3(local_min.x, local_max.y, local_max.z), Vector3(0, 0, 1));
+    // Задняя (Z-)
+    add_quad(Vector3(local_max.x, local_min.y, local_min.z), Vector3(local_min.x, local_min.y, local_min.z), Vector3(local_min.x, local_max.y, local_min.z), Vector3(local_max.x, local_max.y, local_min.z), Vector3(0, 0, -1));
 
     if (vertices.is_empty()) return mesh;
 
@@ -568,13 +578,5 @@ Ref<ArrayMesh> CubeMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id)
     mesh_array[Mesh::ARRAY_INDEX] = indices;
 
     mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, mesh_array);
-
     return mesh;
 }
-```
-
-Тебе нужно написать новую семантическую фигуру. Пиши минимум кода. Вводи минимум параметров.
-
-Описывает:
-Генератор:
-Вид фигуры(при наличии генератора):

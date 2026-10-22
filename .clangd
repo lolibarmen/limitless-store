@@ -49,3 +49,4 @@ Diagnostics:
     - "unused-private-field"
     - "member_decl_does_not_match"
     - "ovl_no_viable_conversion_in_cast"
+    - "typecheck_nonviable_condition"
