@@ -16,8 +16,6 @@ TestCube::TestCube() {
     _size = Vector3(20.0, 20.0, 20.0);
 
     _mesh_generator.instantiate();
-    _mesh_generator->set_pos(_pos);
-    _mesh_generator->set_size(_size);
 
     _material_generator.instantiate();
     _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load("res://assets/test_texture.jpg"));

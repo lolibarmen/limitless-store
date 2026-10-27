@@ -24,7 +24,7 @@ public:
     SurfaceGenerator() = default;
     ~SurfaceGenerator() override = default;
 
-    Ref<ArrayMesh> generate(uint64_t shape_id, uint64_t chunk_id) const override;
+    void generate(uint64_t shape_id, uint64_t chunk_id) const override;
 
     void set_lod_level(int level) { _lod_level = level; }
     int get_lod_level() const { return _lod_level; }

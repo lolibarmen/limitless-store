@@ -1,5 +1,6 @@
 #include "WorldCoordinator.hpp"
 #include <SurfaceGenerator/ChunkMaterialManager.hpp>
+#include <cstdint>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
@@ -41,18 +42,14 @@ void WorldCoordinator::_process(double delta) {
     }
 }
 
-// #include <StarSystem/StarSystem.hpp>
-#include <TestCube/TestCube.hpp>
+// #include <TreeBranch/TreeBranch.hpp>
+// #include <TreeTrunk/TreeTrunk.hpp>
+// #include <TestCube/TestCube.hpp>
 void WorldCoordinator::_register_initial_shapes() {
     SemanticWorld* sw = SemanticWorld::get_singleton();
+    if (!sw) return;
 
-    Ref<TestCube> test_sphere;
-    test_sphere.instantiate();
-
-    sw->register_shape(test_sphere);
-    
-    // Ref<StarSystem> star_system;
-    // star_system.instantiate();
-    
-    // sw->register_shape(star_system);
+    Ref<TestCube> cube;
+    cube.instantiate();
+    sw->register_shape(cube);
 }

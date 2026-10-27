@@ -1,6 +1,6 @@
 #include "SurfaceGenerator.hpp"
 #include <Utils/VoxelBaker.hpp>
-#include <ShapeSpatialManager/ShapeSpatialManager.hpp> // <-- ДОБАВЛЕНО
+#include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -21,7 +21,7 @@ void SurfaceGenerator::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_on_mesh_generated", "shape_id", "chunk_key", "mesh"), &SurfaceGenerator::_on_mesh_generated);
 }
 
-Ref<ArrayMesh> SurfaceGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
+void SurfaceGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
     uint64_t generator_id = get_instance_id();
 
     WorkerThreadPool::get_singleton()->add_task(
@@ -29,9 +29,6 @@ Ref<ArrayMesh> SurfaceGenerator::generate(uint64_t shape_id, uint64_t chunk_id) 
         false,
         "SurfaceGenerator::generate"
     );
-
-    // Возвращаем пустой Ref, так как генерация асинхронная и завершится через call_deferred
-    return Ref<ArrayMesh>();
 }
 
 void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id, uint64_t chunk_id) {
