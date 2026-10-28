@@ -90,21 +90,26 @@ void ChunkOctree::destroy_subtree(Chunk* node) {
 }
 
 uint64_t ChunkOctree::add_root(const Vector3& center, float size) {
-    // Корень всегда привязан к целочисленной решётке: центр имеет чётные координаты,
-    // поэтому размер корня — ближайшее целое >= 16 (степень двойки при делении не ломает сетку),
-    // а все дочерние чанки остаются выровнены по узлам мировой решётки (целый размер).
-    int root_size = 16;
+    // Минимальный листовой чанк — 16 юнитов (16 точек с шагом 1 юнит на ребро).
+    const int leaf_min = 16;
+
+    // Размер корня — степень двойки * leaf_min: при делении пополам все потомки
+    // остаются целыми и выровненными по решётке leaf_min.
+    int root_size = leaf_min;
     while ((float)root_size < size) root_size *= 2;
 
-    const Vector3 snapped_center(
-        Math::round(center.x / root_size) * root_size,
-        Math::round(center.y / root_size) * root_size,
-        Math::round(center.z / root_size) * root_size
+    // Границы корня выравниваем по решётке leaf_min вокруг центра фигуры.
+    auto snap = [leaf_min](float v) { return Math::floor(v / leaf_min) * leaf_min; };
+    const Vector3 min_bound = Vector3(
+        snap(center.x - size * 0.5f),
+        snap(center.y - size * 0.5f),
+        snap(center.z - size * 0.5f)
     );
+    const Vector3 root_center = min_bound + Vector3(root_size, root_size, root_size) * 0.5f;
 
     uint64_t new_id = ShapeSpatialManager::get_singleton()->get_next_chunk_id();
 
-    Chunk* root = new Chunk(new_id, snapped_center, (float)root_size, 0, nullptr);
+    Chunk* root = new Chunk(new_id, root_center, (float)root_size, 0, nullptr);
     
     roots[new_id] = root;
     leaf_chunks.insert(root);
