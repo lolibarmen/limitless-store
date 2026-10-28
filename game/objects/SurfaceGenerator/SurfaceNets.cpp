@@ -81,10 +81,12 @@ MeshData godot::build_neochunk_mesh(const ChunkBuildInput& input) {
         }
         meanP = meanP / edge_points.size();
 
-        float scale = (1 << input.lod_level);
-        Vector3 offset = Vector3(input.chunk_size, input.chunk_size, input.chunk_size) * 0.5f;
+        // Масштабируем индексную позицию вокселя реальным размером ячейки (chunk_size / voxel_count),
+        // а не фиксированным шагом LOD, и центрируем относительно центра чанка.
+        float cell = input.cell_size;
+        Vector3 half(input.chunk_size * 0.5f, input.chunk_size * 0.5f, input.chunk_size * 0.5f);
 
-        voxel_vertices[{x,y,z}] = meanP * scale - offset;
+        voxel_vertices[{x,y,z}] = meanP * cell - half;
     }
     
     // Второй проход: строим квады между соседними вокселями

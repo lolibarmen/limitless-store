@@ -5,6 +5,8 @@
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/worker_thread_pool.hpp>
+#include <godot_cpp/core/math.hpp>
+#include <algorithm>
 
 using namespace godot;
 
@@ -60,8 +62,13 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     inp->lod_level   = gen->_lod_level;
     inp->voxel_count = gen->_voxel_count;
     inp->chunk_size  = chunk_size;
+    // Реальный размер одной воксельной ячейки: сетка из voxel_count ячеек должна
+    // в точности покрывать cube чанка, независимо от его фактического размера.
+    inp->cell_size   = chunk_size / gen->_voxel_count;
     inp->stride      = (int)gen->_voxel_count + 4;
-    inp->step        = 1 << gen->_lod_level;
+    // Шаг выборки SDF в мировых координатах совпадает с размером ячейки,
+    // а не с фиксированным шагом (1 << lod), зависевшим от прежних constant-size чанков.
+    inp->step        = Math::max(1, (int)Math::round(inp->cell_size));
     
     inp->chunk_coord = Vector3i(
         (int)Math::floor(chunk_pos.x - chunk_size / 2.0f),
