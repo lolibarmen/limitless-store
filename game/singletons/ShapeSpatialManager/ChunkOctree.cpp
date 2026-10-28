@@ -9,6 +9,72 @@ static float cube_distance(const Vector3& a, const Vector3& b) {
     return Math::max(Math::max(Math::abs(a.x - b.x), Math::abs(a.y - b.y)), Math::abs(a.z - b.z));
 }
 
+void ChunkOctree::add_user(uint64_t shape_id) {
+    if (_users.insert(shape_id).second) {
+        _pending_users.insert(shape_id);
+    }
+}
+
+void ChunkOctree::remove_user(uint64_t shape_id) {
+    _users.erase(shape_id);
+    _pending_users.erase(shape_id);
+}
+
+size_t ChunkOctree::user_count() const {
+    return _users.size();
+}
+
+void ChunkOctree::for_each_user(std::function<void(uint64_t shape_id)> func) const {
+    for (uint64_t shape_id : _users) {
+        func(shape_id);
+    }
+}
+
+void ChunkOctree::update_lod_and_notify(
+    const Vector3& viewer_pos,
+    int max_depth,
+    const std::function<void(uint64_t shape_id, const std::vector<uint64_t>& chunk_ids)>& notify
+) {
+    evaluate_and_update_lod(viewer_pos, max_depth);
+
+    std::unordered_set<uint64_t> current_chunks;
+    for_each_leaf([&current_chunks](Chunk* chunk) {
+        if (chunk) {
+            current_chunks.insert(chunk->id);
+        }
+    });
+
+    std::vector<uint64_t> added_chunks;
+    for (uint64_t chunk_id : current_chunks) {
+        if (_prev_active_chunks.find(chunk_id) == _prev_active_chunks.end()) {
+            added_chunks.push_back(chunk_id);
+        }
+    }
+
+    std::vector<uint64_t> current_chunk_list;
+    if (!_pending_users.empty()) {
+        current_chunk_list.reserve(current_chunks.size());
+        for (uint64_t chunk_id : current_chunks) {
+            current_chunk_list.push_back(chunk_id);
+        }
+    }
+
+    std::vector<uint64_t> users_copy(_users.begin(), _users.end());
+
+    for (uint64_t shape_id : users_copy) {
+        if (_pending_users.find(shape_id) != _pending_users.end()) {
+            if (!current_chunk_list.empty()) {
+                notify(shape_id, current_chunk_list);
+            }
+        } else if (!added_chunks.empty()) {
+            notify(shape_id, added_chunks);
+        }
+    }
+
+    _pending_users.clear();
+    _prev_active_chunks = std::move(current_chunks);
+}
+
 void ChunkOctree::destroy_subtree(Chunk* node) {
     if (!node) return;
 
@@ -154,9 +220,13 @@ void ChunkOctree::clear() {
         destroy_subtree(pair.second);
         delete pair.second;
     }
+
     roots.clear();
     leaf_chunks.clear();
     id_to_chunk.clear();
+
+    _prev_active_chunks.clear();
+    _pending_users.clear();
 }
 
 } // namespace godot

@@ -51,7 +51,7 @@ protected:
     bool _aabb_dirty = true;
 
     static void _bind_methods();
-
+    
 public:
     SemanticShape();
     virtual ~SemanticShape();
@@ -62,7 +62,6 @@ public:
     /// @brief Возвращает true, если фигура имеет собственное независимое пространство 
     /// (движется относительно родителя, имеет свою физику и т.д.).
     virtual bool is_relative() const { return _is_relative; }
-    void set_relative(bool value) { _is_relative = value; }
 
     AABB get_aabb();
     
@@ -77,8 +76,16 @@ public:
     /// @brief Вычисляет значение SDF (Signed Distance Field) для точки в мировом пространстве.
     virtual float evaluate_sdf(const Vector3& world_pos) const;
 
-    /// @brief Ядро системы LOD. Вызывается при изменении состояния чанка, в котором находится фигура.
-    /// @param chunk_id ID изменившегося чанка.
+    /// @brief Ядро системы LOD. Вызывается при активации чанка в октодереве, к которому привязана фигура.
+    /// @param chunk_id ID активированного чанка.
+    /// @details Привязку выполняет ShapeSpatialManager:
+    ///  - is_relative() == true — фигура использует собственное октодерево;
+    ///  - is_relative() == false — фигура использует октодерево родителя, заданное через bind_spatially().
+    ///
+    /// Фигура не хранит ссылку на октодерево.
+    ///
+    /// Если фигура логически мала, но может пересекать несколько чанков, обработчик обязан
+    /// подавлять дублирование: выполнять эффект только когда центр AABB фигуры лежит внутри chunk_id.
     virtual void on_zone_changed(uint64_t chunk_id) {}
 
     /// @brief Ядро системы транзакций. Реакция фигуры на изменение зависимого объекта.

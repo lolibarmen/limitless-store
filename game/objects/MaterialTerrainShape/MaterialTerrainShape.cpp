@@ -1,6 +1,9 @@
 #include "MaterialTerrainShape.hpp"
+#include <ShapeSpatialManager/Chunk.hpp>
+#include <ShapeSpatialManager/ChunkOctree.hpp>
+#include <godot_cpp/core/print_string.hpp>
 #include <WorldMesh/WorldMesh.hpp>
-#include <ChunkOctree/ChunkOctree.hpp>
+#include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
@@ -29,6 +32,8 @@ void MaterialTerrainShape::_bind_methods() {
 }
 
 MaterialTerrainShape::MaterialTerrainShape() {
+    _is_relative = true;
+    
     _noise.instantiate();
     _noise->set_noise_type(FastNoiseLite::TYPE_SIMPLEX);
     _noise->set_frequency(_frequency);
@@ -74,29 +79,6 @@ void MaterialTerrainShape::on_zone_changed(uint64_t chunk_id) {
     WorldMesh* wm = WorldMesh::get_singleton();
     if (!wm) return;
 
-    Chunk* chunk = ChunkOctree::get_singleton()->find(chunk_id);
-    if (!chunk || !chunk->is_leaf()) return;
-
-    Ref<MeshGenerator> mesh_gen;
-    Ref<MaterialGenerator> mat_gen;
-
-    // ЕДИНСТВЕННАЯ проверка LOD для обоих генераторов
-    switch (chunk->depth) {
-        case 2: // Высокая детализация
-            mesh_gen = _generator_lod0;
-            break;
-        case 1: // Средняя детализация
-            mesh_gen = _generator_lod1;
-            break;
-        case 0: // Низкая детализация
-            mesh_gen = _generator_lod2;
-            break;
-        default:
-            return; // Не поддерживаемый depth
-    }
-
-    if (mesh_gen.is_null()) return;
-
     // Передаем оба генератора в WorldMesh
-    wm->request_render(get_id(), chunk_id, mesh_gen, _material_generator);
+    wm->request_render(get_id(), chunk_id, _generator_lod0, _material_generator);
 }
