@@ -63,8 +63,9 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     inp->voxel_count = gen->_voxel_count;
     inp->chunk_size  = chunk_size;
 
-    // Мировой минимум чанка. Чанки октодерева выровнены по целочисленной решётке,
+    // Мировой минимум чанка. Границы чанков выровнены по решётке voxel_count,
     // поэтому world_min — целый узел решётки и округление вниз ничего не меняет.
+    const int cells = Math::max(1, (int)Math::round(gen->_voxel_count));
     const Vector3 world_min = chunk_pos - Vector3(chunk_size, chunk_size, chunk_size) * 0.5f;
     inp->chunk_coord = Vector3i(
         (int)Math::floor(world_min.x),
@@ -72,21 +73,13 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
         (int)Math::floor(world_min.z)
     );
 
-    if (gen->_voxel_count > 0.0f) {
-        // Размер ячейки решётки выборки в мировых единицах.
-        inp->cell_size = chunk_size / gen->_voxel_count;
-        // Шаг выборки SDF: ровно cell_size между соседними точками.
-        // Для чанков кратно voxel_count это степень двойки (16→1, 8→2 ...),
-        // т.е. ЛОД-чанк снова определяет расстояние между точками, как раньше.
-        inp->step = Math::max(1, (int)Math::round(inp->cell_size));
-    } else {
-        // Защитное значение по умолчанию.
-        inp->cell_size = 1.0f;
-        inp->step      = 1;
-    }
-    // Количество ячеек решётки внутри чанка (не зависит от размера чанка).
-    inp->grid_cells = Math::max(1, (int)Math::round(chunk_size / inp->cell_size));
-    inp->stride = inp->grid_cells + 4;
+    // Шаг выборки SDF = размер ячейки решётки = world_size / voxel_count.
+    // Чанки ограничены снизу размером voxel_count, поэтому step >= 1 (для
+    // 16-чанка — ровно 1 юнит между точками, как в старой схеме с фикс. чанками).
+    inp->cell_size = Math::max(chunk_size / cells, 1.0f);
+    inp->step = (int)Math::round(inp->cell_size);
+    inp->grid_cells = cells;
+    inp->stride = cells + 4;
 
     inp->cache = std::make_shared<VoxelCache>(inp->stride, inp->step, inp->chunk_coord);
 
