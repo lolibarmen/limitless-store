@@ -21,6 +21,7 @@ struct ChunkBuildInput {
     Vector3 chunk_coord;
     float chunk_size;
     float voxel_count;
+    float cell_size; // размер одной воксельной ячейки в мировых единицах = chunk_size / voxel_count
     int lod_level;
     int stride;
     int step;
