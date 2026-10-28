@@ -28,10 +28,13 @@ MeshData godot::build_neochunk_mesh(const ChunkBuildInput& input) {
     
     map<Vector3i, Vector3> voxel_vertices;
     
-    // Первый проход: собираем meanP для каждого вокселя
-    for(int x = -1; x <= input.voxel_count; x++)
-    for(int y = -1; y <= input.voxel_count; y++)
-    for(int z = -1; z <= input.voxel_count; z++)
+    // Первый проход: собираем meanP для каждого вокселя.
+    // Решётка строится в индексных координатах [0, grid_cells] — ровно voxel_count ячеек
+    // на ребро чанка независимо от его мирового размера (16-чанк → шаг 1 юнит, как раньше).
+    const int cells = input.grid_cells;
+    for(int x = -1; x <= cells; x++)
+    for(int y = -1; y <= cells; y++)
+    for(int z = -1; z <= cells; z++)
     {
         bool have_positive = false;
         bool have_negative = false;
@@ -81,12 +84,19 @@ MeshData godot::build_neochunk_mesh(const ChunkBuildInput& input) {
         }
         meanP = meanP / edge_points.size();
 
-        // Масштабируем индексную позицию вокселя реальным размером ячейки (chunk_size / voxel_count),
-        // а не фиксированным шагом LOD, и центрируем относительно центра чанка.
-        float cell = input.cell_size;
-        Vector3 half(input.chunk_size * 0.5f, input.chunk_size * 0.5f, input.chunk_size * 0.5f);
-
-        voxel_vertices[{x,y,z}] = meanP * cell - half;
+        // Переводим индексную координату meanP в ЛОКАЛЬНЫЕ координаты меша.
+        // MeshInstance3D ставится WorldMesh ровно в chunk->center, поэтому
+        // local = world - center:
+        //   world = chunk_coord + meanP * cell_size  (чанки выровнены по решётке,
+        //   chunk_coord — целый минимум чанка), значит
+        //   local = (meanP - half) * cell_size, где half = grid_cells / 2.
+        // Никаких offset-костылей: сетка из grid_cells ячеек точно покрывает чанк.
+        const float half = cells * 0.5f;
+        voxel_vertices[{x,y,z}] = Vector3(
+            (meanP.x - half) * input.cell_size,
+            (meanP.y - half) * input.cell_size,
+            (meanP.z - half) * input.cell_size
+        );
     }
     
     // Второй проход: строим квады между соседними вокселями

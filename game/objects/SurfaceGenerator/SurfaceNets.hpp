@@ -18,13 +18,15 @@ struct MeshData {
 
 // ЕДИНОЕ ОПРЕДЕЛЕНИЕ: используется и здесь, и в ChunkMeshNode
 struct ChunkBuildInput {
+    // Целочисленный минимум чанка — узел решётки выборки SDF (чанки выровнены по целой решётке).
     Vector3 chunk_coord;
-    float chunk_size;
-    float voxel_count;
-    float cell_size; // размер одной воксельной ячейки в мировых единицах = chunk_size / voxel_count
+    float chunk_size;   // ребро чанка в мировых единицах (целое, кратно voxel_count)
+    float voxel_count;  // число ячеек решётки вдоль ребра чанка (16)
+    float cell_size;    // размер одной воксельной ячейки = chunk_size / voxel_count
     int lod_level;
-    int stride;
-    int step;
+    int grid_cells;     // целое число ячеек решётки внутри чанка = round(chunk_size / cell_size)
+    int stride;         // размер плотного массива кэша с учётом 2-воксельных отступов
+    int step;           // шаг выборки SDF в мировых единицах (равен cell_size для ровных чанков)
     std::shared_ptr<VoxelCache> cache; // Без const, так как мы заполняем его в задаче
 
     // Вспомогательные методы для удобного чтения из кэша
