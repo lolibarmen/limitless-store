@@ -62,19 +62,31 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     inp->lod_level   = gen->_lod_level;
     inp->voxel_count = gen->_voxel_count;
     inp->chunk_size  = chunk_size;
-    // Реальный размер одной воксельной ячейки: сетка из voxel_count ячеек должна
-    // в точности покрывать cube чанка, независимо от его фактического размера.
-    inp->cell_size   = chunk_size / gen->_voxel_count;
-    inp->stride      = (int)gen->_voxel_count + 4;
-    // Шаг выборки SDF в мировых координатах совпадает с размером ячейки,
-    // а не с фиксированным шагом (1 << lod), зависевшим от прежних constant-size чанков.
-    inp->step        = Math::max(1, (int)Math::round(inp->cell_size));
-    
+
+    // Мировой минимум чанка. Чанки октодерева выровнены по целочисленной решётке,
+    // поэтому world_min — целый узел решётки и округление вниз ничего не меняет.
+    const Vector3 world_min = chunk_pos - Vector3(chunk_size, chunk_size, chunk_size) * 0.5f;
     inp->chunk_coord = Vector3i(
-        (int)Math::floor(chunk_pos.x - chunk_size / 2.0f),
-        (int)Math::floor(chunk_pos.y - chunk_size / 2.0f),
-        (int)Math::floor(chunk_pos.z - chunk_size / 2.0f)
+        (int)Math::floor(world_min.x),
+        (int)Math::floor(world_min.y),
+        (int)Math::floor(world_min.z)
     );
+
+    if (gen->_voxel_count > 0.0f) {
+        // Размер ячейки решётки выборки в мировых единицах.
+        inp->cell_size = chunk_size / gen->_voxel_count;
+        // Шаг выборки SDF: ровно cell_size между соседними точками.
+        // Для чанков кратно voxel_count это степень двойки (16→1, 8→2 ...),
+        // т.е. ЛОД-чанк снова определяет расстояние между точками, как раньше.
+        inp->step = Math::max(1, (int)Math::round(inp->cell_size));
+    } else {
+        // Защитное значение по умолчанию.
+        inp->cell_size = 1.0f;
+        inp->step      = 1;
+    }
+    // Количество ячеек решётки внутри чанка (не зависит от размера чанка).
+    inp->grid_cells = Math::max(1, (int)Math::round(chunk_size / inp->cell_size));
+    inp->stride = inp->grid_cells + 4;
 
     inp->cache = std::make_shared<VoxelCache>(inp->stride, inp->step, inp->chunk_coord);
 
