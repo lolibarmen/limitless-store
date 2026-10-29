@@ -43,6 +43,7 @@ void WorldCoordinator::_process(double delta) {
 // #include <TreeTrunk/TreeTrunk.hpp>
 #include <TestCube/TestCube.hpp>
 #include <MaterialTerrainShape/MaterialTerrainShape.hpp>
+#include <SphericalTerrainShape/SphericalTerrainShape.hpp>
 void WorldCoordinator::_register_initial_shapes() {
     SemanticWorld* sw = SemanticWorld::get_singleton();
     if (!sw) return;
@@ -51,7 +52,14 @@ void WorldCoordinator::_register_initial_shapes() {
     // cube.instantiate();
     // sw->register_shape(cube);
     
-    Ref<MaterialTerrainShape> terr;
-    terr.instantiate();    
-    sw->register_shape(terr);
+    // Ref<MaterialTerrainShape> terr;
+    // terr.instantiate();    
+    // sw->register_shape(terr);
+    
+    Ref<SphericalTerrainShape> sphere_terr;
+    sphere_terr.instantiate();
+    float r = 6371.0f;
+    sphere_terr->set_radius(r);
+    sphere_terr->set_center(Vector3(0.0, -r, 0.0));
+    sw->register_shape(sphere_terr);
 }

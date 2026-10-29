@@ -9,6 +9,7 @@ using namespace godot;
 #include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
+#include "SphericalTerrainShape/SphericalTerrainShape.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
 #include "MaterialTerrainShape/MaterialTerrainShape.hpp"
 #include "Player/Player.hpp"
@@ -42,6 +43,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<TriplanarMaterialGenerator>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<PlayerMovement>();
+    ClassDB::register_class<SphericalTerrainShape>();
     ClassDB::register_class<MaterialTerrainShape>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<PickableTool>();
