@@ -32,8 +32,6 @@ void MaterialTerrainShape::_bind_methods() {
 }
 
 MaterialTerrainShape::MaterialTerrainShape() {
-    _is_relative = true;
-    
     _noise.instantiate();
     _noise->set_noise_type(FastNoiseLite::TYPE_SIMPLEX);
     _noise->set_frequency(_frequency);
@@ -61,6 +59,21 @@ void MaterialTerrainShape::recompute_aabb() {
     _aabb.size = Vector3(4000.0f, size_y, 4000.0f);
     
     _aabb_dirty = false;
+}
+
+void MaterialTerrainShape::on_register() {
+    // Фигуре нужно собственное октодерево — регистрируем себя в ShapeSpatialManager
+    // со своими параметрами: максимальная глубина и размер корня.
+    ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
+    if (!mgr) {
+        return;
+    }
+
+    const AABB bounds = get_aabb();
+    constexpr int kMaxDepth = 8;         // своя максимальная глубина детализации
+    constexpr float kRootSize = 4096.0f; // свой размер корневого чанка
+
+    mgr->create_octree(get_id(), bounds.get_center(), kRootSize, kMaxDepth);
 }
 
 float MaterialTerrainShape::evaluate_sdf(const Vector3& world_pos) const {

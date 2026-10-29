@@ -36,6 +36,10 @@ public:
     float evaluate_sdf(const Vector3& world_pos) const override;
     void recompute_aabb() override;
     void on_zone_changed(uint64_t chunk_id) override;
+
+    /// @brief Фигуре нужно собственное октодерево — при регистрации она сама создаёт его
+    /// в ShapeSpatialManager со своими параметрами (максимальная глубина, размер корня).
+    void on_register() override;
 };
 
 } // namespace godot

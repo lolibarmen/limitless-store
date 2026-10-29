@@ -14,13 +14,22 @@ ShapeSpatialManager* ShapeSpatialManager::get_singleton() {
     return Object::cast_to<ShapeSpatialManager>(obj);
 }
 
-uint64_t ShapeSpatialManager::create_octree(uint64_t shape_id, const AABB& bounds) {
+uint64_t ShapeSpatialManager::create_octree(
+    uint64_t shape_id,
+    const Vector3& center,
+    float root_size,
+    int max_depth
+) {
+    // Перерегистрация: если у фигуры уже было дерево, отвязываем её от него.
+    detach_shape(shape_id);
+
     uint64_t octree_id = _next_octree_id++;
 
     auto octree = std::make_unique<ChunkOctree>();
     octree->id = octree_id;
+    octree->max_depth = max_depth;
     octree->add_user(shape_id);
-    octree->add_root(bounds.get_center(), bounds.get_size().x);
+    octree->add_root(center, root_size);
 
     _octrees.emplace(octree_id, std::move(octree));
     _shape_octree[shape_id] = octree_id;
@@ -82,18 +91,6 @@ void ShapeSpatialManager::destroy_octree(uint64_t octree_id) {
     _octrees.erase(octree_it);
 }
 
-void ShapeSpatialManager::register_shape(uint64_t shape_id, Ref<SemanticShape> shape) {
-    if (!shape.is_valid()) {
-        return;
-    }
-
-    detach_shape(shape_id);
-
-    if (shape->is_relative()) {
-        create_octree(shape_id, shape->get_aabb());
-    }
-}
-
 void ShapeSpatialManager::bind_spatially(uint64_t child_shape_id, uint64_t parent_shape_id) {
     auto parent_it = _shape_octree.find(parent_shape_id);
     if (parent_it == _shape_octree.end()) {
@@ -106,6 +103,20 @@ void ShapeSpatialManager::bind_spatially(uint64_t child_shape_id, uint64_t paren
     }
 
     attach_shape(child_shape_id, parent_octree_id);
+}
+
+int ShapeSpatialManager::get_octree_max_depth(uint64_t shape_id) const {
+    auto shape_it = _shape_octree.find(shape_id);
+    if (shape_it == _shape_octree.end()) {
+        return -1;
+    }
+
+    auto octree_it = _octrees.find(shape_it->second);
+    if (octree_it == _octrees.end()) {
+        return -1;
+    }
+
+    return octree_it->second->max_depth;
 }
 
 void ShapeSpatialManager::unregister_shape(uint64_t shape_id) {

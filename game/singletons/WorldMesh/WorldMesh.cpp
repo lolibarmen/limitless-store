@@ -47,7 +47,7 @@ void WorldMesh::request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGen
     auto* mgr = ShapeSpatialManager::get_singleton();
     if (!mgr) { UtilityFunctions::printerr("WorldMesh::request_render: ShapeSpatialManager не найден."); return; }
     ChunkOctree* octree = mgr->get_octree(shape_id);
-    if (!octree) { UtilityFunctions::printerr("WorldMesh::request_render: Октодерево для shape_id ", shape_id, " не найдено! Проверьте, что is_relative == true."); return; }
+    if (!octree) { UtilityFunctions::printerr("WorldMesh::request_render: Октодерево для shape_id ", shape_id, " не найдено! Фигура не зарегистрирована в ShapeSpatialManager (см. on_register/create_octree)."); return; }
     Chunk* chunk = octree->find(chunk_id);
     if (!chunk) { UtilityFunctions::printerr("WorldMesh::request_render: Чанк ", chunk_id, " не найден в октодереве фигуры ", shape_id, "."); return; }
 
