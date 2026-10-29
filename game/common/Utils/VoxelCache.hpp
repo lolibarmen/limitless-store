@@ -10,14 +10,17 @@ namespace godot {
 class VoxelCache {
 public:
     int stride;
-    int step;
+    // Плавающий шаг выборки SDF в мировых единицах.
+    // Раньше был int — из-за этого решётку нельзя было сделать мельче 1 м,
+    // а при cell_size < 1 шаг округлялся до 1 и меш растягивался за границы чанка.
+    float step;
     Vector3i chunk_coord;
     
     // Плотные массивы данных
     std::vector<float> sdf_data;
     // std::vector<uint16_t> material_data;
 
-    VoxelCache(int p_stride, int p_step, const Vector3i& p_coord) 
+    VoxelCache(int p_stride, float p_step, const Vector3i& p_coord) 
         : stride(p_stride), step(p_step), chunk_coord(p_coord) 
     {
         size_t total = stride * stride * stride;
