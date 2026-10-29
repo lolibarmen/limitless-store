@@ -28,9 +28,6 @@ uint64_t SemanticWorld::register_shape(Ref<SemanticShape> shape) {
     _shapes[id] = shape;
     _shapes_mutex->unlock();
 
-    // Фигура сама решает, нужна ли ей пространственная регистрация:
-    // в on_register() она может вызвать ShapeSpatialManager::create_octree()
-    // для собственного октодерева или bind_spatially() к сетке родителя.
     shape->on_register();
 
     return id;

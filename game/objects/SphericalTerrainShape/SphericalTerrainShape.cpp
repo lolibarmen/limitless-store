@@ -37,8 +37,8 @@ void SphericalTerrainShape::on_register() {
     }
 
     const AABB bounds = get_aabb();
-    constexpr int kMaxDepth = 8;          // своя максимальная глубина детализации
-    constexpr float kRootSize = 256.0f;   // свой размер корневого чанка
+    constexpr int kMaxDepth = 10;          // своя максимальная глубина детализации
+    float kRootSize = 2*_radius;          // свой размер корневого чанка
 
     mgr->create_octree(get_id(), bounds.get_center(), kRootSize, kMaxDepth);
 }
