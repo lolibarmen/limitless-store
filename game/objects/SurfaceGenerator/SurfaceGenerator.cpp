@@ -72,7 +72,7 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
 
     const float cell_size_raw = chunk_size / cells;
     inp->cell_size = cell_size_raw;
-    inp->step = Math::max(1, (int)Math::round(inp->cell_size));
+    inp->step = inp->cell_size;
     inp->grid_cells = cells;
     inp->stride = cells + 4;
     inp->cache = std::make_shared<VoxelCache>(inp->stride, inp->cell_size, inp->chunk_coord);

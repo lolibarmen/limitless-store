@@ -38,7 +38,7 @@ public:
             AABB bounds = shape->get_aabb();
             
             // Небольшой запас (margin), чтобы гарантированно захватить края сглаживания
-            float margin = 1.0f; 
+            float margin = Math::max(1.0f, step);
             Vector3 min_b = bounds.position - Vector3(margin, margin, margin);
             Vector3 max_b = min_b + bounds.size + Vector3(margin * 2.0f, margin * 2.0f, margin * 2.0f);
 
