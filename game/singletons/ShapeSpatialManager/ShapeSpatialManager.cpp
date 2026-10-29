@@ -20,7 +20,7 @@ uint64_t ShapeSpatialManager::create_octree(uint64_t shape_id, const AABB& bound
     auto octree = std::make_unique<ChunkOctree>();
     octree->id = octree_id;
     octree->add_user(shape_id);
-    octree->add_root(bounds.get_center(), bounds.get_size().x);
+    octree->add_root(bounds.get_center());
 
     _octrees.emplace(octree_id, std::move(octree));
     _shape_octree[shape_id] = octree_id;

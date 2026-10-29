@@ -50,7 +50,11 @@ public:
     /// @brief Выполняет func для каждого пользователя дерева.
     void for_each_user(std::function<void(uint64_t shape_id)> func) const;
 
-    uint64_t add_root(const Vector3& center, float size);
+    /// @brief Базовый (минимальный) размер чанка. Не зависит от AABB фигуры:
+    /// размер корня всегда равен CHUNK_BASE_SIZE, глубина разбиения ограничена max_depth.
+    static constexpr int CHUNK_BASE_SIZE = 16;
+
+    uint64_t add_root(const Vector3& center);
     void remove_root(uint64_t id);
     
     void for_each_root(std::function<void(Chunk*)> func);
