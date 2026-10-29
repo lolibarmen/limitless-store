@@ -32,10 +32,9 @@ void ChunkOctree::for_each_user(std::function<void(uint64_t shape_id)> func) con
 
 void ChunkOctree::update_lod_and_notify(
     const Vector3& viewer_pos,
-    int max_depth,
     const std::function<void(uint64_t shape_id, const std::vector<uint64_t>& chunk_ids)>& notify
 ) {
-    evaluate_and_update_lod(viewer_pos, max_depth);
+    evaluate_and_update_lod(viewer_pos);
 
     std::unordered_set<uint64_t> current_chunks;
     for_each_leaf([&current_chunks](Chunk* chunk) {
@@ -179,19 +178,19 @@ void ChunkOctree::collapse(Chunk* node) {
     id_to_chunk[node->id] = node;
 }
 
-void ChunkOctree::evaluate_node(Chunk* node, const Vector3& viewer_pos, int max_depth) {
+void ChunkOctree::evaluate_node(Chunk* node, const Vector3& viewer_pos) {
     if (!node) return;
 
     float dist = cube_distance(node->center, viewer_pos);
     bool should_split = dist < node->size * 4.0f;
     bool should_collapse = dist > node->size * 4.1f;
 
-    if (node->is_leaf() && should_split && node->depth < max_depth) {
+    if (node->is_leaf() && should_split && node->depth < MAX_DEPTH) {
         split(node);
         // Рекурсивно оцениваем только что созданных детей
         for (auto& child_ptr : node->children) {
             if (child_ptr) {
-                evaluate_node(child_ptr.get(), viewer_pos, max_depth);
+                evaluate_node(child_ptr.get(), viewer_pos);
             }
         }
     }
@@ -203,16 +202,16 @@ void ChunkOctree::evaluate_node(Chunk* node, const Vector3& viewer_pos, int max_
         // Если узел уже разделен, рекурсивно оцениваем его детей
         for (auto& child_ptr : node->children) {
             if (child_ptr) {
-                evaluate_node(child_ptr.get(), viewer_pos, max_depth);
+                evaluate_node(child_ptr.get(), viewer_pos);
             }
         }
     }
 }
 
-void ChunkOctree::evaluate_and_update_lod(const Vector3& viewer_pos, int max_depth) {
+void ChunkOctree::evaluate_and_update_lod(const Vector3& viewer_pos) {
     // Проходим только по корням, а рекурсию делает evaluate_node
-    for_each_root([this, &viewer_pos, max_depth](Chunk* root) {
-        evaluate_node(root, viewer_pos, max_depth);
+    for_each_root([this, &viewer_pos](Chunk* root) {
+        evaluate_node(root, viewer_pos);
     });
 }
 

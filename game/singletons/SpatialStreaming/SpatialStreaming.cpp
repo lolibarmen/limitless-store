@@ -46,7 +46,6 @@ void SpatialStreaming::_process(double delta) {
 
         octree->update_lod_and_notify(
             player_pos,
-            max_depth,
             [world](uint64_t shape_id, const std::vector<uint64_t>& chunk_ids) {
                 world->on_zone_changed(shape_id, chunk_ids);
             }

@@ -30,7 +30,7 @@ private:
     void destroy_subtree(Chunk* node);
 
     /// @brief Рекурсивно оценивает и обновляет LOD для конкретного узла и его потомков.
-    void evaluate_node(Chunk* node, const Vector3& viewer_pos, int max_depth);
+    void evaluate_node(Chunk* node, const Vector3& viewer_pos);
     
 public:
     /// @brief Уникальный ID дерева, выдаваемый ShapeSpatialManager.
@@ -50,9 +50,12 @@ public:
     /// @brief Выполняет func для каждого пользователя дерева.
     void for_each_user(std::function<void(uint64_t shape_id)> func) const;
 
-    /// @brief Базовый (минимальный) размер чанка. Не зависит от AABB фигуры:
-    /// размер корня всегда равен CHUNK_BASE_SIZE, глубина разбиения ограничена max_depth.
+    /// @brief Константы октодерева (в одном месте):
+    /// - CHUNK_BASE_SIZE — базовый (минимальный) размер чанка, не зависит от AABB фигуры;
+    /// - MAX_DEPTH — максимальная глубина разбиения.
+    /// Размер корня всегда равен CHUNK_BASE_SIZE, глубина разбиения ограничена MAX_DEPTH.
     static constexpr int CHUNK_BASE_SIZE = 16;
+    static constexpr int MAX_DEPTH = 8;
 
     uint64_t add_root(const Vector3& center);
     void remove_root(uint64_t id);
@@ -63,12 +66,11 @@ public:
     void collapse(Chunk* node);
     
     /// @brief Автоматически оценивает и обновляет LOD дерева на основе позиции наблюдателя.
-    void evaluate_and_update_lod(const Vector3& viewer_pos, int max_depth);
+    void evaluate_and_update_lod(const Vector3& viewer_pos);
 
     /// @brief Обновляет LOD дерева и уведомляет пользователей о активированных для них чанках.
     void update_lod_and_notify(
         const Vector3& viewer_pos,
-        int max_depth,
         const std::function<void(uint64_t shape_id, const std::vector<uint64_t>& chunk_ids)>& notify
     );
 
