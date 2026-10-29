@@ -45,17 +45,14 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     Ref<SemanticShape> shape = sw->get_shape(shape_id);
     if (shape.is_null()) return;
 
-    // --- НОВАЯ ЛОГИКА ПОИСКА ЧАНКА ---
     auto* mgr = ShapeSpatialManager::get_singleton();
     if (!mgr) return;
 
-    // Получаем октодерево, которое использует эта фигура (свое или родителя)
     ChunkOctree* octree = mgr->get_octree(shape_id);
-    if (!octree) return; // У фигуры нет пространственного представления (например, она листовая)
+    if (!octree) return;
 
     Chunk* chunk = octree->find(chunk_id);
     if (!chunk) return;
-    // -----------------------------------
 
     Vector3 chunk_pos = chunk->center;
     float chunk_size = chunk->size; 
@@ -65,8 +62,6 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     inp->voxel_count = gen->_voxel_count;
     inp->chunk_size  = chunk_size;
 
-    // Мировой минимум чанка. Границы чанков выровнены по решётке voxel_count,
-    // поэтому world_min — целый узел решётки и округление вниз ничего не меняет.
     const int cells = Math::max(1, (int)Math::round(gen->_voxel_count));
     const Vector3 world_min = chunk_pos - Vector3(chunk_size, chunk_size, chunk_size) * 0.5f;
     inp->chunk_coord = Vector3i(
@@ -75,38 +70,11 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
         (int)Math::floor(world_min.z)
     );
 
-    // Шаг выборки SDF = размер ячейки решётки = world_size / voxel_count.
-    // Шаг теперь float: на максимальном LOD (чанк 16 м, 16 точек) он ровно 1 м,
-    // а на мелких чанках (<16 м) может быть меньше 1 — раньше int-шаг округлял
-    // его до 1 и меш растягивался за границы чанка.
     const float cell_size_raw = chunk_size / cells;
     inp->cell_size = cell_size_raw;
-    // Мировые позиции решётки задаются через VoxelCache::step (float) = cell_size,
-    // поэтому шаг должен быть строго положительным.
     inp->step = Math::max(1, (int)Math::round(inp->cell_size));
     inp->grid_cells = cells;
     inp->stride = cells + 4;
-
-    // ВРЕМЕННАЯ ДИАГНОСТИКА: размер чанка на данной глубине и реальный шаг между точками меша.
-    // world_step — фактическое расстояние в метрах между соседними точками решётки в мире:
-    // VoxelBaker строит мировые позиции как base_coord + (i-2)*step, т.е. шаг = float(cell_size).
-    const float world_step = inp->cell_size; // вещественный шаг, реально используемый в мире
-    // Восстанавливаем размер корневого чанка октодерева по цепочке родителей.
-    float root_size = chunk_size;
-    for (const Chunk* n = chunk->parent; n; n = n->parent) root_size *= 2.0f;
-    UtilityFunctions::print(
-        "[ChunkDiag] shape_id=", shape_id,
-        " octree_root_size=", root_size,
-        " depth=", chunk->depth,
-        " chunk_size=", chunk_size,
-        " points_per_edge=", cells,
-        " raw_step(cell_size)=", cell_size_raw,
-        " world_step=", world_step,
-        " mesh_extent=", world_step * (float)cells,
-        " ratio(chunk/mesh)=", chunk_size / (world_step * (float)cells),
-        " min_leaf_would_be=", root_size / (float)(1 << 8)
-    );
-
     inp->cache = std::make_shared<VoxelCache>(inp->stride, inp->cell_size, inp->chunk_coord);
 
     std::vector<Ref<SemanticShape>> shapes = {shape};
