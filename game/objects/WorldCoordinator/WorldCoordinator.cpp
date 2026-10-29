@@ -1,5 +1,4 @@
 #include "WorldCoordinator.hpp"
-#include <SurfaceGenerator/ChunkMaterialManager.hpp>
 #include <cstdint>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -22,8 +21,6 @@ void WorldCoordinator::_bind_methods() {
 }
 
 void WorldCoordinator::_ready() {
-    ChunkMaterialManager::get_singleton().initialize();
-
     SpatialStreaming* ss = SpatialStreaming::get_singleton();
     add_child(ss);
 
