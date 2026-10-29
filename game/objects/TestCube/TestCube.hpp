@@ -33,6 +33,10 @@ public:
 
     virtual void on_zone_changed(uint64_t chunk_id) override;
 
+    /// @brief Фигуре нужно собственное октодерево — при регистрации она сама создаёт его
+    /// в ShapeSpatialManager со своими параметрами (максимальная глубина, размер корня).
+    virtual void on_register() override;
+
     void set_pos(Vector3 p_pos) { _pos = p_pos; notify_shape_changed(); }
     Vector3 get_pos() const { return _pos; }
 

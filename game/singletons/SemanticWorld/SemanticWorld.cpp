@@ -27,13 +27,12 @@ uint64_t SemanticWorld::register_shape(Ref<SemanticShape> shape) {
     _shapes_mutex->lock();
     _shapes[id] = shape;
     _shapes_mutex->unlock();
-    
-    // Уведомляем пространственный менеджер
-    auto* spatial_mgr = ShapeSpatialManager::get_singleton();
-    if (spatial_mgr) {
-        spatial_mgr->register_shape(id, shape);
-    }
-    
+
+    // Фигура сама решает, нужна ли ей пространственная регистрация:
+    // в on_register() она может вызвать ShapeSpatialManager::create_octree()
+    // для собственного октодерева или bind_spatially() к сетке родителя.
+    shape->on_register();
+
     return id;
 }
 
