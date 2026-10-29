@@ -14,7 +14,7 @@ public:
         if (shapes.empty()) return;
 
         const int stride = cache.stride;
-        const int step = cache.step;
+        const float step = cache.step;
         const Vector3i base_coord = cache.chunk_coord;
 
         std::vector<Vector3> world_positions(stride * stride * stride);
@@ -23,9 +23,9 @@ public:
             for (int y = 0; y < stride; y++) {
                 for (int z = 0; z < stride; z++, idx++) {
                     world_positions[idx] = Vector3(
-                        (base_coord.x + (x - 2) * step),
-                        (base_coord.y + (y - 2) * step),
-                        (base_coord.z + (z - 2) * step)
+                        base_coord.x + (float)(x - 2) * step,
+                        base_coord.y + (float)(y - 2) * step,
+                        base_coord.z + (float)(z - 2) * step
                     );
                 }
             }

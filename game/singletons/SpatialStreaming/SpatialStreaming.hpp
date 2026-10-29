@@ -12,7 +12,9 @@ class SpatialStreaming : public Node {
 
 private:
     Vector3 player_pos = {};
-    int max_depth = 3; // Настраиваемая глубина детализации
+    // Глубина, при которой лист октодерева становится минимальным чанком 16 м:
+    // корень 4096 м / 2^8 = 16 м (16 точек с шагом 1 м на ребро).
+    int max_depth = 8; // Настраиваемая глубина детализации
 
 protected:
     static void _bind_methods();

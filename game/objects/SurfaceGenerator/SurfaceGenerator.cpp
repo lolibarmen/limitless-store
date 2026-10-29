@@ -10,6 +10,8 @@
 
 using namespace godot;
 
+#include <godot_cpp/variant/utility_functions.hpp>
+
 void SurfaceGenerator::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_lod_level", "level"), &SurfaceGenerator::set_lod_level);
     ClassDB::bind_method(D_METHOD("get_lod_level"), &SurfaceGenerator::get_lod_level);
@@ -74,14 +76,38 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     );
 
     // Шаг выборки SDF = размер ячейки решётки = world_size / voxel_count.
-    // Чанки ограничены снизу размером voxel_count, поэтому step >= 1 (для
-    // 16-чанка — ровно 1 юнит между точками, как в старой схеме с фикс. чанками).
-    inp->cell_size = Math::max(chunk_size / cells, 1.0f);
-    inp->step = (int)Math::round(inp->cell_size);
+    // Шаг теперь float: на максимальном LOD (чанк 16 м, 16 точек) он ровно 1 м,
+    // а на мелких чанках (<16 м) может быть меньше 1 — раньше int-шаг округлял
+    // его до 1 и меш растягивался за границы чанка.
+    const float cell_size_raw = chunk_size / cells;
+    inp->cell_size = cell_size_raw;
+    // Мировые позиции решётки задаются через VoxelCache::step (float) = cell_size,
+    // поэтому шаг должен быть строго положительным.
+    inp->step = Math::max(1, (int)Math::round(inp->cell_size));
     inp->grid_cells = cells;
     inp->stride = cells + 4;
 
-    inp->cache = std::make_shared<VoxelCache>(inp->stride, inp->step, inp->chunk_coord);
+    // ВРЕМЕННАЯ ДИАГНОСТИКА: размер чанка на данной глубине и реальный шаг между точками меша.
+    // world_step — фактическое расстояние в метрах между соседними точками решётки в мире:
+    // VoxelBaker строит мировые позиции как base_coord + (i-2)*step, т.е. шаг = float(cell_size).
+    const float world_step = inp->cell_size; // вещественный шаг, реально используемый в мире
+    // Восстанавливаем размер корневого чанка октодерева по цепочке родителей.
+    float root_size = chunk_size;
+    for (const Chunk* n = chunk->parent; n; n = n->parent) root_size *= 2.0f;
+    UtilityFunctions::print(
+        "[ChunkDiag] shape_id=", shape_id,
+        " octree_root_size=", root_size,
+        " depth=", chunk->depth,
+        " chunk_size=", chunk_size,
+        " points_per_edge=", cells,
+        " raw_step(cell_size)=", cell_size_raw,
+        " world_step=", world_step,
+        " mesh_extent=", world_step * (float)cells,
+        " ratio(chunk/mesh)=", chunk_size / (world_step * (float)cells),
+        " min_leaf_would_be=", root_size / (float)(1 << 8)
+    );
+
+    inp->cache = std::make_shared<VoxelCache>(inp->stride, inp->cell_size, inp->chunk_coord);
 
     std::vector<Ref<SemanticShape>> shapes = {shape};
     VoxelBaker::bake(*(inp->cache), shapes);
