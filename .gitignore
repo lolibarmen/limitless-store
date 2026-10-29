@@ -41,3 +41,5 @@ godot-cpp/godot-cpp/
 
 # Кэш SCons (если используется переменная SCONS_CACHE)
 scons_cache/
+
+prompt.md
