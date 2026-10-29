@@ -58,8 +58,8 @@ void WorldCoordinator::_register_initial_shapes() {
     
     Ref<SphericalTerrainShape> sphere_terr;
     sphere_terr.instantiate();
-    // float r = 1.0f;
-    // sphere_terr->set_radius(r);
-    // sphere_terr->set_center(Vector3(0.0, -r, 0.0));
+    float r = 1737000.0f;
+    sphere_terr->set_radius(r);
+    sphere_terr->set_center(Vector3(0.0, -r, 0.0));
     sw->register_shape(sphere_terr);
 }
