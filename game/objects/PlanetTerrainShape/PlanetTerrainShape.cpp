@@ -23,7 +23,7 @@ void PlanetTerrainShape::_bind_methods() {
 PlanetTerrainShape::PlanetTerrainShape() {
     _noise.instantiate();
     _noise->set_noise_type(FastNoiseLite::TYPE_SIMPLEX);
-    _noise->set_frequency(0.01f);
+    _noise->set_frequency(1.0f);
 
     _generator.instantiate();
 
@@ -44,7 +44,7 @@ void PlanetTerrainShape::on_register() {
     }
 
     const float r = _radius + _amplitude;
-    constexpr int kMaxDepth = 10;
+    constexpr int kMaxDepth = 3;
     mgr->create_octree(get_id(), _center, r * 2.0f, kMaxDepth);
 }
 

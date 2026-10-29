@@ -12,6 +12,7 @@ using namespace godot;
 #include "SphericalTerrainShape/SphericalTerrainShape.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
 #include "MaterialTerrainShape/MaterialTerrainShape.hpp"
+#include "PlanetTerrainShape/PlanetTerrainShape.hpp"
 #include "Player/Player.hpp"
 #include "PickableTool/PickableTool.hpp"
 #include "MaterialGenerator/MaterialGenerator.hpp"
@@ -45,6 +46,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<PlayerMovement>();
     ClassDB::register_class<SphericalTerrainShape>();
     ClassDB::register_class<MaterialTerrainShape>();
+    ClassDB::register_class<PlanetTerrainShape>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<PickableTool>();
     ClassDB::register_class<WorldCoordinator>();
