@@ -43,3 +43,5 @@ godot-cpp/godot-cpp/
 scons_cache/
 
 prompt.md
+
+./not_compile/
