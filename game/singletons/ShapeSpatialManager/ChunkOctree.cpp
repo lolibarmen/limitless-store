@@ -89,21 +89,16 @@ void ChunkOctree::destroy_subtree(Chunk* node) {
     }
 }
 
-uint64_t ChunkOctree::add_root(const Vector3& center, float size) {
-    // Минимальный листовой чанк — 16 юнитов (16 точек с шагом 1 юнит на ребро).
-    const int leaf_min = 16;
+uint64_t ChunkOctree::add_root(const Vector3& center) {
+    // Размеры чанков не зависят от AABB фигуры: берём статический базовый размер.
+    const int root_size = CHUNK_BASE_SIZE;
 
-    // Размер корня — степень двойки * leaf_min: при делении пополам все потомки
-    // остаются целыми и выровненными по решётке leaf_min.
-    int root_size = leaf_min;
-    while ((float)root_size < size) root_size *= 2;
-
-    // Границы корня выравниваем по решётке leaf_min вокруг центра фигуры.
-    auto snap = [leaf_min](float v) { return Math::floor(v / leaf_min) * leaf_min; };
+    // Границы корня выравниваем по решётке CHUNK_BASE_SIZE вокруг центра фигуры.
+    auto snap = [](float v) { return Math::floor(v / CHUNK_BASE_SIZE) * CHUNK_BASE_SIZE; };
     const Vector3 min_bound = Vector3(
-        snap(center.x - size * 0.5f),
-        snap(center.y - size * 0.5f),
-        snap(center.z - size * 0.5f)
+        snap(center.x - root_size * 0.5f),
+        snap(center.y - root_size * 0.5f),
+        snap(center.z - root_size * 0.5f)
     );
     const Vector3 root_center = min_bound + Vector3(root_size, root_size, root_size) * 0.5f;
 
