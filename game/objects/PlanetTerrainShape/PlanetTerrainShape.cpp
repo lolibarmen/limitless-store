@@ -29,7 +29,6 @@ PlanetTerrainShape::PlanetTerrainShape() {
     _generator.instantiate();
 
     _material_generator.instantiate();
-    _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load("res://assets/Chunk/grass.png"));
 }
 
 void PlanetTerrainShape::recompute_aabb() {
@@ -39,6 +38,13 @@ void PlanetTerrainShape::recompute_aabb() {
 }
 
 void PlanetTerrainShape::on_register() {
+    _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load(_texture_path));
+
+    // Фигура, переданная в состав планеты, использует общее дерево планеты (см. PlanetShape).
+    if (_octree_id != 0) {
+        return;
+    }
+
     ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
     if (!mgr) {
         return;
