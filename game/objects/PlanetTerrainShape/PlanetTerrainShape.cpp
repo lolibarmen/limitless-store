@@ -1,5 +1,4 @@
 #include "PlanetTerrainShape.hpp"
-#include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -28,7 +27,6 @@ PlanetTerrainShape::PlanetTerrainShape() {
     _generator.instantiate();
 
     _material_generator.instantiate();
-    _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load("res://assets/Chunk/grass.png"));
 }
 
 void PlanetTerrainShape::recompute_aabb() {
@@ -38,14 +36,7 @@ void PlanetTerrainShape::recompute_aabb() {
 }
 
 void PlanetTerrainShape::on_register() {
-    ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
-    if (!mgr) {
-        return;
-    }
-
-    const float r = _radius + _amplitude;
-    constexpr int kMaxDepth = 3;
-    mgr->create_octree(get_id(), _center, r * 2.0f, kMaxDepth);
+    _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load(_albedo_texture));
 }
 
 float PlanetTerrainShape::evaluate_sdf(const Vector3& world_pos) const {

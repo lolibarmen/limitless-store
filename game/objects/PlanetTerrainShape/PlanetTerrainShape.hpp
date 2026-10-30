@@ -21,6 +21,7 @@ private:
     Ref<FastNoiseLite> _noise;
     Ref<SurfaceGenerator> _generator;
     Ref<TriplanarMaterialGenerator> _material_generator;
+    String _albedo_texture = "res://assets/Chunk/grass.png";
 
 protected:
     static void _bind_methods();
@@ -28,6 +29,9 @@ protected:
 public:
     PlanetTerrainShape();
     virtual ~PlanetTerrainShape() = default;
+
+    /// @brief Путь к текстуре albedo, загружается в on_register().
+    void set_albedo_texture(const String& path) { _albedo_texture = path; }
 
     void set_center(const Vector3& c) { _center = c; notify_shape_changed(); }
     Vector3 get_center() const { return _center; }
