@@ -1,4 +1,5 @@
 #include "PlanetShape.hpp"
+#include "godot_cpp/classes/fast_noise_lite.hpp"
 #include <PlanetTerrainShape/PlanetTerrainShape.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
@@ -28,7 +29,8 @@ PlanetShape::PlanetShape() {
     // Воронои задаёт границы материалов на поверхности планеты.
     _shared_voronoi.instantiate();
     _shared_voronoi->set_noise_type(FastNoiseLite::TYPE_CELLULAR);
-    _shared_voronoi->set_frequency(0.1f);
+    _shared_voronoi->set_cellular_return_type(FastNoiseLite::RETURN_CELL_VALUE);
+    _shared_voronoi->set_frequency(10.0f);
 
     _dirt_shape.instantiate();
     _dirt_shape->set_albedo_texture("res://assets/Chunk/dirt.webp");
