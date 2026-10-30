@@ -2,6 +2,7 @@
 
 #include <SemanticShape/SemanticShape.hpp>
 #include <PlanetTerrainShape/PlanetTerrainShape.hpp>
+#include <godot_cpp/classes/fast_noise_lite.hpp>
 #include <godot_cpp/classes/ref.hpp>
 
 namespace godot {
@@ -9,6 +10,8 @@ namespace godot {
 /// @brief Планета: набор PlanetTerrainShape с разными текстурами материалов
 /// (земля, трава, гравий, песок, снег, камень, вода).
 /// Создаёт общее октодерево и привязывает к нему все свои фигуры через bind_spatially().
+/// Единственный источник SDF: базовый SDF ландшафта вычисляется здесь; каждая
+/// PlanetTerrainShape берёт его через bind_material() и отсекает по своей ячейке Вороного.
 class PlanetShape : public SemanticShape {
     GDCLASS(PlanetShape, SemanticShape)
 
@@ -16,6 +19,11 @@ private:
     Vector3 _center;
     float _radius = 100.0f;
     float _amplitude = 20.0f;
+
+    /// Шум высот — часть базового SDF планеты (перенесён из PlanetTerrainShape::evaluate_sdf).
+    Ref<FastNoiseLite> _noise;
+    /// Общий воронои-шум: распределяет материалы PlanetTerrainShape по поверхности планеты.
+    Ref<FastNoiseLite> _shared_voronoi;
 
     Ref<PlanetTerrainShape> _dirt_shape;
     Ref<PlanetTerrainShape> _grass_shape;
@@ -42,6 +50,8 @@ public:
     float get_amplitude() const { return _amplitude; }
 
     StringName get_shape_type() const override { return "planet"; }
+    /// @brief Базовый SDF планеты: dist(p - center) - (radius + noise * amplitude).
+    float evaluate_sdf(const Vector3& world_pos) const override;
     void recompute_aabb() override;
     void on_register() override;
 };

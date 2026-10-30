@@ -1,4 +1,5 @@
 #include "PlanetTerrainShape.hpp"
+#include <PlanetShape/PlanetShape.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -41,13 +42,26 @@ void PlanetTerrainShape::on_register() {
 }
 
 float PlanetTerrainShape::evaluate_sdf(const Vector3& world_pos) const {
+    // Единственный источник SDF — PlanetShape: базовое значение берётся оттуда.
+    // Фигура «видна» только внутри своей ячейки Вороного (своего материала),
+    // вне её — INFINITY, чтобы не конкурировать с другими материалами.
+    const float base_sdf = _planet.is_valid() ? _planet->evaluate_sdf(world_pos) : INFINITY;
+
+    if (_shared_voronoi.is_null()) {
+        return base_sdf;
+    }
+
     const Vector3 d = world_pos - _center;
-    // Шум берётся по направлению (нормализованный вектор), а не по полной точке:
-    // иначе высота зависит от расстояния до центра и радиус «плывёт» вместе с удалением.
-    const float len = d.length();
-    const Vector3 dir = len > 0.0f ? d / len : Vector3(0.0f, 1.0f, 0.0f);
-    const float height = _radius + _noise->get_noise_3dv(dir) * _amplitude;
-    return len - height;
+    // Вороной тоже берётся по направлению (нормализованный вектор), а не по полной точке:
+    // иначе границы материалов «плывут» вместе с удалением от центра.
+    const Vector3 dir = d.length() > 0.0f ? d.normalized() : Vector3(0.0f, 1.0f, 0.0f);
+    const float cell_id = _shared_voronoi->get_noise_3dv(dir);
+
+    if (cell_id == static_cast<float>(_this_material_id)) {
+        return base_sdf;
+    } else {
+        return INFINITY;
+    }
 }
 
 void PlanetTerrainShape::on_zone_changed(uint64_t chunk_id) {

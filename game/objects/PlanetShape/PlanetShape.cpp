@@ -21,6 +21,15 @@ void PlanetShape::_bind_methods() {
 }
 
 PlanetShape::PlanetShape() {
+    _noise.instantiate();
+    _noise->set_noise_type(FastNoiseLite::TYPE_SIMPLEX);
+    _noise->set_frequency(1.0f);
+
+    // Воронои задаёт границы материалов на поверхности планеты.
+    _shared_voronoi.instantiate();
+    _shared_voronoi->set_noise_type(FastNoiseLite::TYPE_CELLULAR);
+    _shared_voronoi->set_frequency(0.1f);
+
     _dirt_shape.instantiate();
     _dirt_shape->set_albedo_texture("res://assets/Chunk/dirt.webp");
 
@@ -43,6 +52,16 @@ PlanetShape::PlanetShape() {
     _water_shape->set_albedo_texture("res://assets/Chunk/water.webp");
 }
 
+float PlanetShape::evaluate_sdf(const Vector3& world_pos) const {
+    const Vector3 d = world_pos - _center;
+    // Шум берётся по направлению (нормализованный вектор), а не по полной точке:
+    // иначе высота зависит от расстояния до центра и радиус «плывёт» вместе с удалением.
+    const float len = d.length();
+    const Vector3 dir = len > 0.0f ? d / len : Vector3(0.0f, 1.0f, 0.0f);
+    const float height = _radius + _noise->get_noise_3dv(dir) * _amplitude;
+    return len - height;
+}
+
 void PlanetShape::recompute_aabb() {
     const float r = _radius + _amplitude;
     _aabb = AABB(_center - Vector3(r, r, r), Vector3(r * 2.0f, r * 2.0f, r * 2.0f));
@@ -50,6 +69,9 @@ void PlanetShape::recompute_aabb() {
 }
 
 void PlanetShape::on_register() {
+    _noise->set_seed(get_id());
+    _shared_voronoi->set_seed(get_id());
+
     SemanticWorld* sw = SemanticWorld::get_singleton();
     ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
     if (!sw || !mgr) {
@@ -66,10 +88,14 @@ void PlanetShape::on_register() {
         _dirt_shape, _grass_shape, _gravel_shape, _sand_shape,
         _snow_shape, _stone_shape, _water_shape,
     };
+    int material_id = 0;
     for (const Ref<PlanetTerrainShape>& shape : shapes) {
         shape->set_center(_center);
         shape->set_radius(_radius);
         shape->set_amplitude(_amplitude);
+        // PlanetShape — единственный источник SDF: фигура получает базовый SDF отсюда
+        // и свой id материала в общем воронои-распределении.
+        shape->bind_material(Ref<PlanetShape>(this), _shared_voronoi, material_id++);
         sw->register_shape(shape);
         add_owned_shape(shape->get_id());
         mgr->bind_spatially(shape->get_id(), get_id());
