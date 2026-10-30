@@ -29,15 +29,30 @@ private:
 
     void destroy_subtree(Chunk* node);
 
+    /// @brief Индекс уровня детализации, соответствующий данной дистанции до наблюдателя.
+    /// @details Возвращает самый глубокий уровень d, для которого пороговая дистанция
+    /// split_distances[d] не меньше dist. Чем ближе наблюдатель — тем больше индекс.
+    /// Если dist больше первой (самой внешней) пороговой дистанции, возвращается -1 —
+    /// за пределами заданных дистанций детализация отсутствует.
+    int level_for_distance(float dist) const;
+
     /// @brief Рекурсивно оценивает и обновляет LOD для конкретного узла и его потомков.
-    void evaluate_node(Chunk* node, const Vector3& viewer_pos, int max_depth);
-    
+    void evaluate_node(Chunk* node, const Vector3& viewer_pos);
+
 public:
     /// @brief Уникальный ID дерева, выдаваемый ShapeSpatialManager.
     uint64_t id = 0;
 
-    /// @brief Максимальная глубина детализации дерева. Задаётся только при создании (create_octree).
-    int max_depth = 0;
+    /// @brief Пороговые дистанции перехода на более глубокий уровень октодерева.
+    /// @details Задаётся только при создании (create_octree). Элемент [d] — максимальная
+    /// дистанция от наблюдателя до центра чанка уровня d, при которой этот чанк
+    /// должен быть разделён на детей уровня d+1. Список упорядочен по убыванию
+    /// (самая внешняя, наибольшая дистанция — первым элементом).
+    /// Количество элементов определяет максимальную глубину дерева: max_depth() = size() - 1.
+    std::vector<float> split_distances;
+
+    /// @brief Максимальная глубина детализации дерева, выводимая из количества пороговых дистанций.
+    int max_depth() const { return static_cast<int>(split_distances.size()) - 1; }
 
     ~ChunkOctree() { clear(); }
 
@@ -62,10 +77,12 @@ public:
     void collapse(Chunk* node);
     
     /// @brief Автоматически оценивает и обновляет LOD дерева на основе позиции наблюдателя.
-    void evaluate_and_update_lod(const Vector3& viewer_pos, int max_depth);
+    /// @details Переходы между уровнями происходят на дистанциях из split_distances,
+    /// заданных при создании дерева.
+    void evaluate_and_update_lod(const Vector3& viewer_pos);
 
     /// @brief Обновляет LOD дерева и уведомляет пользователей о активированных для них чанках.
-    /// @details Глубина детализации берётся из самого дерева (поле max_depth),
+    /// @details Дистанции перехода между уровнями берутся из самого дерева (поле split_distances),
     /// которое задаётся единственным способом — при создании через
     /// ShapeSpatialManager::create_octree().
     void update_lod_and_notify(

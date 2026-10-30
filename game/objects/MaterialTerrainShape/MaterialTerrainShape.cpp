@@ -1,4 +1,5 @@
 #include "MaterialTerrainShape.hpp"
+#include <vector>
 #include <ShapeSpatialManager/Chunk.hpp>
 #include <ShapeSpatialManager/ChunkOctree.hpp>
 #include <godot_cpp/core/print_string.hpp>
@@ -63,17 +64,23 @@ void MaterialTerrainShape::recompute_aabb() {
 
 void MaterialTerrainShape::on_register() {
     // Фигуре нужно собственное октодерево — регистрируем себя в ShapeSpatialManager
-    // со своими параметрами: максимальная глубина и размер корня.
+    // со своими параметрами: дистанции перехода на более глубокий уровень и размер корня.
     ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
     if (!mgr) {
         return;
     }
 
     const AABB bounds = get_aabb();
-    constexpr int kMaxDepth = 8;         // своя максимальная глубина детализации
     constexpr float kRootSize = 4096.0f; // свой размер корневого чанка
 
-    mgr->create_octree(get_id(), bounds.get_center(), kRootSize, kMaxDepth);
+    // Дистанции, на которых происходит переход на более глубокий уровень октодерева
+    // (по убыванию). Их количество задаёт максимальную глубину детализации.
+    std::vector<float> split_distances;
+    for (float size = kRootSize; size > 16.0f; size *= 0.5f) {
+        split_distances.push_back(size * 4.0f);
+    }
+
+    mgr->create_octree(get_id(), bounds.get_center(), kRootSize, split_distances);
 }
 
 float MaterialTerrainShape::evaluate_sdf(const Vector3& world_pos) const {

@@ -18,7 +18,7 @@ uint64_t ShapeSpatialManager::create_octree(
     uint64_t shape_id,
     const Vector3& center,
     float root_size,
-    int max_depth
+    const std::vector<float>& split_distances
 ) {
     // Перерегистрация: если у фигуры уже было дерево, отвязываем её от него.
     detach_shape(shape_id);
@@ -27,7 +27,8 @@ uint64_t ShapeSpatialManager::create_octree(
 
     auto octree = std::make_unique<ChunkOctree>();
     octree->id = octree_id;
-    octree->max_depth = max_depth;
+    // Дистанции перехода между уровнями хранятся в дереве; из них выводится max_depth.
+    octree->split_distances = split_distances;
     octree->add_user(shape_id);
     octree->add_root(center, root_size);
 
@@ -116,7 +117,7 @@ int ShapeSpatialManager::get_octree_max_depth(uint64_t shape_id) const {
         return -1;
     }
 
-    return octree_it->second->max_depth;
+    return octree_it->second->max_depth();
 }
 
 void ShapeSpatialManager::unregister_shape(uint64_t shape_id) {

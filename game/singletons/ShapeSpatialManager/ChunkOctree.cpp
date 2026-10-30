@@ -34,9 +34,9 @@ void ChunkOctree::update_lod_and_notify(
     const Vector3& viewer_pos,
     const std::function<void(uint64_t shape_id, const std::vector<uint64_t>& chunk_ids)>& notify
 ) {
-    // Глубина всегда своя, пер-деревная: set_max_depth() недоступен извне,
-    // значение приходит только из create_octree().
-    evaluate_and_update_lod(viewer_pos, max_depth);
+    // Дистанции перехода между уровнями всегда свои, пер-деревные: set-методы недоступны
+    // извне, значение приходит только из create_octree().
+    evaluate_and_update_lod(viewer_pos);
 
     std::unordered_set<uint64_t> current_chunks;
     for_each_leaf([&current_chunks](Chunk* chunk) {
@@ -185,19 +185,39 @@ void ChunkOctree::collapse(Chunk* node) {
     id_to_chunk[node->id] = node;
 }
 
-void ChunkOctree::evaluate_node(Chunk* node, const Vector3& viewer_pos, int max_depth) {
+int ChunkOctree::level_for_distance(float dist) const {
+    // split_distances упорядочен по убыванию: [0] — самая внешняя дистанция.
+    // Первый элемент, который не меньше dist, и есть искомый уровень.
+    for (size_t i = 0; i < split_distances.size(); ++i) {
+        if (dist <= split_distances[i]) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
+void ChunkOctree::evaluate_node(Chunk* node, const Vector3& viewer_pos) {
     if (!node) return;
 
     float dist = cube_distance(node->center, viewer_pos);
-    bool should_split = dist < node->size * 4.0f;
-    bool should_collapse = dist > node->size * 4.1f;
 
-    if (node->is_leaf() && should_split && node->depth < max_depth) {
+    // Уровень детализации, соответствующий текущей дистанции до наблюдателя.
+    int target_level = level_for_distance(dist);
+
+    // Сплит/мердж задаются явными пороговыми дистанциями из split_distances,
+    // а не константой от размера чанка. Небольшой гистерезис (зазор между
+    // порогами сплита и мерджа на границе уровня) защищает от дребезга.
+    const float hysteresis = 0.1f;
+    bool should_split = target_level > node->depth;
+    bool should_collapse = target_level < node->depth &&
+                           dist > split_distances[node->depth - 1] + hysteresis;
+
+    if (node->is_leaf() && should_split && node->depth < max_depth()) {
         split(node);
         // Рекурсивно оцениваем только что созданных детей
         for (auto& child_ptr : node->children) {
             if (child_ptr) {
-                evaluate_node(child_ptr.get(), viewer_pos, max_depth);
+                evaluate_node(child_ptr.get(), viewer_pos);
             }
         }
     }
@@ -209,16 +229,16 @@ void ChunkOctree::evaluate_node(Chunk* node, const Vector3& viewer_pos, int max_
         // Если узел уже разделен, рекурсивно оцениваем его детей
         for (auto& child_ptr : node->children) {
             if (child_ptr) {
-                evaluate_node(child_ptr.get(), viewer_pos, max_depth);
+                evaluate_node(child_ptr.get(), viewer_pos);
             }
         }
     }
 }
 
-void ChunkOctree::evaluate_and_update_lod(const Vector3& viewer_pos, int max_depth) {
+void ChunkOctree::evaluate_and_update_lod(const Vector3& viewer_pos) {
     // Проходим только по корням, а рекурсию делает evaluate_node
-    for_each_root([this, &viewer_pos, max_depth](Chunk* root) {
-        evaluate_node(root, viewer_pos, max_depth);
+    for_each_root([this, &viewer_pos](Chunk* root) {
+        evaluate_node(root, viewer_pos);
     });
 }
 

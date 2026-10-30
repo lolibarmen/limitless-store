@@ -12,8 +12,9 @@ class SpatialStreaming : public Node {
 
 private:
     Vector3 player_pos = {};
-    // Глобальной глубины больше нет: каждое дерево получает свой max_depth
-    // при создании через ShapeSpatialManager::create_octree().
+    // Глобальных параметров детализации больше нет: каждое дерево получает свои
+    // дистанции перехода между уровнями (split_distances) при создании через
+    // ShapeSpatialManager::create_octree().
 
 protected:
     static void _bind_methods();

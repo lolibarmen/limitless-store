@@ -44,9 +44,9 @@ void SpatialStreaming::_process(double delta) {
             return;
         }
 
-        // Глубина детализации — своя у каждого дерева: она задаётся фигурой
-        // в on_register() через ShapeSpatialManager::create_octree().
-        if (octree->max_depth <= 0) {
+        // Дистанции перехода между уровнями — свои у каждого дерева: они задаются
+        // фигурой в on_register() через ShapeSpatialManager::create_octree().
+        if (octree->split_distances.empty()) {
             return;
         }
 
