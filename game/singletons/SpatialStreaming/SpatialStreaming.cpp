@@ -44,9 +44,14 @@ void SpatialStreaming::_process(double delta) {
             return;
         }
 
+        // Глубина детализации — своя у каждого дерева: она задаётся фигурой
+        // в on_register() через ShapeSpatialManager::create_octree().
+        if (octree->max_depth <= 0) {
+            return;
+        }
+
         octree->update_lod_and_notify(
             player_pos,
-            max_depth,
             [world](uint64_t shape_id, const std::vector<uint64_t>& chunk_ids) {
                 world->on_zone_changed(shape_id, chunk_ids);
             }
