@@ -6,7 +6,8 @@
 
 namespace godot {
     
-/// @brief Планета: набор PlanetTerrainShape с разными текстурами материалов (трава и камень).
+/// @brief Планета: набор PlanetTerrainShape с разными текстурами материалов
+/// (земля, трава, гравий, песок, снег, камень, вода).
 /// Создаёт общее октодерево и привязывает к нему все свои фигуры через bind_spatially().
 class PlanetShape : public SemanticShape {
     GDCLASS(PlanetShape, SemanticShape)
@@ -16,8 +17,13 @@ private:
     float _radius = 100.0f;
     float _amplitude = 20.0f;
 
+    Ref<PlanetTerrainShape> _dirt_shape;
     Ref<PlanetTerrainShape> _grass_shape;
+    Ref<PlanetTerrainShape> _gravel_shape;
+    Ref<PlanetTerrainShape> _sand_shape;
+    Ref<PlanetTerrainShape> _snow_shape;
     Ref<PlanetTerrainShape> _stone_shape;
+    Ref<PlanetTerrainShape> _water_shape;
 
 protected:
     static void _bind_methods();

@@ -21,11 +21,26 @@ void PlanetShape::_bind_methods() {
 }
 
 PlanetShape::PlanetShape() {
+    _dirt_shape.instantiate();
+    _dirt_shape->set_albedo_texture("res://assets/Chunk/dirt.webp");
+
     _grass_shape.instantiate();
     _grass_shape->set_albedo_texture("res://assets/Chunk/grass.png");
 
+    _gravel_shape.instantiate();
+    _gravel_shape->set_albedo_texture("res://assets/Chunk/gravel.webp");
+
+    _sand_shape.instantiate();
+    _sand_shape->set_albedo_texture("res://assets/Chunk/sand.webp");
+
+    _snow_shape.instantiate();
+    _snow_shape->set_albedo_texture("res://assets/Chunk/snow.webp");
+
     _stone_shape.instantiate();
-    _stone_shape->set_albedo_texture("res://assets/Chunk/stone.png");
+    _stone_shape->set_albedo_texture("res://assets/Chunk/stone.webp");
+
+    _water_shape.instantiate();
+    _water_shape->set_albedo_texture("res://assets/Chunk/water.webp");
 }
 
 void PlanetShape::recompute_aabb() {
@@ -47,7 +62,10 @@ void PlanetShape::on_register() {
     mgr->create_octree(get_id(), _center, r * 2.0f, kMaxDepth);
 
     // Дочерние фигуры: регистрируются после родителя и привязываются к его дереву.
-    Ref<PlanetTerrainShape> shapes[2] = { _grass_shape, _stone_shape };
+    const Ref<PlanetTerrainShape> shapes[] = {
+        _dirt_shape, _grass_shape, _gravel_shape, _sand_shape,
+        _snow_shape, _stone_shape, _water_shape,
+    };
     for (const Ref<PlanetTerrainShape>& shape : shapes) {
         shape->set_center(_center);
         shape->set_radius(_radius);
