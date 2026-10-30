@@ -1,4 +1,5 @@
 #include "PlanetTerrainShape.hpp"
+#include <vector>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -44,8 +45,16 @@ void PlanetTerrainShape::on_register() {
     }
 
     const float r = _radius + _amplitude;
-    constexpr int kMaxDepth = 1; // своя максимальная глубина детализации
-    mgr->create_octree(get_id(), _center, r * 2.0f, kMaxDepth);
+    const float root_size = r * 2.0f;
+
+    // Дистанции, на которых происходит переход на более глубокий уровень октодерева
+    // (по убыванию). Их количество задаёт максимальную глубину детализации.
+    const std::vector<float> split_distances = {
+        root_size * 4.0f,       // переход с уровня 0 на уровень 1
+        root_size * 4.0f * 0.5f // переход с уровня 1 на уровень 2
+    };
+
+    mgr->create_octree(get_id(), _center, root_size, split_distances);
 }
 
 float PlanetTerrainShape::evaluate_sdf(const Vector3& world_pos) const {

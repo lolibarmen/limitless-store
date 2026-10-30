@@ -1,4 +1,5 @@
 #include "SphericalTerrainShape.hpp"
+#include <vector>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
@@ -30,17 +31,23 @@ void SphericalTerrainShape::recompute_aabb() {
 
 void SphericalTerrainShape::on_register() {
     // Фигуре нужно собственное октодерево — регистрируем себя в ShapeSpatialManager
-    // со своими параметрами: максимальная глубина и размер корня.
+    // со своими параметрами: дистанции перехода на более глубокий уровень и размер корня.
     ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
     if (!mgr) {
         return;
     }
 
     const AABB bounds = get_aabb();
-    constexpr int kMaxDepth = 10;          // своя максимальная глубина детализации
-    float kRootSize = 2*_radius;          // свой размер корневого чанка
+    float kRootSize = 2*_radius; // свой размер корневого чанка
 
-    mgr->create_octree(get_id(), bounds.get_center(), kRootSize, kMaxDepth);
+    // Дистанции, на которых происходит переход на более глубокий уровень октодерева
+    // (по убыванию). Их количество задаёт максимальную глубину детализации.
+    std::vector<float> split_distances;
+    for (float size = kRootSize; size > 16.0f; size *= 0.5f) {
+        split_distances.push_back(size * 4.0f);
+    }
+
+    mgr->create_octree(get_id(), bounds.get_center(), kRootSize, split_distances);
 }
 
 float SphericalTerrainShape::evaluate_sdf(const Vector3& world_pos) const {
