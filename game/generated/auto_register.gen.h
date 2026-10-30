@@ -3,76 +3,46 @@
 #include <godot_cpp/classes/engine.hpp>
 using namespace godot;
 
+#include "ToolManager/ToolManager.hpp"
+#include "WorldCoordinator/WorldCoordinator.hpp"
 #include "SurfaceGenerator/SurfaceGenerator.hpp"
-#include "Tool/Tool.hpp"
+#include "MaterialGenerator/MaterialGenerator.hpp"
 #include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
-#include "PlayerCamera/PlayerCamera.hpp"
-#include "PlayerMovement/PlayerMovement.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
 #include "PlanetTerrainShape/PlanetTerrainShape.hpp"
-#include "Player/Player.hpp"
-#include "PickableTool/PickableTool.hpp"
-#include "MaterialGenerator/MaterialGenerator.hpp"
-#include "WorldCoordinator/WorldCoordinator.hpp"
-#include "PlayerInteraction/PlayerInteraction.hpp"
+#include "PlayerCamera/PlayerCamera.hpp"
+#include "Tool/Tool.hpp"
 #include "SemanticShape/SemanticShape.hpp"
-#include "ToolManager/ToolManager.hpp"
-#include "ShapeSpatialManager/ShapeSpatialManager.hpp"
-#include "SpatialStreaming/SpatialStreaming.hpp"
-#include "WorldMesh/WorldMesh.hpp"
-#include "SemanticWorld/SemanticWorld.hpp"
+#include "PickableTool/PickableTool.hpp"
+#include "PlanetShape/PlanetShape.hpp"
+#include "PlayerInteraction/PlayerInteraction.hpp"
+#include "PlayerMovement/PlayerMovement.hpp"
+#include "Player/Player.hpp"
 
-static ShapeSpatialManager *ShapeSpatialManager_instance = nullptr;
-static SpatialStreaming *SpatialStreaming_instance = nullptr;
-static WorldMesh *WorldMesh_instance = nullptr;
-static SemanticWorld *SemanticWorld_instance = nullptr;
 
 inline void auto_register_virtual_classes() {
 }
 
 inline void auto_register_classes() {
     ClassDB::register_class<SemanticShape>();
-    ClassDB::register_class<MaterialGenerator>();
     ClassDB::register_class<MeshGenerator>();
-    ClassDB::register_class<SurfaceGenerator>();
-    ClassDB::register_class<Tool>();
-    ClassDB::register_class<TriplanarMaterialGenerator>();
-    ClassDB::register_class<PlayerCamera>();
-    ClassDB::register_class<PlayerMovement>();
-    ClassDB::register_class<PlanetTerrainShape>();
-    ClassDB::register_class<Player>();
-    ClassDB::register_class<PickableTool>();
-    ClassDB::register_class<WorldCoordinator>();
-    ClassDB::register_class<PlayerInteraction>();
+    ClassDB::register_class<MaterialGenerator>();
     ClassDB::register_class<ToolManager>();
-    ClassDB::register_class<ShapeSpatialManager>();
-    ClassDB::register_class<SpatialStreaming>();
-    ClassDB::register_class<WorldMesh>();
-    ClassDB::register_class<SemanticWorld>();
+    ClassDB::register_class<WorldCoordinator>();
+    ClassDB::register_class<SurfaceGenerator>();
+    ClassDB::register_class<TriplanarMaterialGenerator>();
+    ClassDB::register_class<PlanetTerrainShape>();
+    ClassDB::register_class<PlayerCamera>();
+    ClassDB::register_class<Tool>();
+    ClassDB::register_class<PickableTool>();
+    ClassDB::register_class<PlanetShape>();
+    ClassDB::register_class<PlayerInteraction>();
+    ClassDB::register_class<PlayerMovement>();
+    ClassDB::register_class<Player>();
 }
 
 inline void auto_register_singletons() {
-    ShapeSpatialManager_instance = memnew(ShapeSpatialManager);
-    Engine::get_singleton()->register_singleton("ShapeSpatialManager", ShapeSpatialManager_instance);
-    SpatialStreaming_instance = memnew(SpatialStreaming);
-    Engine::get_singleton()->register_singleton("SpatialStreaming", SpatialStreaming_instance);
-    WorldMesh_instance = memnew(WorldMesh);
-    Engine::get_singleton()->register_singleton("WorldMesh", WorldMesh_instance);
-    SemanticWorld_instance = memnew(SemanticWorld);
-    Engine::get_singleton()->register_singleton("SemanticWorld", SemanticWorld_instance);
 }
 
 inline void auto_unregister_singletons() {
-    Engine::get_singleton()->unregister_singleton("ShapeSpatialManager");
-    memdelete(ShapeSpatialManager_instance);
-    ShapeSpatialManager_instance = nullptr;
-    Engine::get_singleton()->unregister_singleton("SpatialStreaming");
-    memdelete(SpatialStreaming_instance);
-    SpatialStreaming_instance = nullptr;
-    Engine::get_singleton()->unregister_singleton("WorldMesh");
-    memdelete(WorldMesh_instance);
-    WorldMesh_instance = nullptr;
-    Engine::get_singleton()->unregister_singleton("SemanticWorld");
-    memdelete(SemanticWorld_instance);
-    SemanticWorld_instance = nullptr;
 }

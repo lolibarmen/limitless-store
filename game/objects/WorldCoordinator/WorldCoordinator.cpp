@@ -39,12 +39,12 @@ void WorldCoordinator::_process(double delta) {
     }
 }
 
-#include <PlanetTerrainShape/PlanetTerrainShape.hpp>
+#include <PlanetShape/PlanetShape.hpp>
 void WorldCoordinator::_register_initial_shapes() {
     SemanticWorld* sw = SemanticWorld::get_singleton();
     if (!sw) return;
     
-    Ref<PlanetTerrainShape> planet;
+    Ref<PlanetShape> planet;
     planet.instantiate();
     float r = 100.0f;
     planet->set_radius(r);
