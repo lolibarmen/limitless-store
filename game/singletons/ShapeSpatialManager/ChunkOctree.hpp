@@ -36,8 +36,8 @@ public:
     /// @brief Уникальный ID дерева, выдаваемый ShapeSpatialManager.
     uint64_t id = 0;
 
-    /// @brief Максимальная глубина детализации дерева. Задаётся при создании (create_octree).
-    int max_depth = 8;
+    /// @brief Максимальная глубина детализации дерева. Задаётся только при создании (create_octree).
+    int max_depth = 0;
 
     ~ChunkOctree() { clear(); }
 
@@ -65,9 +65,11 @@ public:
     void evaluate_and_update_lod(const Vector3& viewer_pos, int max_depth);
 
     /// @brief Обновляет LOD дерева и уведомляет пользователей о активированных для них чанках.
+    /// @details Глубина детализации берётся из самого дерева (поле max_depth),
+    /// которое задаётся единственным способом — при создании через
+    /// ShapeSpatialManager::create_octree().
     void update_lod_and_notify(
         const Vector3& viewer_pos,
-        int max_depth,
         const std::function<void(uint64_t shape_id, const std::vector<uint64_t>& chunk_ids)>& notify
     );
 

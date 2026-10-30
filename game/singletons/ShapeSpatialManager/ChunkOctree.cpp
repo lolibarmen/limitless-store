@@ -32,9 +32,10 @@ void ChunkOctree::for_each_user(std::function<void(uint64_t shape_id)> func) con
 
 void ChunkOctree::update_lod_and_notify(
     const Vector3& viewer_pos,
-    int max_depth,
     const std::function<void(uint64_t shape_id, const std::vector<uint64_t>& chunk_ids)>& notify
 ) {
+    // Глубина всегда своя, пер-деревная: set_max_depth() недоступен извне,
+    // значение приходит только из create_octree().
     evaluate_and_update_lod(viewer_pos, max_depth);
 
     std::unordered_set<uint64_t> current_chunks;

@@ -44,7 +44,7 @@ void PlanetTerrainShape::on_register() {
     }
 
     const float r = _radius + _amplitude;
-    constexpr int kMaxDepth = 3;
+    constexpr int kMaxDepth = 1; // своя максимальная глубина детализации
     mgr->create_octree(get_id(), _center, r * 2.0f, kMaxDepth);
 }
 
