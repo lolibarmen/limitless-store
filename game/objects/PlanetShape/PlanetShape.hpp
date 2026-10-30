@@ -1,12 +1,11 @@
 #pragma once
 
 #include <SemanticShape/SemanticShape.hpp>
+#include <PlanetTerrainShape/PlanetTerrainShape.hpp>
 #include <godot_cpp/classes/ref.hpp>
 
 namespace godot {
-
-class PlanetTerrainShape;
-
+    
 /// @brief Планета: набор PlanetTerrainShape с разными текстурами материалов (трава и камень).
 /// Создаёт общее октодерево и привязывает к нему все свои фигуры через bind_spatially().
 class PlanetShape : public SemanticShape {

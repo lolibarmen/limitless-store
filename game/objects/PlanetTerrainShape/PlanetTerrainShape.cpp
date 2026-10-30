@@ -21,6 +21,7 @@ void PlanetTerrainShape::_bind_methods() {
 
 PlanetTerrainShape::PlanetTerrainShape() {
     _noise.instantiate();
+    _noise->set_seed(_id);
     _noise->set_noise_type(FastNoiseLite::TYPE_SIMPLEX);
     _noise->set_frequency(1.0f);
 
