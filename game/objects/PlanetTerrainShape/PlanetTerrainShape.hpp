@@ -67,6 +67,11 @@ public:
         _this_material_id = material_id;
     }
 
+    /// @brief Id материала (ячейки общего воронои-распределения планеты) для точки мира.
+    /// Значение CELLULAR-шума — расстояние до ближайшей особенности (непрерывное), поэтому
+    /// id получается квантованием значения шума по kMaterialCount, а не сравнением «напрямую».
+    int material_at(const Vector3& world_pos) const;
+
     StringName get_shape_type() const override { return "planet_terrain"; }
     float evaluate_sdf(const Vector3& world_pos) const override;
     void recompute_aabb() override;
