@@ -4,14 +4,11 @@
 using namespace godot;
 
 #include "SurfaceGenerator/SurfaceGenerator.hpp"
-#include "TestCube/TestCube.hpp"
 #include "Tool/Tool.hpp"
 #include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
-#include "SphericalTerrainShape/SphericalTerrainShape.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
-#include "MaterialTerrainShape/MaterialTerrainShape.hpp"
 #include "PlanetTerrainShape/PlanetTerrainShape.hpp"
 #include "Player/Player.hpp"
 #include "PickableTool/PickableTool.hpp"
@@ -19,7 +16,6 @@ using namespace godot;
 #include "WorldCoordinator/WorldCoordinator.hpp"
 #include "PlayerInteraction/PlayerInteraction.hpp"
 #include "SemanticShape/SemanticShape.hpp"
-#include "CubeMeshGenerator/CubeMeshGenerator.hpp"
 #include "ToolManager/ToolManager.hpp"
 #include "ShapeSpatialManager/ShapeSpatialManager.hpp"
 #include "SpatialStreaming/SpatialStreaming.hpp"
@@ -39,19 +35,15 @@ inline void auto_register_classes() {
     ClassDB::register_class<MaterialGenerator>();
     ClassDB::register_class<MeshGenerator>();
     ClassDB::register_class<SurfaceGenerator>();
-    ClassDB::register_class<TestCube>();
     ClassDB::register_class<Tool>();
     ClassDB::register_class<TriplanarMaterialGenerator>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<PlayerMovement>();
-    ClassDB::register_class<SphericalTerrainShape>();
-    ClassDB::register_class<MaterialTerrainShape>();
     ClassDB::register_class<PlanetTerrainShape>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<PickableTool>();
     ClassDB::register_class<WorldCoordinator>();
     ClassDB::register_class<PlayerInteraction>();
-    ClassDB::register_class<CubeMeshGenerator>();
     ClassDB::register_class<ToolManager>();
     ClassDB::register_class<ShapeSpatialManager>();
     ClassDB::register_class<SpatialStreaming>();

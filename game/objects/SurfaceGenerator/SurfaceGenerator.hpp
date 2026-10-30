@@ -7,6 +7,9 @@
 
 namespace godot {
 
+/// @brief Генератор меша по SDF фигуры
+/// 
+/// Независимо от размера чанка всегда генерирует 16 точек
 class SurfaceGenerator : public MeshGenerator {
     GDCLASS(SurfaceGenerator, MeshGenerator)
 
