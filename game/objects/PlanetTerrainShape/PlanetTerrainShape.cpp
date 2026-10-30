@@ -21,7 +21,6 @@ void PlanetTerrainShape::_bind_methods() {
 
 PlanetTerrainShape::PlanetTerrainShape() {
     _noise.instantiate();
-    _noise->set_seed(_id);
     _noise->set_noise_type(FastNoiseLite::TYPE_SIMPLEX);
     _noise->set_frequency(1.0f);
 
@@ -37,6 +36,7 @@ void PlanetTerrainShape::recompute_aabb() {
 }
 
 void PlanetTerrainShape::on_register() {
+    _noise->set_seed(_id);
     _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load(_albedo_texture));
 }
 
