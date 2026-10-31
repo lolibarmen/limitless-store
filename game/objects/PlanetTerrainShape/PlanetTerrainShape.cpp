@@ -1,6 +1,7 @@
 #include "PlanetTerrainShape.hpp"
 #include <PlanetShape/PlanetShape.hpp>
 #include <WorldMesh/WorldMesh.hpp>
+#include <cmath>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/math.hpp>
@@ -42,29 +43,20 @@ void PlanetTerrainShape::on_register() {
     _material_generator->set_albedo_texture(ResourceLoader::get_singleton()->load(_albedo_texture));
 }
 
-int PlanetTerrainShape::material_at(const Vector3& world_pos) const {
+int PlanetTerrainShape::material_at(const Vector3& dir) const {
     if (_shared_voronoi.is_null()) {
         return 0;
     }
 
-    const Vector3 d = world_pos - _center;
-    // Вороной тоже берётся по направлению (нормализованный вектор), а не по полной точке:
-    // иначе границы материалов «плывут» вместе с удалением от центра.
-    const Vector3 dir = d.length() > 0.0f ? d.normalized() : Vector3(0.0f, 1.0f, 0.0f);
-
-    // get_noise_3dv() у CELLULAR-шума возвращает расстояние до ближайшей особенности
-    // (вещественное число из непрерывного диапазона), а НЕ целочисленный id ячейки.
-    // Поэтому id материала получаем квантованием значения шума по числу материалов,
-    // а не сравнением «напрямую» с _this_material_id (такое сравнение никогда не давало true).
-    const float v = _shared_voronoi->get_noise_3dv(dir);
-    // Нормализуем значение шума в [0, 1): Godot отдаёт результат FastNoiseLite, умноженный
-    // на 1/32, поэтому фактический диапазон — примерно [-1/32, 1/32]; сначала приводим его
-    // к [-1, 1], затем квантуем по kMaterialCount.
-    const float normalized = Math::clamp(v * 32.0f, -1.0f, 1.0f);
-    int id = static_cast<int>(Math::floor((normalized + 1.0f) * 0.5f * kMaterialCount));
-    // Защита от краевых значений шума (v == 1.0f и погрешностей округления).
-    id = Math::clamp(id, 0, kMaterialCount - 1);
-    return id;
+    const float n = _shared_voronoi->get_noise_3dv(dir);
+    float t = (n + 1.0f) * 0.5f;
+    t = Math::clamp(t, 0.0f, 1.0f);
+    
+    int mat_count = 3;
+    int idx = int(Math::floor(t * mat_count));
+    idx = Math::clamp(idx, 0, mat_count - 1);
+    
+    return idx;
 }
 
 float PlanetTerrainShape::evaluate_sdf(const Vector3& world_pos) const {
@@ -76,11 +68,14 @@ float PlanetTerrainShape::evaluate_sdf(const Vector3& world_pos) const {
     if (_shared_voronoi.is_null()) {
         return base_sdf;
     }
+    
+    const Vector3 d = world_pos - _center;
+    const Vector3 dir = d.length() > 0.0f ? d.normalized() : Vector3(0.0f, 1.0f, 0.0f);
 
-    if (material_at(world_pos) == _this_material_id) {
+    if (material_at(dir) == _this_material_id) {
         return base_sdf;
-    } else {
-        return INFINITY;
+    } else {        
+        return 1;
     }
 }
 
