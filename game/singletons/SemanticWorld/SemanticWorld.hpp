@@ -7,6 +7,7 @@
 #include <SemanticShape/SemanticShape.hpp>
 #include <MeshGenerator/MeshGenerator.hpp>
 #include <unordered_map>
+#include <vector>
 #include <atomic>
 #include <cstdint>
 
@@ -24,10 +25,15 @@ private:
 
     bool _parameter_change_in_progress = false;
 
-    /// @brief Распространяет уведомление об изменении параметров фигуры по её связям.
-    /// @details Обходит граф владения в обе стороны, уведомляет связанные фигуры и
-    /// применяет их реакции. Исходная фигура при этом не заменяется.
-    void _propose_parameter_change(uint64_t old_id, Ref<SemanticShape> proposed_shape);
+    /// @brief Единый каскад оценки реакций для замены фигуры или изменения её параметров.
+    /// @details В режиме замены обходит владельцев изменяемой фигуры, как раньше.
+    /// В режиме изменения параметров обходит граф владения в обе стороны, уведомляет
+    /// связанные фигуры и не заменяет исходную фигуру.
+    void _run_change_cascade(uint64_t old_id, Ref<SemanticShape> proposed_shape, bool parameter_change);
+
+    /// @brief Возвращает фигуры, связанные с shape_id через граф владения.
+    /// @param two_way Если true, учитываются и владельцы shape_id, и фигуры, которыми она владеет.
+    std::vector<uint64_t> _find_related_shapes(uint64_t shape_id, bool two_way) const;
 
     /// @brief Атомарно применяет одобренные замены фигур и обновляет граф зависимостей.
     void _commit_changes(const std::unordered_map<uint64_t, Ref<SemanticShape>>& accepted_changes);

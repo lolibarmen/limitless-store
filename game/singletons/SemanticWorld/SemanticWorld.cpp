@@ -57,11 +57,7 @@ Ref<SemanticShape> SemanticWorld::get_shape(uint64_t id) const {
 void SemanticWorld::on_zone_changed(uint64_t shape_id, const std::vector<uint64_t>& chunk_ids) {
     if (chunk_ids.empty()) return;
 
-    _shapes_mutex->lock();
-    auto it = _shapes.find(shape_id);
-    Ref<SemanticShape> shape = (it != _shapes.end()) ? it->second : nullptr;
-    _shapes_mutex->unlock();
-
+    Ref<SemanticShape> shape = get_shape(shape_id);
     if (shape.is_valid()) {
         for (uint64_t chunk_id : chunk_ids) {
             shape->on_zone_changed(chunk_id);
@@ -101,12 +97,31 @@ void SemanticWorld::_commit_changes(const std::unordered_map<uint64_t, Ref<Seman
     // notify_mesh_generator_of_changes(id_mapping);
 }
 
-void SemanticWorld::_propose_parameter_change(uint64_t old_id, Ref<SemanticShape> proposed_shape) {
-    if (_parameter_change_in_progress) {
-        return;
-    }
+std::vector<uint64_t> SemanticWorld::_find_related_shapes(uint64_t shape_id, bool two_way) const {
+    std::vector<uint64_t> related;
 
-    _parameter_change_in_progress = true;
+    _shapes_mutex->lock();
+    auto target_it = _shapes.find(shape_id);
+    const Ref<SemanticShape>* target = (target_it != _shapes.end()) ? &target_it->second : nullptr;
+    for (const auto& [id, shape] : _shapes) {
+        if (id != shape_id &&
+            (shape->has_owned_shape(shape_id) ||
+             (two_way && target && (*target)->has_owned_shape(id)))) {
+            related.push_back(id);
+        }
+    }
+    _shapes_mutex->unlock();
+
+    return related;
+}
+
+void SemanticWorld::_run_change_cascade(uint64_t old_id, Ref<SemanticShape> proposed_shape, bool parameter_change) {
+    if (parameter_change) {
+        if (_parameter_change_in_progress) {
+            return;
+        }
+        _parameter_change_in_progress = true;
+    }
 
     struct ChangeNotice {
         uint64_t trigger_id;
@@ -116,92 +131,79 @@ void SemanticWorld::_propose_parameter_change(uint64_t old_id, Ref<SemanticShape
 
     std::vector<ChangeNotice> evaluation_queue;
     std::unordered_map<uint64_t, Ref<SemanticShape>> accepted_changes;
-    std::unordered_set<uint64_t> visited;
-    std::unordered_set<uint64_t> scheduled;
+    std::unordered_set<uint64_t> visited{old_id};
 
-    // 1. Инициализация: исходная фигура уже помечена изменённой в notify_shape_changed().
     evaluation_queue.push_back({old_id, proposed_shape, old_id});
-    scheduled.insert(old_id);
 
-    // 2. Фаза уведомления и оценки реакций.
-    int max_iterations = 100;
+    if (!parameter_change) {
+        accepted_changes[old_id] = proposed_shape;
+    }
+
+    constexpr int kMaxIterations = 100;
     int iteration = 0;
 
-    while (!evaluation_queue.empty() && iteration < max_iterations) {
+    while (!evaluation_queue.empty() && iteration < kMaxIterations) {
         iteration++;
         ChangeNotice current = evaluation_queue.back();
         evaluation_queue.pop_back();
 
-        if (!visited.insert(current.target_id).second) {
-            continue;
-        }
+        // В режиме изменения параметров граф владения обходится в обе стороны,
+        // в режиме замены — только по владельцам изменяемой фигуры.
+        const std::vector<uint64_t> related = _find_related_shapes(current.target_id, parameter_change);
 
-        Ref<SemanticShape> target = get_shape(current.target_id);
-        if (!target.is_valid()) {
-            continue;
-        }
-
-        // Граф владения считается двусторонним: фигура зависит и от тех, кем она
-        // владеет, и от тех, кто владеет ею.
-        _shapes_mutex->lock();
-        std::vector<uint64_t> connected;
-        for (const auto& pair : _shapes) {
-            if (pair.first == current.target_id) {
+        for (uint64_t related_id : related) {
+            if (visited.find(related_id) != visited.end()) {
                 continue;
             }
 
-            if (pair.second->has_owned_shape(current.target_id) ||
-                target->has_owned_shape(pair.first)) {
-                connected.push_back(pair.first);
+            // В режиме параметров фигура посещается один раз. В режиме замены
+            // фиксируем её только после принятой реакции, чтобы её можно было
+            // перепроверить при изменении другого владельца.
+            if (parameter_change) {
+                visited.insert(related_id);
             }
-        }
-        _shapes_mutex->unlock();
 
-        for (uint64_t connected_id : connected) {
-            if (visited.find(connected_id) != visited.end() ||
-                scheduled.find(connected_id) != scheduled.end()) {
-                continue;
-            }
-            scheduled.insert(connected_id);
-
-            Ref<SemanticShape> connected_shape = get_shape(connected_id);
-            if (!connected_shape.is_valid()) {
+            Ref<SemanticShape> related_shape = get_shape(related_id);
+            if (!related_shape.is_valid()) {
                 continue;
             }
 
-            // Уведомляем зависимую фигуру. Вложенный propose_shape_change()
-            // будет подавлен guard-ом, но AABB и кэши фигуры обновятся.
-            connected_shape->notify_shape_changed();
+            if (parameter_change) {
+                // Вложенный propose_shape_change() подавляется guard-ом,
+                // но AABB и кэши фигуры обновляются.
+                related_shape->notify_shape_changed();
+            }
 
-            Ref<SemanticShape> reaction = connected_shape->evaluate_reaction(
+            Ref<SemanticShape> reaction = related_shape->evaluate_reaction(
                 current.trigger_id,
                 current.trigger_shape
             );
 
             const bool is_replacement =
                 reaction.is_valid() &&
-                reaction.ptr() != connected_shape.ptr() &&
-                reaction->get_shape_type() != StringName("shape");
+                reaction->get_shape_type() != StringName("shape") &&
+                (!parameter_change || reaction.ptr() != related_shape.ptr());
 
-            if (is_replacement && accepted_changes.find(connected_id) == accepted_changes.end()) {
-                accepted_changes[connected_id] = reaction;
-                evaluation_queue.push_back({connected_id, reaction, connected_id});
-            } else {
-                // Реакции нет, но обход должен продолжиться, чтобы уведомить
-                // всю связную компоненту графа владения.
-                evaluation_queue.push_back({current.trigger_id, current.trigger_shape, connected_id});
+            if (is_replacement && accepted_changes.find(related_id) == accepted_changes.end()) {
+                accepted_changes[related_id] = reaction;
+                visited.insert(related_id);
+                evaluation_queue.push_back({related_id, reaction, related_id});
+            } else if (parameter_change) {
+                // Реакции нет, но обход продолжается, чтобы уведомить всю компоненту.
+                evaluation_queue.push_back({current.trigger_id, current.trigger_shape, related_id});
             }
         }
     }
 
-    if (iteration >= max_iterations) {
+    if (iteration >= kMaxIterations) {
         print_error("propose_shape_change: Max iterations reached. Possible infinite loop in shape reactions.");
     }
 
-    // 3. Финализация. Исходная фигура не попадает в accepted_changes и сохраняет свой ID.
     _commit_changes(accepted_changes);
 
-    _parameter_change_in_progress = false;
+    if (parameter_change) {
+        _parameter_change_in_progress = false;
+    }
 }
 
 void SemanticWorld::propose_shape_change(uint64_t old_id, Ref<SemanticShape> proposed_shape) {
@@ -211,64 +213,10 @@ void SemanticWorld::propose_shape_change(uint64_t old_id, Ref<SemanticShape> pro
     }
 
     Ref<SemanticShape> registered_shape = get_shape(old_id);
-    if (registered_shape.is_valid() && registered_shape.ptr() == proposed_shape.ptr()) {
-        _propose_parameter_change(old_id, proposed_shape);
-        return;
-    }
+    const bool parameter_change =
+        registered_shape.is_valid() && registered_shape.ptr() == proposed_shape.ptr();
 
-    struct ChangeProposal {
-        uint64_t target_old_id;
-        Ref<SemanticShape> new_shape;
-    };
-
-    std::vector<ChangeProposal> evaluation_queue;
-    std::unordered_map<uint64_t, Ref<SemanticShape>> accepted_changes;
-
-    // 1. Инициализация
-    evaluation_queue.push_back({old_id, proposed_shape});
-    accepted_changes[old_id] = proposed_shape;
-
-    // 2. Фаза оценки (Evaluation Phase)
-    int max_iterations = 100;
-    int iteration = 0;
-
-    while (!evaluation_queue.empty() && iteration < max_iterations) {
-        iteration++;
-        ChangeProposal current = evaluation_queue.back();
-        evaluation_queue.pop_back();
-
-        // Находим всех "владельцев" изменяемой фигуры
-        _shapes_mutex->lock();
-        std::vector<uint64_t> owners;
-        for (const auto& pair : _shapes) {
-            if (pair.second->has_owned_shape(current.target_old_id)) {
-                owners.push_back(pair.first);
-            }
-        }
-        _shapes_mutex->unlock();
-
-        // Спрашиваем каждого владельца, как он хочет отреагировать
-        for (uint64_t owner_id : owners) {
-            Ref<SemanticShape> owner = get_shape(owner_id);
-            if (!owner.is_valid()) continue;
-
-            Ref<SemanticShape> owner_reaction = owner->evaluate_reaction(current.target_old_id, current.new_shape);
-
-            if (owner_reaction.is_valid() && owner_reaction->get_shape_type() != StringName("shape")) {
-                if (accepted_changes.find(owner_id) == accepted_changes.end()) {
-                    accepted_changes[owner_id] = owner_reaction;
-                    evaluation_queue.push_back({owner_id, owner_reaction});
-                }
-            }
-        }
-    }
-
-    if (iteration >= max_iterations) {
-        print_error("propose_shape_change: Max iterations reached. Possible infinite loop in shape reactions.");
-    }
-
-    // 3. Фаза финализации (Commit Phase)
-    _commit_changes(accepted_changes);
+    _run_change_cascade(old_id, proposed_shape, parameter_change);
 }
 
 void SemanticWorld::propose_shape_change(uint64_t old_id) {
