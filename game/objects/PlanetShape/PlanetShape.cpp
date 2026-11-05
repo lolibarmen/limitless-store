@@ -43,7 +43,7 @@ int PlanetShape::get_material_id(const Vector3& world_pos) const {
     
     float val = _shared_voronoi->get_noise_3dv(dir);
     // Нормализуем значение Cellular Noise в диапазон [0, 1]
-    float normalized = (val + 1.0f) * 0.5f; 
+    float normalized = (val + 1.0f) * 0.5f;
     normalized = CLAMP(normalized, 0.0f, 1.0f);
     
     const int kMat = 2;

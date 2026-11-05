@@ -26,6 +26,23 @@ void Chunk::remove_shape_mesh(uint64_t shape_id) {
     }
 }
 
+void Chunk::remove_shape_collision(uint64_t shape_id) {
+    auto it = shape_collisions.find(shape_id);
+    if (it != shape_collisions.end()) {
+        if (it->second.body) {
+            it->second.body->queue_free();
+        } else if (it->second.shape_node) {
+            it->second.shape_node->queue_free();
+        }
+        shape_collisions.erase(it);
+    }
+}
+
+void Chunk::remove_shape(uint64_t shape_id) {
+    remove_shape_mesh(shape_id);
+    remove_shape_collision(shape_id);
+}
+
 void Chunk::clear_all_shape_meshes() {
     for (auto& pair : shape_meshes) {
         if (pair.second) {
@@ -33,4 +50,13 @@ void Chunk::clear_all_shape_meshes() {
         }
     }
     shape_meshes.clear();
+
+    for (auto& pair : shape_collisions) {
+        if (pair.second.body) {
+            pair.second.body->queue_free();
+        } else if (pair.second.shape_node) {
+            pair.second.shape_node->queue_free();
+        }
+    }
+    shape_collisions.clear();
 }

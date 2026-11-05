@@ -5,6 +5,10 @@
 #include <MeshGenerator/MeshGenerator.hpp>
 #include <MaterialGenerator/MaterialGenerator.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/static_body3d.hpp>
+#include <godot_cpp/classes/collision_shape3d.hpp>
+#include <godot_cpp/classes/concave_polygon_shape3d.hpp>
+#include <godot_cpp/classes/shape3d.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
@@ -23,7 +27,7 @@ void WorldMesh::_process(double delta) {}
 
 void WorldMesh::_remove_mesh_from_chunk(Chunk* chunk, uint64_t shape_id) {
     if (!chunk) return;
-    chunk->remove_shape_mesh(shape_id);
+    chunk->remove_shape(shape_id);
 }
 
 void WorldMesh::_clear_shape_in_subtree(Chunk* node, uint64_t shape_id) {
@@ -66,6 +70,19 @@ void WorldMesh::request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGen
     add_child(mesh_instance);
     mesh_instance->set_global_position(chunk->center);
     chunk->shape_meshes[shape_id] = mesh_instance;
+
+    StaticBody3D* collision_body = memnew(StaticBody3D);
+    add_child(collision_body);
+    collision_body->set_global_position(chunk->center);
+
+    CollisionShape3D* collision_shape = memnew(CollisionShape3D);
+    collision_body->add_child(collision_shape);
+
+    Chunk::ShapeCollision collision;
+    collision.body = collision_body;
+    collision.shape_node = collision_shape;
+    chunk->shape_collisions[shape_id] = collision;
+
     chunk->shape_material_generators[shape_id] = material_generator;
     
     mesh_generator->generate(shape_id, chunk_id);
@@ -79,11 +96,11 @@ void WorldMesh::cancel_render(uint64_t shape_id, uint64_t chunk_id) {
     ChunkOctree* octree = mgr->get_octree(shape_id);
     if (octree) {
         Chunk* chunk = octree->find(chunk_id);
-        if (chunk) chunk->remove_shape_mesh(shape_id);
+        if (chunk) chunk->remove_shape(shape_id);
     }
 }
 
-void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMesh> mesh) {
+void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMesh> mesh, Ref<ConcavePolygonShape3D> collision_shape) {
     if (mesh.is_null()) return;
     auto* mgr = ShapeSpatialManager::get_singleton();
     if (!mgr) return;
@@ -99,6 +116,19 @@ void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMes
 
     MeshInstance3D* mesh_instance = it->second;
     mesh_instance->set_mesh(mesh);
+
+    auto collision_it = chunk->shape_collisions.find(shape_id);
+    if (collision_it != chunk->shape_collisions.end() && collision_it->second.shape_node) {
+        if (mesh->get_surface_count() > 0) {
+            Ref<ConcavePolygonShape3D> shape = collision_shape;
+            if (shape.is_null()) {
+                shape = mesh->create_trimesh_shape();
+            }
+            collision_it->second.shape_node->set_shape(shape);
+        } else {
+            collision_it->second.shape_node->set_shape(Ref<Shape3D>());
+        }
+    }
 
     if (mesh->get_surface_count() > 0) {
         auto mat_it = chunk->shape_material_generators.find(shape_id);

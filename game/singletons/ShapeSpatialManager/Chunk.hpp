@@ -3,6 +3,8 @@
 #include <MaterialGenerator/MaterialGenerator.hpp>
 #include <godot_cpp/variant/vector3.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
+#include <godot_cpp/classes/static_body3d.hpp>
+#include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/variant/aabb.hpp>
 #include <array>
 #include <memory>
@@ -26,6 +28,15 @@ public:
 
     /// @brief Словарь визуальных представлений фигур в этом чанке (ID фигуры -> MeshInstance3D).
     std::unordered_map<uint64_t, MeshInstance3D*> shape_meshes;
+
+    /// @brief Коллизионное представление фигуры: тело и его форма.
+    struct ShapeCollision {
+        StaticBody3D* body = nullptr;
+        CollisionShape3D* shape_node = nullptr;
+    };
+
+    /// @brief Словарь коллизионных представлений фигур в этом чанке (ID фигуры -> тело и форма).
+    std::unordered_map<uint64_t, ShapeCollision> shape_collisions;
 
     /// @brief Словарь генераторов материалов для фигур, ожидающих завершения асинхронной генерации меша.
     std::unordered_map<uint64_t, Ref<MaterialGenerator>> shape_material_generators;
@@ -55,7 +66,15 @@ public:
     /// @param shape_id ID семантической фигуры, меш которой нужно удалить.
     void remove_shape_mesh(uint64_t shape_id);
 
-    /// @brief Полностью очищает все визуальные представления фигур в данном чанке, освобождая ресурсы.
+    /// @brief Удаляет коллизионное представление (StaticBody3D + CollisionShape3D) конкретной фигуры из этого чанка.
+    /// @param shape_id ID семантической фигуры, коллизию которой нужно удалить.
+    void remove_shape_collision(uint64_t shape_id);
+
+    /// @brief Удаляет и визуальное, и коллизионное представление фигуры из этого чанка.
+    /// @param shape_id ID семантической фигуры.
+    void remove_shape(uint64_t shape_id);
+
+    /// @brief Полностью очищает все визуальные и коллизионные представления фигур в данном чанке, освобождая ресурсы.
     void clear_all_shape_meshes();
 };
 

@@ -1,0 +1,1 @@
+clear && scons platform=linux debug_symbols=true
