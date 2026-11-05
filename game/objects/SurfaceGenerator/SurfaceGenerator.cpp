@@ -7,7 +7,6 @@
 #include <godot_cpp/classes/worker_thread_pool.hpp>
 #include <godot_cpp/classes/concave_polygon_shape3d.hpp>
 #include <godot_cpp/core/math.hpp>
-#include <PlanetShape/PlanetShape.hpp>
 
 using namespace godot;
 

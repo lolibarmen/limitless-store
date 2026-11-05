@@ -1,4 +1,5 @@
 #include "SemanticShape.hpp"
+#include <SemanticWorld/SemanticWorld.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/core/math.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -24,6 +25,15 @@ AABB SemanticShape::get_aabb() {
 
 void SemanticShape::notify_shape_changed() {
     _aabb_dirty = true;
+
+    if (_id == 0) {
+        return;
+    }
+
+    SemanticWorld* world = SemanticWorld::get_singleton();
+    if (world) {
+        world->propose_shape_change(_id);
+    }
 }
 
 float SemanticShape::evaluate_sdf(const Vector3& world_pos) const {

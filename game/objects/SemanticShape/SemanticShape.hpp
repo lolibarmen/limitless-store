@@ -66,7 +66,11 @@ public:
     /// @brief Пересчитывает AABB фигуры при вызове.
     virtual void recompute_aabb() { }
 
-    void notify_shape_changed();
+    /// @brief Помечает AABB фигуры устаревшим и уведомляет SemanticWorld об изменении параметров.
+    /// @details Если фигура ещё не зарегистрирована (id == 0), ограничивается инвалидацией AABB.
+    /// Дочерние классы могут переопределять метод для обновления собственного кэша,
+    /// но обязаны вызывать реализацию базового класса.
+    virtual void notify_shape_changed();
 
     /// @brief Возвращает тип фигуры. Использует StringName для быстрого сравнения O(1).
     virtual StringName get_shape_type() const { return StringName("shape"); }

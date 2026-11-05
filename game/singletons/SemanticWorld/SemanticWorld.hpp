@@ -22,6 +22,16 @@ private:
     Ref<Mutex> _shapes_mutex;
     std::atomic<uint64_t> _next_id{1};
 
+    bool _parameter_change_in_progress = false;
+
+    /// @brief Распространяет уведомление об изменении параметров фигуры по её связям.
+    /// @details Обходит граф владения в обе стороны, уведомляет связанные фигуры и
+    /// применяет их реакции. Исходная фигура при этом не заменяется.
+    void _propose_parameter_change(uint64_t old_id, Ref<SemanticShape> proposed_shape);
+
+    /// @brief Атомарно применяет одобренные замены фигур и обновляет граф зависимостей.
+    void _commit_changes(const std::unordered_map<uint64_t, Ref<SemanticShape>>& accepted_changes);
+
 protected:
     static void _bind_methods();
 
@@ -56,7 +66,17 @@ public:
     /// применяет все одобренные изменения, обновляя граф зависимостей.
     /// @param old_id ID фигуры, которая должна быть заменена.
     /// @param proposed_shape Предложение (Ref) новой, еще не зарегистрированной фигуры.
+    /// @details Если proposed_shape — это та же фигура, что зарегистрирована под old_id,
+    /// изменение трактуется как изменение параметров существующей фигуры: ID сохраняется,
+    /// а связанные фигуры получают уведомление и могут вернуть собственные реакции.
     void propose_shape_change(uint64_t old_id, Ref<SemanticShape> proposed_shape);
+
+    /// @brief Уведомляет мир об изменении параметров уже зарегистрированной фигуры.
+    /// @param old_id ID фигуры, чьи параметры изменились.
+    /// @details Фигура не заменяется и сохраняет свой ID. Уведомление распространяется
+    /// по графу владения в обе стороны до тех пор, пока не будут посещены все связанные
+    /// фигуры или не сработает ограничение на количество итераций.
+    void propose_shape_change(uint64_t old_id);
 };
 
 } // namespace godot

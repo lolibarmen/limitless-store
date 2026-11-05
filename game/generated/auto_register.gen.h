@@ -8,6 +8,7 @@ using namespace godot;
 #include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "PlanetMaterialGenerator/PlanetMaterialGenerator.hpp"
+#include "SurfaceShape/SurfaceShape.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
 #include "PlanetShape/PlanetShape.hpp"
@@ -35,6 +36,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<SemanticShape>();
     ClassDB::register_class<MaterialGenerator>();
     ClassDB::register_class<MeshGenerator>();
+    ClassDB::register_class<SurfaceShape>();
     ClassDB::register_class<SurfaceGenerator>();
     ClassDB::register_class<Tool>();
     ClassDB::register_class<TriplanarMaterialGenerator>();
