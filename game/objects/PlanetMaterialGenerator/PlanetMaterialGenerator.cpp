@@ -17,14 +17,14 @@ PlanetMaterialGenerator::PlanetMaterialGenerator() {
         shader_type spatial;
         render_mode blend_mix, depth_draw_opaque, cull_back;
         
-        uniform sampler2D tex0 : source_color, filter_linear_mipmap, repeat_enable;
-        uniform sampler2D tex1 : source_color, filter_linear_mipmap, repeat_enable;
-        uniform sampler2D tex2 : source_color, filter_linear_mipmap, repeat_enable;
-        uniform sampler2D tex3 : source_color, filter_linear_mipmap, repeat_enable;
-        uniform sampler2D tex4 : source_color, filter_linear_mipmap, repeat_enable;
-        uniform sampler2D tex5 : source_color, filter_linear_mipmap, repeat_enable;
-        uniform sampler2D tex6 : source_color, filter_linear_mipmap, repeat_enable;
-        uniform sampler2D tex7 : source_color, filter_linear_mipmap, repeat_enable;
+        uniform sampler2D tex0 : source_color, filter_nearest_mipmap, repeat_enable;
+        uniform sampler2D tex1 : source_color, filter_nearest_mipmap, repeat_enable;
+        uniform sampler2D tex2 : source_color, filter_nearest_mipmap, repeat_enable;
+        uniform sampler2D tex3 : source_color, filter_nearest_mipmap, repeat_enable;
+        uniform sampler2D tex4 : source_color, filter_nearest_mipmap, repeat_enable;
+        uniform sampler2D tex5 : source_color, filter_nearest_mipmap, repeat_enable;
+        uniform sampler2D tex6 : source_color, filter_nearest_mipmap, repeat_enable;
+        uniform sampler2D tex7 : source_color, filter_nearest_mipmap, repeat_enable;
         
         uniform float texture_scale = 0.1;
         
@@ -71,9 +71,9 @@ PlanetMaterialGenerator::PlanetMaterialGenerator() {
     _shader->set_code(shader_code);
 
     // Загрузка текстур (предполагаем, что они лежат в res:// или res://textures/)
-    const char* tex_names[] = { "dirt", "grass", "gravel", "null", "sand", "snow", "stone", "water" };
+    const char* tex_names[] = { "grass.png", "dirt.webp", "sand.webp", "gravel.webp", "null.webp", "snow.webp", "stone.webp", "water.webp" };
     for (int i = 0; i < 8; ++i) {
-        String path = String("res://assets/Chunk/") + tex_names[i] + ".webp";
+        String path = String("res://assets/Chunk/") + tex_names[i];
         Ref<Texture2D> tex = ResourceLoader::get_singleton()->load(path);
         _textures[i] = tex;
     }

@@ -46,7 +46,7 @@ void WorldCoordinator::_register_initial_shapes() {
     
     Ref<PlanetShape> planet;
     planet.instantiate();
-    float r = 100.0f;
+    float r = 1000.0f;
     planet->set_radius(r);
     planet->set_center(Vector3(0.0, -r, 0.0));
     sw->register_shape(planet);

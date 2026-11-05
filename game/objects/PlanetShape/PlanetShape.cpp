@@ -1,4 +1,5 @@
 #include "PlanetShape.hpp"
+#include "godot_cpp/core/math.hpp"
 #include <WorldMesh/WorldMesh.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
@@ -23,13 +24,11 @@ void PlanetShape::_bind_methods() {
 PlanetShape::PlanetShape() {
     _noise.instantiate();
     _noise->set_noise_type(FastNoiseLite::TYPE_SIMPLEX);
-    _noise->set_frequency(1.0f);
+    _noise->set_fractal_octaves(2);
 
-    // Воронои задаёт границы материалов на поверхности планеты.
     _shared_voronoi.instantiate();
     _shared_voronoi->set_noise_type(FastNoiseLite::TYPE_CELLULAR);
     _shared_voronoi->set_cellular_return_type(FastNoiseLite::RETURN_CELL_VALUE);
-    _shared_voronoi->set_frequency(1.0f);
     
     _mesh_generator.instantiate();
     _material_generator.instantiate();
@@ -47,7 +46,9 @@ int PlanetShape::get_material_id(const Vector3& world_pos) const {
     float normalized = (val + 1.0f) * 0.5f; 
     normalized = CLAMP(normalized, 0.0f, 1.0f);
     
-    return (int)(normalized * 7.999f);
+    const int kMat = 2;
+    return 5;
+    return (int)(normalized * kMat);
 }
 
 float PlanetShape::evaluate_sdf(const Vector3& world_pos) const {
@@ -78,6 +79,8 @@ void PlanetShape::recompute_aabb() {
 void PlanetShape::on_register() {
     _noise->set_seed(get_id());
     _shared_voronoi->set_seed(get_id());
+    _noise->set_frequency(_radius / 100.0f);
+    _shared_voronoi->set_frequency(_radius / 100.0f);
 
     SemanticWorld* sw = SemanticWorld::get_singleton();
     ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
@@ -87,7 +90,7 @@ void PlanetShape::on_register() {
 
     // Собственное октодерево планеты.
     const float r = _radius + _amplitude;
-    constexpr int kMaxDepth = 3;
+    constexpr int kMaxDepth = 6;
     mgr->create_octree(get_id(), _center, r * 2.0f, kMaxDepth);
 }
 
