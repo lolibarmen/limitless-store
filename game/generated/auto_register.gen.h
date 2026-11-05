@@ -7,9 +7,9 @@ using namespace godot;
 #include "Tool/Tool.hpp"
 #include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
+#include "PlanetMaterialGenerator/PlanetMaterialGenerator.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
-#include "PlanetTerrainShape/PlanetTerrainShape.hpp"
 #include "PlanetShape/PlanetShape.hpp"
 #include "Player/Player.hpp"
 #include "PickableTool/PickableTool.hpp"
@@ -34,12 +34,12 @@ inline void auto_register_virtual_classes() {
 inline void auto_register_classes() {
     ClassDB::register_class<SemanticShape>();
     ClassDB::register_class<MaterialGenerator>();
-    ClassDB::register_class<PlanetTerrainShape>();
     ClassDB::register_class<MeshGenerator>();
     ClassDB::register_class<SurfaceGenerator>();
     ClassDB::register_class<Tool>();
     ClassDB::register_class<TriplanarMaterialGenerator>();
     ClassDB::register_class<PlayerCamera>();
+    ClassDB::register_class<PlanetMaterialGenerator>();
     ClassDB::register_class<PlayerMovement>();
     ClassDB::register_class<PlanetShape>();
     ClassDB::register_class<Player>();

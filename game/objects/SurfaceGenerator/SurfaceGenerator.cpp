@@ -6,7 +6,7 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/worker_thread_pool.hpp>
 #include <godot_cpp/core/math.hpp>
-#include <algorithm>
+#include <PlanetShape/PlanetShape.hpp>
 
 using namespace godot;
 
@@ -86,11 +86,23 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
         gen->call_deferred("_on_mesh_generated", shape_id, chunk_id, Ref<ArrayMesh>());
         return;
     }
+    
+    PackedColorArray colors;
+    colors.resize(data.vertices.size());
+    
+    shape->paint_vertices(
+        data.vertices.ptr(),
+        data.normals.ptr(),
+        colors.ptrw(),
+        data.vertices.size(),
+        chunk_pos
+    );
 
     Array arrays;
     arrays.resize(Mesh::ARRAY_MAX);
     arrays[Mesh::ARRAY_VERTEX] = data.vertices;
     arrays[Mesh::ARRAY_NORMAL] = data.normals;
+    arrays[Mesh::ARRAY_COLOR] = colors;
 
     Ref<ArrayMesh> mesh;
     mesh.instantiate();

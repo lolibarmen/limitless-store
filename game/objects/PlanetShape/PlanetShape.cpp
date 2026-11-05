@@ -1,6 +1,5 @@
 #include "PlanetShape.hpp"
-#include "godot_cpp/classes/fast_noise_lite.hpp"
-#include <PlanetTerrainShape/PlanetTerrainShape.hpp>
+#include <WorldMesh/WorldMesh.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -30,28 +29,25 @@ PlanetShape::PlanetShape() {
     _shared_voronoi.instantiate();
     _shared_voronoi->set_noise_type(FastNoiseLite::TYPE_CELLULAR);
     _shared_voronoi->set_cellular_return_type(FastNoiseLite::RETURN_CELL_VALUE);
-    _shared_voronoi->set_frequency(10.0f);
+    _shared_voronoi->set_frequency(1.0f);
+    
+    _mesh_generator.instantiate();
+    _material_generator.instantiate();
+}
 
-    _dirt_shape.instantiate();
-    _dirt_shape->set_albedo_texture("res://assets/Chunk/dirt.webp");
-
-    _grass_shape.instantiate();
-    _grass_shape->set_albedo_texture("res://assets/Chunk/grass.png");
-
-    _gravel_shape.instantiate();
-    _gravel_shape->set_albedo_texture("res://assets/Chunk/gravel.webp");
-
-    _sand_shape.instantiate();
-    _sand_shape->set_albedo_texture("res://assets/Chunk/sand.webp");
-
-    _snow_shape.instantiate();
-    _snow_shape->set_albedo_texture("res://assets/Chunk/snow.webp");
-
-    _stone_shape.instantiate();
-    _stone_shape->set_albedo_texture("res://assets/Chunk/stone.webp");
-
-    _water_shape.instantiate();
-    _water_shape->set_albedo_texture("res://assets/Chunk/water.webp");
+int PlanetShape::get_material_id(const Vector3& world_pos) const {
+    // Используем направление от центра, как и в evaluate_sdf, 
+    // чтобы биомы не "плыли" по вертикали вместе с рельефом.
+    const Vector3 d = world_pos - _center;
+    const float len = d.length();
+    const Vector3 dir = len > 0.0f ? d / len : Vector3(0.0f, 1.0f, 0.0f);
+    
+    float val = _shared_voronoi->get_noise_3dv(dir);
+    // Нормализуем значение Cellular Noise в диапазон [0, 1]
+    float normalized = (val + 1.0f) * 0.5f; 
+    normalized = CLAMP(normalized, 0.0f, 1.0f);
+    
+    return (int)(normalized * 7.999f);
 }
 
 float PlanetShape::evaluate_sdf(const Vector3& world_pos) const {
@@ -62,6 +58,15 @@ float PlanetShape::evaluate_sdf(const Vector3& world_pos) const {
     const Vector3 dir = len > 0.0f ? d / len : Vector3(0.0f, 1.0f, 0.0f);
     const float height = _radius + _noise->get_noise_3dv(dir) * _amplitude;
     return len - height;
+}
+
+void PlanetShape::paint_vertices(const Vector3* positions, const Vector3* normals, Color* out_colors, int count, const Vector3& posoff) const {
+    for (int i = 0; i < count; ++i) {
+        Vector3 world_pos = positions[i] + posoff;
+        
+        int biome_id = get_material_id(world_pos);
+        out_colors[i] = Color((float)biome_id / 7.0f, 0.0f, 0.0f, 1.0f);
+    }
 }
 
 void PlanetShape::recompute_aabb() {
@@ -84,22 +89,9 @@ void PlanetShape::on_register() {
     const float r = _radius + _amplitude;
     constexpr int kMaxDepth = 3;
     mgr->create_octree(get_id(), _center, r * 2.0f, kMaxDepth);
+}
 
-    // Дочерние фигуры: регистрируются после родителя и привязываются к его дереву.
-    const Ref<PlanetTerrainShape> shapes[] = {
-        _dirt_shape, _grass_shape, _gravel_shape, _sand_shape,
-        _snow_shape, _stone_shape, _water_shape,
-    };
-    int material_id = 0;
-    for (const Ref<PlanetTerrainShape>& shape : shapes) {
-        shape->set_center(_center);
-        shape->set_radius(_radius);
-        shape->set_amplitude(_amplitude);
-        // PlanetShape — единственный источник SDF: фигура получает базовый SDF отсюда
-        // и свой id материала в общем воронои-распределении.
-        shape->bind_material(Ref<PlanetShape>(this), _shared_voronoi, material_id++);
-        sw->register_shape(shape);
-        add_owned_shape(shape->get_id());
-        mgr->bind_spatially(shape->get_id(), get_id());
-    }
+void PlanetShape::on_zone_changed(uint64_t chunk_id) {
+    WorldMesh* wm = WorldMesh::get_singleton();
+    wm->request_render(get_id(), chunk_id, _mesh_generator, _material_generator);
 }

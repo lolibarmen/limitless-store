@@ -30,6 +30,12 @@ float SemanticShape::evaluate_sdf(const Vector3& world_pos) const {
     return 1e10f;
 }
 
+void SemanticShape::paint_vertices(const Vector3* positions, const Vector3* normals, Color* out_colors, int count, const Vector3& posoff) const {
+    for (int i = 0; i < count; ++i) {
+        out_colors[i] = Color(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+}
+
 void SemanticShape::add_owned_shape(uint64_t id) {
     if (!_owned_shape_ids.has(id)) {
         _owned_shape_ids.push_back(id);

@@ -73,6 +73,14 @@ public:
     
     /// @brief Вычисляет значение SDF (Signed Distance Field) для точки в мировом пространстве.
     virtual float evaluate_sdf(const Vector3& world_pos) const;
+    
+    /// @brief Раскрашивает вершины меша. По умолчанию — белый цвет (для шейдера с фолбэком).
+    /// @param positions Позиции вершин
+    /// @param normals Нормали вершин
+    /// @param out_colors массив цветов на выходе
+    /// @param count количество вершин
+    /// @param posoff смещение координат вершин
+    virtual void paint_vertices(const Vector3* positions, const Vector3* normals, Color* out_colors, int count, const Vector3& posoff) const;
 
     /// @brief Ядро системы LOD. Вызывается при активации чанка в октодереве, к которому привязана фигура.
     /// @param chunk_id ID активированного чанка.
