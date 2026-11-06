@@ -10,13 +10,6 @@
 using namespace godot;
 
 void WorldCoordinator::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("get_seed"), &WorldCoordinator::get_seed);
-    ClassDB::bind_method(D_METHOD("set_seed", "v"), &WorldCoordinator::set_seed);
-    ClassDB::add_property("WorldCoordinator",
-        PropertyInfo(Variant::INT, "seed"),
-        "set_seed", "get_seed");
-        
-    // Метод все еще полезен для привязки, если вы хотите вызывать его из GDScript
     ClassDB::bind_method(D_METHOD("_register_initial_shapes"), &WorldCoordinator::_register_initial_shapes);
 }
 
@@ -52,9 +45,6 @@ void WorldCoordinator::_register_initial_shapes() {
     planet->set_center(Vector3(0.0, -r, 0.0));
     sw->register_shape(planet);
 
-    // Тестовое дерево: точка на поверхности планеты рядом со спавном (над (5,0,5)).
-    // Высота поверхности ищется бисекцией SDF дочерней SurfaceShape вдоль луча
-    // от центра планеты — так дерево встаёт на рельеф (амплитуда ±20), а не парит.
     const PackedInt64Array owned = planet->get_owned_shapes();
     if (owned.is_empty()) return;
     Ref<SemanticShape> surface = sw->get_shape(owned[0]);
@@ -77,7 +67,6 @@ void WorldCoordinator::_register_initial_shapes() {
     tree->bind_planet(planet);
     tree->set_origin(base);
     tree->set_up(dir);
-    tree->set_seed(7);
     tree->set_height(3.0f);
     tree->set_base_radius(0.2f);
     tree->set_top_radius(0.0f);

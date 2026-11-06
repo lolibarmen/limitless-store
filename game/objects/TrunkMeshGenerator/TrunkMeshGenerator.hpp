@@ -5,14 +5,6 @@
 namespace godot {
 
 /// @brief Генератор меша ствола: низкополигональный конус из колец.
-///
-/// Форма читается из TrunkShape (параметры не хранятся в полях генератора):
-/// центральная линия с боковым изгибом, конусность, вариация колец —
-/// детерминированно из seed через Utils/RandomUtils.hpp.
-///
-/// Фигура маленькая, поэтому меш НЕ режется по чанкам (slice=false):
-/// ствол генерируется целиком в локальных координатах того чанка,
-/// в котором он закреплён (см. TrunkShape::on_zone_changed).
 class TrunkMeshGenerator : public MeshGenerator {
     GDCLASS(TrunkMeshGenerator, MeshGenerator)
 

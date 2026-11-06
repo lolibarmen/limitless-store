@@ -46,10 +46,6 @@ void TrunkShape::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_ring_variation"), &TrunkShape::get_ring_variation);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "ring_variation", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_ring_variation", "get_ring_variation");
 
-    ClassDB::bind_method(D_METHOD("set_seed", "seed"), &TrunkShape::set_seed);
-    ClassDB::bind_method(D_METHOD("get_seed"), &TrunkShape::get_seed);
-    ADD_PROPERTY(PropertyInfo(Variant::INT, "seed"), "set_seed", "get_seed");
-
     ClassDB::bind_method(D_METHOD("bind_planet", "planet"), &TrunkShape::bind_planet);
     ClassDB::bind_method(D_METHOD("centerline", "t"), &TrunkShape::centerline);
     ClassDB::bind_method(D_METHOD("centerline_tangent", "t"), &TrunkShape::centerline_tangent);
@@ -60,7 +56,6 @@ TrunkShape::TrunkShape() {
     _mesh_generator.instantiate();
     _material_generator.instantiate();
 
-    // Ствол использует общий трипланарный материал с текстурой бревна.
     Ref<Texture2D> log = ResourceLoader::get_singleton()->load("res://assets/Tree/log.webp");
     if (log.is_valid()) {
         _material_generator->set_albedo_texture(log);
@@ -82,16 +77,13 @@ void TrunkShape::set_up(const Vector3& v) {
 
 Vector3 TrunkShape::centerline(float t) const {
     const float s = CLAMP(t, 0.0f, 1.0f);
-    // Боковой изгиб: 0 у основания, _bend на макушке, сглаживание smoothstep.
     const float smooth = s * s * (3.0f - 2.0f * s);
     return _origin + _up * (_height * s) + _bend * smooth;
 }
 
 Vector3 TrunkShape::centerline_tangent(float t) const {
-    const float eps = 0.01f;
-    const Vector3 a = centerline(t - eps);
-    const Vector3 b = centerline(t + eps);
-    const Vector3 d = b - a;
+    const float s = CLAMP(t, 0.0f, 1.0f);
+    const Vector3 d = _up * _height + _bend * (6.0f * s * (1.0f - s));
     const float len = d.length();
     return len > 0.0001f ? d / len : _up;
 }
@@ -102,39 +94,24 @@ float TrunkShape::radius_at(float t) const {
 }
 
 void TrunkShape::recompute_aabb() {
-    // Консервативный бокс: выборки центральной линии + максимальный радиус кольца
-    // с запасом на вариацию/овальность колец.
-    const float rmax = Math::max(_base_radius, _top_radius) * (1.0f + _ring_variation + 0.25f);
+    const float rmax = Math::max(_base_radius, _top_radius) * (1.0f + _ring_variation) + 0.1f;
 
-    Vector3 mn = centerline(0.0f);
-    Vector3 mx = mn;
-    constexpr int kSamples = 8;
-    for (int i = 0; i <= kSamples; ++i) {
-        const Vector3 p = centerline((float)i / (float)kSamples);
-        mn = Vector3(Math::min(mn.x, p.x), Math::min(mn.y, p.y), Math::min(mn.z, p.z));
-        mx = Vector3(Math::max(mx.x, p.x), Math::max(mx.y, p.y), Math::max(mx.z, p.z));
-    }
+    AABB box(centerline(0.0f), Vector3());
+    box = box.expand(centerline(1.0f));
 
     const Vector3 margin(rmax, rmax, rmax);
-    mn -= margin;
-    mx += margin;
-
-    _aabb = AABB(mn, mx - mn);
+    _aabb = AABB(box.position - margin, box.size + margin * 2.0f);
     _aabb_dirty = false;
 }
 
 void TrunkShape::on_register() {
     ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
     if (mgr && _planet.is_valid()) {
-        // Своего октодерева нет — ствол живёт в пространственном дереве планеты.
         mgr->bind_spatially(get_id(), _planet->get_id());
     }
 }
 
 void TrunkShape::on_zone_changed(uint64_t chunk_id) {
-    // Подавление дублей (см. SemanticShape::on_zone_changed): рендерим только в чанке,
-    // содержащем центр AABB фигуры. Меш не режется — он маленький и целиком попадает
-    // в выбранный чанк (возможно, вылезая за его границы — это допустимо).
     ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
     Chunk* chunk = mgr ? mgr->get_chunk(get_id(), chunk_id) : nullptr;
     if (!chunk) return;

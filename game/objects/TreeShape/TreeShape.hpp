@@ -8,16 +8,7 @@
 
 namespace godot {
 
-/// @brief Дерево — фигура-владелец: создаёт ствол и несколько веток.
-///
-/// Своего октодерева и собственного меша нет: TreeShape, TrunkShape и BranchShape
-/// привязываются к октодереву планеты (bind_spatially). Состав задаётся через
-/// add_owned_shape: при регистрации создаются дочерние TrunkShape и BranchShape.
-///
-/// Позиции веток на стволе назначаются здесь: точки крепления берутся с центральной
-/// линии ствола (TrunkShape::centerline), направление — касательная ствола,
-/// отклонённая на угол spread в сторону азимута (равномерно вокруг ствола
-/// с детерминированным разбросом из seed).
+/// @brief Дерево: создаёт ствол и ветки, равномерно расставленные вдоль ствола.
 class TreeShape : public SemanticShape {
     GDCLASS(TreeShape, SemanticShape)
 
@@ -26,9 +17,7 @@ private:
 
     Vector3 _origin;
     Vector3 _up = Vector3(0.0f, 1.0f, 0.0f);
-    uint64_t _seed = 0;
 
-    // Параметры ствола (переносятся в дочерний TrunkShape).
     float _height = 8.0f;
     float _base_radius = 0.5f;
     float _top_radius = 0.18f;
@@ -37,7 +26,6 @@ private:
     int _height_segments = 6;
     float _ring_variation = 0.15f;
 
-    // Параметры веток.
     int _branch_count = 5;
     float _branch_start = 0.45f;
     float _branch_end = 0.95f;
@@ -63,9 +51,6 @@ public:
 
     void set_up(const Vector3& v);
     Vector3 get_up() const { return _up; }
-
-    void set_seed(uint64_t v) { _seed = v; notify_shape_changed(); }
-    uint64_t get_seed() const { return _seed; }
 
     void set_height(float v) { _height = v; notify_shape_changed(); }
     float get_height() const { return _height; }
@@ -106,7 +91,6 @@ public:
     void set_branch_spread(float v) { _branch_spread = v; notify_shape_changed(); }
     float get_branch_spread() const { return _branch_spread; }
 
-    /// @brief ID дочернего ствола (0 — ещё не создан).
     uint64_t get_trunk_id() const { return _trunk_id; }
 
     StringName get_shape_type() const override { return "tree"; }

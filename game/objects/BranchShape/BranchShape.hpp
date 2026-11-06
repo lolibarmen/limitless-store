@@ -8,17 +8,7 @@
 
 namespace godot {
 
-/// @brief Ветка — маленькая семантическая фигура без собственного октодерева.
-///
-/// Геометрия — один ПРЯМОУГОЛЬНЫЙ четырёхугольник в мировых координатах: точка
-/// крепления (position), длина (length) и ширина (width). Длинная ось карточки
-/// всегда направлена вдоль локального верха планеты (нормаль поверхности в точке
-/// крепления), т.е. зенитный угол карточки равен нулю. Наклон ветки (зенит) не
-/// поворачивает карточку, а запекается в её текстуру (BranchMaterialGenerator).
-/// Положение на стволе назначает TreeShape при расстановке веток.
-///
-/// Рендерится целиком в чанке, содержащем центр её AABB: меш маленький,
-/// нарезка по чанкам не нужна. Материал — пиксельная текстура ветки (BranchMaterialGenerator).
+/// @brief Ветка: прямоугольная карточка вдоль локального верха планеты; наклон запечён в текстуру.
 class BranchShape : public SemanticShape {
     GDCLASS(BranchShape, SemanticShape)
 
@@ -29,7 +19,6 @@ private:
     Vector3 _direction = Vector3(0.0f, 1.0f, 0.0f);
     float _length = 1.5f;
     float _width = 0.3f;
-    uint64_t _seed = 0;
 
     Ref<BranchMeshGenerator> _mesh_generator;
     Ref<BranchMaterialGenerator> _material_generator;
@@ -55,31 +44,11 @@ public:
     void set_width(float v) { _width = v; notify_shape_changed(); }
     float get_width() const { return _width; }
 
-    void set_seed(uint64_t v) { _seed = v; notify_shape_changed(); }
-    uint64_t get_seed() const { return _seed; }
-
-    /// @brief Локальный верх планеты в точке крепления (нормаль поверхности).
-    /// Длинная ось карточки ветки всегда направлена вдоль этого вектора.
-    Vector3 up() const;
-
-    /// @brief Зенитный угол ветки: угол между direction и локальным верхом планеты.
-    /// Запекается в текстуру (BranchMaterialGenerator), карточку не поворачивает.
-    float get_zenith() const;
-
-    /// @brief Боковая ось четырёхугольника (перпендикулярна up()).
-    Vector3 side() const;
-
-    /// @brief Высота вертикальной карточки: проекция length на up().
-    /// Нарисованный кончик компенсирует наклон боковым сдвигом (см. lean()).
-    float card_height() const;
-
-    /// @brief Боковой сдвиг кончика ветки в мировых единицах (проекция length на side()).
-    /// Запекается в текстуру так, чтобы кончик совпал с position + direction * length.
-    float lean() const;
-
-    /// @brief Ширина карточки: width плюс запас на боковой сдвиг кончика (|lean|),
-    /// чтобы нарисованный кончик поместился в карточку и лёг точно на direction * length.
-    float card_width() const;
+    Vector3 up() const;         // локальный верх планеты в точке крепления
+    Vector3 side() const;       // боковая ось карточки (перпендикулярна up)
+    float card_height() const;  // проекция length на up
+    float lean() const;         // проекция length на side
+    float card_width() const;   // width + |lean|
 
     StringName get_shape_type() const override { return "branch"; }
     void recompute_aabb() override;

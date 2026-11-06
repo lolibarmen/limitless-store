@@ -8,15 +8,7 @@
 
 namespace godot {
 
-/// @brief Ствол дерева — маленькая семантическая фигура без собственного октодерева.
-///
-/// Геометрия задаётся в мировых координатах параметрами: основание (origin, up),
-/// высота, конусность (base_radius -> top_radius), боковой изгиб (bend) и вариация
-/// колец (ring_variation). Центральная линия centerline(t) — общий источник истины
-/// для генератора меша и TreeShape при расстановке веток.
-///
-/// Фигура привязывается к октодереву планеты (bind_spatially) и рендерится целиком
-/// в чанке, содержащем центр её AABB: меш маленький, нарезка по чанкам не нужна.
+/// @brief Ствол дерева: низкополигональный конус с боковым изгибом.
 class TrunkShape : public SemanticShape {
     GDCLASS(TrunkShape, SemanticShape)
 
@@ -32,7 +24,6 @@ private:
     int _radial_segments = 7;
     int _height_segments = 6;
     float _ring_variation = 0.15f;
-    uint64_t _seed = 0;
 
     Ref<TrunkMeshGenerator> _mesh_generator;
     Ref<TriplanarMaterialGenerator> _material_generator;
@@ -73,17 +64,9 @@ public:
     void set_ring_variation(float v) { _ring_variation = v; notify_shape_changed(); }
     float get_ring_variation() const { return _ring_variation; }
 
-    void set_seed(uint64_t v) { _seed = v; notify_shape_changed(); }
-    uint64_t get_seed() const { return _seed; }
-
-    /// @brief Точка центральной линии ствола при t in [0,1] (0 — основание, 1 — макушка).
-    Vector3 centerline(float t) const;
-
-    /// @brief Касательная к центральной линии при t (нормализована).
-    Vector3 centerline_tangent(float t) const;
-
-    /// @brief Радиус ствола при t (конус: base_radius -> top_radius).
-    float radius_at(float t) const;
+    Vector3 centerline(float t) const;          // точка центральной линии, t in [0,1]
+    Vector3 centerline_tangent(float t) const;  // нормализованная касательная
+    float radius_at(float t) const;             // радиус конуса
 
     StringName get_shape_type() const override { return "trunk"; }
     void recompute_aabb() override;
