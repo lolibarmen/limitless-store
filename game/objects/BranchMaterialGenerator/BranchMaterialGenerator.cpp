@@ -13,29 +13,36 @@ using namespace godot;
 void BranchMaterialGenerator::_bind_methods() {}
 
 Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
-    // Пропорции карточки ветки: width поперёк, length вдоль. Текстура должна
-    // повторять их, иначе пиксель-арт растягивается (квадратные пиксели).
+    // Геометрия карточки ветки: вертикальный прямоугольник, длинная ось вдоль
+    // локального верха планеты. Высота — card_height, ширина — card_width
+    // (width + запас на боковой сдвиг кончика). Текстура повторяет эти пропорции,
+    // иначе пиксель-арт растягивается (квадратные пиксели).
     float width = 1.0f;
-    float length = 1.0f;
+    float card_width = 1.0f;
+    float card_height = 1.0f;
+    float lean = 0.0f;
     if (SemanticWorld* sw = SemanticWorld::get_singleton()) {
         Ref<SemanticShape> base = sw->get_shape(shape_id);
         BranchShape* shape = Object::cast_to<BranchShape>(base.ptr());
         if (shape) {
             width = shape->get_width();
-            length = shape->get_length();
+            card_width = shape->card_width();
+            card_height = shape->card_height();
+            lean = shape->lean();
         }
     }
     if (width < 0.0001f) width = 0.0001f;
-    if (length < 0.0001f) length = 0.0001f;
+    if (card_width < 0.0001f) card_width = 0.0001f;
+    if (card_height < 0.0001f) card_height = 0.0001f;
 
-    const int W = 16;                       // текселей поперёк карточки
-    const float texel = width / (float)W;    // мировой размер текселя (по ширине)
-    int H = (int)Math::ceil((float)W * length / width); // текселей вдоль карточки
+    const int W = 16;                              // текселей поперёк карточки
+    const float texel = card_width / (float)W;     // мировой размер текселя (по ширине)
+    int H = (int)Math::ceil(card_height / texel);  // текселей вдоль карточки
     H = CLAMP(H, 8, 256);
 
     // Масштаб V: ряд текстуры должен быть шириной ровно в один тексель.
-    // uv1_scale.y умножает V, поэтому ряд занимает length / (H * texel) → texel.
-    const float v_scale = length / ((float)H * texel);
+    // uv1_scale.y умножает V, поэтому ряд занимает card_height / (H * texel) → texel.
+    const float v_scale = card_height / ((float)H * texel);
 
     // Пиксель-арт ветки: W x H RGBA, прозрачный фон.
     // Верх изображения (UV.y=0) — основание ветки, низ — кончик.
@@ -45,14 +52,22 @@ Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chun
     const Color bark_dark(0.33f, 0.21f, 0.12f, 1.0f);
     const Color outline(0.20f, 0.12f, 0.07f, 1.0f);
 
+    // Наклон ветки запекается в текстуру: основание полосы по центру карточки,
+    // кончик смещён вбок ровно на lean (в текселях) — совпадает с проекцией ветки
+    // на боковую ось, т.е. нарисованный кончик лёг на direction * length.
+    const float base_cx = (float)(W - 1) * 0.5f;
+    const float lean_texels = lean / texel;
+    // Полуширина самой ветки в текселях (силуэт строится в долях от width, как в 16x16).
+    const float w_texels = width / texel;
+
     for (int y = 0; y < H; ++y) {
-        // Положение ряда вдоль ветки в мировых единицах (совпадает с UV карточки).
-        float t = (float)y * texel / length;
+        // Параметр вдоль карточки (V), 0 — основание, 1 — кончик.
+        float t = (float)y * texel / card_height;
         t = CLAMP(t, 0.0f, 1.0f);
 
-        // Сужение к кончику + лёгкий изгиб (доли от W, как в исходном 16x16).
-        const float cx = (W - 1) * 0.5f + (2.0f / 16.0f) * (float)W * t * t;
-        const float hw = ((5.5f + (1.2f - 5.5f) * t) / 16.0f) * (float)W;
+        // Сужение к кончику + лёгкий изгиб + наклон ветки, доли от ширины ветки.
+        const float cx = base_cx + (2.0f / 16.0f) * w_texels * t * t + lean_texels * t;
+        const float hw = ((5.5f + (1.2f - 5.5f) * t) / 16.0f) * w_texels;
 
         for (int x = 0; x < W; ++x) {
             const float d = Math::abs((float)x - cx);

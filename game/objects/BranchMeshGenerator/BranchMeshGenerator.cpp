@@ -21,20 +21,24 @@ void BranchMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
     MeshBuilder b = builder(shape_id, chunk_id, false);
 
     const Vector3 pos = shape->get_position();
-    const Vector3 dir = shape->get_direction();
+    const Vector3 up = shape->up();
     const Vector3 side = shape->side();
-    const Vector3 s = side * (shape->get_width() * 0.5f);
-    const Vector3 tip = pos + dir * shape->get_length();
-    const Vector3 normal = side.cross(dir);
+    const float card_width = shape->card_width();
+    const float card_height = shape->card_height();
+    const Vector3 s = side * (card_width * 0.5f);
 
-    // UV считаются по позиции вершины: U — проекция на боковую ось (0..1 поперёк),
-    // V — проекция на направление ветки (0..1 вдоль). Масштаб V под квадратный
-    // тексель задаёт материал (uv1_scale.y).
-    const float width = shape->get_width();
-    const float length = shape->get_length();
+    // Карточка — вертикальный прямоугольник (длинная ось вдоль локального верха
+    // планеты): её высота — проекция ветки на up, ширина включает запас на боковой
+    // сдвиг кончика (card_width >= width + |lean|). Сам сдвиг запекается в текстуру
+    // так, чтобы нарисованный кончик лёг ровно в pos + direction * length.
+    const Vector3 tip = pos + up * card_height;
+    const Vector3 normal = side.cross(up);
+
+    // UV: U — проекция на боковую ось (0..1 поперёк), V — проекция на up вдоль
+    // высоты карточки (0..1). Масштаб V под квадратный тексель задаёт материал.
     auto uv_at = [&](const Vector3& world_pos) {
         const Vector3 d = world_pos - pos;
-        return Vector2(0.5f + d.dot(side) / width, d.dot(dir) / length);
+        return Vector2(0.5f + d.dot(side) / card_width, d.dot(up) / card_height);
     };
 
     // Четырёхугольник карточки ветки: V=0 основание, V=1 кончик; U поперёк ветки.

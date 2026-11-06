@@ -15,4 +15,5 @@ This project is a modern take on Minecraft using the Godot engine. The main obje
 - Running the Godot project is possible only if debugging is requested and only in headless only mode
 
 ## Work rules
-- Creating additional agents for analyzing the project architecture is not encouraged.
+- Creating additional agents is not recommended for performing sequential tasks
+- Don’t use git
