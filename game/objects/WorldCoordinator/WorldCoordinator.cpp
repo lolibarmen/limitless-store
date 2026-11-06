@@ -40,6 +40,7 @@ void WorldCoordinator::_process(double delta) {
 }
 
 #include <PlanetShape/PlanetShape.hpp>
+#include <TreeShape/TreeShape.hpp>
 void WorldCoordinator::_register_initial_shapes() {
     SemanticWorld* sw = SemanticWorld::get_singleton();
     if (!sw) return;
@@ -50,4 +51,37 @@ void WorldCoordinator::_register_initial_shapes() {
     planet->set_radius(r);
     planet->set_center(Vector3(0.0, -r, 0.0));
     sw->register_shape(planet);
+
+    // Тестовое дерево: точка на поверхности планеты рядом со спавном (над (5,0,5)).
+    // Высота поверхности ищется бисекцией SDF дочерней SurfaceShape вдоль луча
+    // от центра планеты — так дерево встаёт на рельеф (амплитуда ±20), а не парит.
+    const PackedInt64Array owned = planet->get_owned_shapes();
+    if (owned.is_empty()) return;
+    Ref<SemanticShape> surface = sw->get_shape(owned[0]);
+    if (surface.is_null()) return;
+
+    const Vector3 center = planet->get_center();
+    const Vector3 dir = (Vector3(5.0f, 0.0f, 5.0f) - center).normalized();
+
+    float lo = r - planet->get_amplitude() - 1.0f;
+    float hi = r + planet->get_amplitude() + 1.0f;
+    for (int i = 0; i < 32; ++i) {
+        const float mid = (lo + hi) * 0.5f;
+        if (surface->evaluate_sdf(center + dir * mid) < 0.0f) lo = mid;
+        else hi = mid;
+    }
+    const Vector3 base = center + dir * ((lo + hi) * 0.5f);
+
+    Ref<TreeShape> tree;
+    tree.instantiate();
+    tree->bind_planet(planet);
+    tree->set_origin(base);
+    tree->set_up(dir);
+    tree->set_seed(7);
+    tree->set_height(6.0f);
+    tree->set_base_radius(0.4f);
+    tree->set_top_radius(0.12f);
+    tree->set_bend(Vector3(0.6f, 0.0f, 0.3f));
+    tree->set_branch_count(5);
+    sw->register_shape(tree);
 }

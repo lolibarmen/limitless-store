@@ -38,8 +38,13 @@ void MeshGenerator::MeshBuilder::emit(const Vertex& a, const Vertex& b, const Ve
 }
 
 MeshGenerator::MeshBuilder MeshGenerator::builder(uint64_t shape_id, uint64_t chunk_id) const {
+    return builder(shape_id, chunk_id, true);
+}
+
+MeshGenerator::MeshBuilder MeshGenerator::builder(uint64_t shape_id, uint64_t chunk_id, bool slice) const {
     MeshBuilder b;
     b.filter = false;
+    if (!slice) return b;
     auto* mgr = ShapeSpatialManager::get_singleton();
     if (!mgr) return b;
     ChunkOctree* octree = mgr->get_octree(shape_id);
@@ -50,6 +55,17 @@ MeshGenerator::MeshBuilder MeshGenerator::builder(uint64_t shape_id, uint64_t ch
     b.box = AABB(-g.size * 0.5, g.size);
     b.filter = true;
     return b;
+}
+
+bool MeshGenerator::get_chunk_origin(uint64_t shape_id, uint64_t chunk_id, Vector3& out_origin) const {
+    auto* mgr = ShapeSpatialManager::get_singleton();
+    if (!mgr) return false;
+    ChunkOctree* octree = mgr->get_octree(shape_id);
+    if (!octree) return false;
+    Chunk* chunk = octree->find(chunk_id);
+    if (!chunk) return false;
+    out_origin = chunk->center;
+    return true;
 }
 
 void MeshGenerator::submit(uint64_t shape_id, uint64_t chunk_id, const MeshBuilder& b) const {

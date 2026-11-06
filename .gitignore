@@ -45,3 +45,5 @@ scons_cache/
 prompt.md
 
 not_compile/
+
+build.sh

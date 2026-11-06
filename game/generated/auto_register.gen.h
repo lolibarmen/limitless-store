@@ -4,13 +4,19 @@
 using namespace godot;
 
 #include "SurfaceGenerator/SurfaceGenerator.hpp"
+#include "TreeShape/TreeShape.hpp"
 #include "Tool/Tool.hpp"
+#include "BranchShape/BranchShape.hpp"
 #include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "PlanetMaterialGenerator/PlanetMaterialGenerator.hpp"
 #include "SurfaceShape/SurfaceShape.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
+#include "BranchMaterialGenerator/BranchMaterialGenerator.hpp"
+#include "BranchMeshGenerator/BranchMeshGenerator.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
+#include "TrunkShape/TrunkShape.hpp"
+#include "TrunkMeshGenerator/TrunkMeshGenerator.hpp"
 #include "PlanetShape/PlanetShape.hpp"
 #include "Player/Player.hpp"
 #include "PickableTool/PickableTool.hpp"
@@ -38,11 +44,17 @@ inline void auto_register_classes() {
     ClassDB::register_class<MeshGenerator>();
     ClassDB::register_class<SurfaceShape>();
     ClassDB::register_class<SurfaceGenerator>();
+    ClassDB::register_class<TreeShape>();
     ClassDB::register_class<Tool>();
+    ClassDB::register_class<BranchShape>();
     ClassDB::register_class<TriplanarMaterialGenerator>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<PlanetMaterialGenerator>();
     ClassDB::register_class<PlayerMovement>();
+    ClassDB::register_class<BranchMaterialGenerator>();
+    ClassDB::register_class<BranchMeshGenerator>();
+    ClassDB::register_class<TrunkShape>();
+    ClassDB::register_class<TrunkMeshGenerator>();
     ClassDB::register_class<PlanetShape>();
     ClassDB::register_class<Player>();
     ClassDB::register_class<PickableTool>();

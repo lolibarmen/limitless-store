@@ -31,9 +31,13 @@ namespace godot {
 ///
 /// Построение дочернего класса:
 ///  1. Переопределить generate(uint64_t shape_id, uint64_t chunk_id) const (void).
-///  2. MeshBuilder b = builder(shape_id, chunk_id).
+///  2. MeshBuilder b = builder(shape_id, chunk_id) — либо
+///     builder(shape_id, chunk_id, false) для маленькой фигуры, которая НЕ режется
+///     по чанкам: отсев выключен, меш эмитится целиком.
 ///  3. На каждый треугольник формы вызвать b.emit(v0, v1, v2); вершины
 ///     Vertex{pos, normal, uv} — в локальных координатах чанка (центр = 0).
+///     Смещение из мировых координат: get_chunk_origin(shape_id, chunk_id, origin);
+///     pos = world - origin.
 ///  4. Вызвать submit(shape_id, chunk_id, b).
 ///
 /// Запрещено дочернему: хранить параметры формы в полях класса; обращаться к полям
@@ -73,6 +77,16 @@ protected:
     /// @brief Создаёт билдер, один раз читая бокс чанка через ShapeSpatialManager.
     /// При недоступности чанка возвращает билдер с выключенным фильтром (геометрия не теряется).
     MeshBuilder builder(uint64_t shape_id, uint64_t chunk_id) const;
+
+    /// @brief Создаёт билдер с явным режимом нарезки. slice=false — фильтр выключен
+    /// (фигура маленькая и не режется по чанкам: эмитится весь меш), бокс чанка
+    /// при этом не читается. При недоступности чанка фильтр выключен в любом случае.
+    MeshBuilder builder(uint64_t shape_id, uint64_t chunk_id, bool slice) const;
+
+    /// @brief Центр чанка в мировых координатах ( origin локальной системы чанка ).
+    /// false — чанк недоступен; out не изменяется. Нужен для перевода мировых
+    /// координат формы в локальные координаты чанка: pos = world - origin.
+    bool get_chunk_origin(uint64_t shape_id, uint64_t chunk_id, Vector3& out_origin) const;
 
     /// @brief Доставка результата. НЕ ПЕРЕОПРЕДЕЛЯТЬ. Строит ArrayMesh из билдера,
     /// (TODO) режет по marks==1, вызывает WorldMesh::complete_mesh(). СЕЙЧАС резка NO-OP.

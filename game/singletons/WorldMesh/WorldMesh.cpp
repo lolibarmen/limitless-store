@@ -114,6 +114,17 @@ void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMes
     auto it = chunk->shape_meshes.find(shape_id);
     if (it == chunk->shape_meshes.end()) return;
 
+    { // TEMP DEBUG
+        Ref<SemanticShape> sh = SemanticWorld::get_singleton()->get_shape(shape_id);
+        StringName t = sh.is_valid() ? sh->get_shape_type() : StringName("?");
+        int verts = 0;
+        if (mesh->get_surface_count() > 0) {
+            Array a = mesh->surface_get_arrays(0);
+            PackedVector3Array v = a[Mesh::ARRAY_VERTEX];
+            verts = v.size();
+        }
+    }
+
     MeshInstance3D* mesh_instance = it->second;
     mesh_instance->set_mesh(mesh);
 
