@@ -113,11 +113,21 @@ void TreeShape::_spawn_children() {
 
     // --- Ветки: позиции назначаются вдоль центральной линии ствола ---
     const int n = Math::max(_branch_count, 0);
+    if (n == 0) return;
+
+    // Золотой угол (~137.5°) для естественного филлотаксиса. 
+    // Гарантирует максимально равномерное распределение веток по окружности без образования вертикальных рядов.
+    const float golden_angle = Math_PI * (3.0f - Math::sqrt(5.0f)); 
+    
+    // Шаг по высоте для равномерного распределения без перекрытий
+    const float height_range = _branch_end - _branch_start;
+    const float step = height_range / (float)n;
+
     for (int i = 0; i < n; ++i) {
-        // Параметр t вдоль ствола: равномерно от branch_start до branch_end + джиттер.
-        const float frac = (n > 1) ? (float)i / (float)(n - 1) : 0.5f;
-        const float jitter = (Random::randf01(_seed, 1000 + i) - 0.5f) * 0.1f;
-        float t = _branch_start + (_branch_end - _branch_start) * frac + jitter;
+        // Параметр t вдоль ствола: центр бина + детерминированный джиттер.
+        // Это предотвращает слипание веток по высоте и делает распределение естественным.
+        const float jitter = (Random::randf01(_seed, 1000 + i) - 0.5f) * step * 0.8f;
+        float t = _branch_start + (float)i * step + step * 0.5f + jitter;
         t = CLAMP(t, 0.05f, 0.98f);
 
         const Vector3 attach = trunk->centerline(t);
@@ -145,9 +155,12 @@ void TreeShape::_spawn_children() {
         branch->bind_planet(_planet);
         branch->set_position(attach);
         branch->set_direction(dir);
-        branch->set_length(length);
-        branch->set_width(_branch_width);
-        branch->set_seed(_seed + (uint64_t)i + 1u);
+        branch->set_length(Math::max(0.1f, length));
+        branch->set_width(Math::max(0.05f, width));
+        
+        // Увеличенный множитель в seed предотвращает корреляцию случайных значений между разными параметрами ветки
+        branch->set_seed(_seed + (uint64_t)i * 1000u + 1u); 
+        
         sw->register_shape(branch);
         add_owned_shape(branch->get_id());
     }

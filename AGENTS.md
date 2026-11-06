@@ -2,6 +2,9 @@
 
 This project is a modern take on Minecraft using the Godot engine. The main objectives of the project are to be abstractly simple and performant.
 
+## Architectural rules
+- The relationship between shapes via add_owned_shape must be bidirectional (since a house cannot exist without walls and a roof, and a roof cannot exist if the house is destroyed)
+
 ## Code rules
 - Avoid creating new fields, classes, or functions unless clearly necessary.
 - Do not adhere to explicit and preemptively slow solutions, except in response to explicit requests.
