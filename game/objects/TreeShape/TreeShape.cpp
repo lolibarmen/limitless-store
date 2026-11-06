@@ -138,17 +138,21 @@ void TreeShape::_spawn_children() {
         const Vector3 right = tangent.cross(helper).normalized();
         const Vector3 forward = right.cross(tangent).normalized();
 
-        // Азимут равномерный по кругу + детерминированный разброс.
-        const float base_azimuth = (n > 0) ? (float)i * (float)Math_PI * 2.0f / (float)n : 0.0f;
-        const float azimuth = base_azimuth + (Random::randf01(_seed, 2000 + i) - 0.5f) * 1.2f;
+        // Азимут: золотой угол + небольшой разброс для разрушения идеальной математической симметрии.
+        float azimuth = (float)i * golden_angle;
+        azimuth += (Random::randf01(_seed, 2000 + i) - 0.5f) * 0.6f; // ~34 градуса разброса
+        
         const Vector3 radial = (right * std::cos(azimuth) + forward * std::sin(azimuth)).normalized();
 
         // Направление ветки: касательная ствола, отклонённая на угол spread к radial.
-        const float spread = _branch_spread * (0.7f + 0.6f * Random::randf01(_seed, 3000 + i));
+        // Апикальное доминирование: верхние ветки растут более вертикально (меньший угол разброса).
+        const float height_factor = 1.0f - t * 0.4f; 
+        const float spread = _branch_spread * height_factor * (0.8f + 0.4f * Random::randf01(_seed, 3000 + i));
         const Vector3 dir = (tangent * std::cos(spread) + radial * std::sin(spread)).normalized();
 
-        // Чем выше по стволу, тем короче ветка (плюс разброс из seed).
-        const float length = _branch_length * (1.0f - 0.35f * t) * (0.75f + 0.5f * Random::randf01(_seed, 4000 + i));
+        // Чем выше по стволу, тем короче и тоньше ветка (естественное сужение кроны).
+        const float length = _branch_length * (1.0f - 0.5f * t) * (0.8f + 0.1f * Random::randf01(_seed, 4000 + i));
+        const float width = _branch_width * (1.0f - 0.5f * t) * (0.8f + 0.4f * Random::randf01(_seed, 5000 + i));
 
         Ref<BranchShape> branch;
         branch.instantiate();
