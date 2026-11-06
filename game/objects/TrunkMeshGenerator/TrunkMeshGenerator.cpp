@@ -82,6 +82,8 @@ void TrunkMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
     }
 
     // Макушка — веер по последнему кольцу.
+    // Порядок вершин такой, чтобы (v1-v0)x(v2-v0) смотрел вниз (против внешней
+    // нормали up) — иначе веер оказывается задней гранью и отсекается.
     {
         const Vector3 cap_pos = shape->centerline(1.0f) - origin;
         Vertex cap;
@@ -92,7 +94,7 @@ void TrunkMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
         const auto& top = rings[H];
         for (int j = 0; j < R; ++j) {
             const int jn = (j + 1) % R;
-            b.emit(cap, top[jn], top[j]);
+            b.emit(cap, top[j], top[jn]);
         }
     }
 

@@ -65,7 +65,7 @@ TrunkShape::TrunkShape() {
     if (log.is_valid()) {
         _material_generator->set_albedo_texture(log);
     }
-    _material_generator->set_texture_scale(0.5f);
+    _material_generator->set_texture_scale(2.0f);
     _material_generator->set_roughness(0.9f);
 }
 

@@ -22,15 +22,26 @@ void BranchMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
 
     const Vector3 pos = shape->get_position();
     const Vector3 dir = shape->get_direction();
-    const Vector3 s = shape->side() * (shape->get_width() * 0.5f);
+    const Vector3 side = shape->side();
+    const Vector3 s = side * (shape->get_width() * 0.5f);
     const Vector3 tip = pos + dir * shape->get_length();
-    const Vector3 normal = shape->side().cross(dir);
+    const Vector3 normal = side.cross(dir);
 
-    // Четырёхугольник с заданными UV: V=0 основание, V=1 кончик; U поперёк ветки.
-    Vertex bl; bl.pos = (pos - s) - origin;         bl.normal = normal; bl.uv = Vector2(0.0f, 0.0f);
-    Vertex br; br.pos = (pos + s) - origin;         br.normal = normal; br.uv = Vector2(1.0f, 0.0f);
-    Vertex tr; tr.pos = (tip + s) - origin;         tr.normal = normal; tr.uv = Vector2(1.0f, 1.0f);
-    Vertex tl; tl.pos = (tip - s) - origin;         tl.normal = normal; tl.uv = Vector2(0.0f, 1.0f);
+    // UV считаются по позиции вершины: U — проекция на боковую ось (0..1 поперёк),
+    // V — проекция на направление ветки (0..1 вдоль). Масштаб V под квадратный
+    // тексель задаёт материал (uv1_scale.y).
+    const float width = shape->get_width();
+    const float length = shape->get_length();
+    auto uv_at = [&](const Vector3& world_pos) {
+        const Vector3 d = world_pos - pos;
+        return Vector2(0.5f + d.dot(side) / width, d.dot(dir) / length);
+    };
+
+    // Четырёхугольник карточки ветки: V=0 основание, V=1 кончик; U поперёк ветки.
+    Vertex bl; bl.pos = (pos - s) - origin;         bl.normal = normal; bl.uv = uv_at(pos - s);
+    Vertex br; br.pos = (pos + s) - origin;         br.normal = normal; br.uv = uv_at(pos + s);
+    Vertex tr; tr.pos = (tip + s) - origin;         tr.normal = normal; tr.uv = uv_at(tip + s);
+    Vertex tl; tl.pos = (tip - s) - origin;         tl.normal = normal; tl.uv = uv_at(tip - s);
 
     // Godot: лицевая грань — по часовой стрелке, порядок вершин такой,
     // чтобы (v1-v0)x(v2-v0) был против normal (как в TrunkMeshGenerator).

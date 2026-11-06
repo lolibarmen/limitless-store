@@ -82,6 +82,6 @@ void WorldCoordinator::_register_initial_shapes() {
     tree->set_base_radius(0.4f);
     tree->set_top_radius(0.12f);
     tree->set_bend(Vector3(0.6f, 0.0f, 0.3f));
-    tree->set_branch_count(5);
+    tree->set_branch_count(12);
     sw->register_shape(tree);
 }
