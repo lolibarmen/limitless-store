@@ -70,7 +70,7 @@ void TreeShape::_bind_methods() {
 
     ClassDB::bind_method(D_METHOD("set_branch_taper", "taper"), &TreeShape::set_branch_taper);
     ClassDB::bind_method(D_METHOD("get_branch_taper"), &TreeShape::get_branch_taper);
-    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "branch_taper", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_branch_taper", "get_branch_taper");
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "branch_taper", PROPERTY_HINT_RANGE, "0.01,20.0,0.01"), "set_branch_taper", "get_branch_taper");
 
     ClassDB::bind_method(D_METHOD("bind_planet", "planet"), &TreeShape::bind_planet);
     ClassDB::bind_method(D_METHOD("get_trunk_id"), &TreeShape::get_trunk_id);
@@ -113,8 +113,21 @@ void TreeShape::_spawn_children() {
     const float step = (_branch_end - _branch_start) / (float)n;
     const float golden_angle = Math_PI * (3.0f - Math::sqrt(5.0f));
 
+    auto height_at = [&](int i) {
+        return CLAMP(_branch_start + ((float)i + 0.5f) * step, 0.0f, 1.0f);
+    };
+    auto weight_at = [&](float t) {
+        return Math::pow(t, _branch_taper) * Math::exp(-t);
+    };
+
+    float max_weight = 0.0f;
     for (int i = 0; i < n; ++i) {
-        const float t = CLAMP(_branch_start + ((float)i + 0.5f) * step, 0.0f, 1.0f);
+        max_weight = Math::max(max_weight, weight_at(height_at(i)));
+    }
+    const float inv_max = max_weight > 0.0f ? 1.0f / max_weight : 0.0f;
+
+    for (int i = 0; i < n; ++i) {
+        const float t = height_at(i);
 
         const Vector3 attach = trunk->centerline(t);
         const Vector3 tangent = trunk->centerline_tangent(t);
@@ -128,9 +141,9 @@ void TreeShape::_spawn_children() {
 
         const Vector3 dir = (tangent * std::cos(_branch_spread) + radial * std::sin(_branch_spread)).normalized();
 
-        const float k = (float(i) / n);
-        const float length = _branch_length * (1.0f - k * _branch_taper);
-        const float width = _branch_width * (1.0f - k * _branch_taper);
+        const float factor = weight_at(t) * inv_max;
+        const float length = _branch_length * factor;
+        const float width = _branch_width * factor;
 
         Ref<BranchShape> branch;
         branch.instantiate();

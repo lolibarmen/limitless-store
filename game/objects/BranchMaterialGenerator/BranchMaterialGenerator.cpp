@@ -92,6 +92,7 @@ Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chun
     float root_width = 1.0f;
     float card_width = 1.0f;
     float card_height = 1.0f;
+    float draw_angle = Math_PI * 0.75f;
 
     if (SemanticWorld* sw = SemanticWorld::get_singleton()) {
         Ref<SemanticShape> base = sw->get_shape(shape_id);
@@ -100,6 +101,12 @@ Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chun
             root_width = shape->get_width();
             card_width = shape->card_width();
             card_height = shape->card_height();
+
+            const float tilt = Math::atan2(
+                shape->get_direction().dot(shape->side()),
+                shape->get_direction().dot(shape->up())
+            );
+            draw_angle = Math_PI - tilt;
         }
     }
 
@@ -122,7 +129,7 @@ Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chun
     const float reach = Math::sqrt(span_x * span_x + span_y * span_y) * 0.5f;
 
     draw_branch(image.ptr(), rng.ptr(), Vector2(image_width * 0.03f, image_height * 0.03f),
-                Math_PI * 0.75f, reach, root_width / _pixel_size, _max_depth);
+                draw_angle, reach, root_width / _pixel_size, _max_depth);
 
     return make_material(image);
 }
