@@ -131,8 +131,8 @@ void TreeShape::_spawn_children() {
         branch->bind_planet(_planet);
         branch->set_position(attach);
         branch->set_direction(dir);
-        branch->set_length(Math::max(0.1f, _branch_length));
-        branch->set_width(Math::max(0.05f, _branch_width));
+        branch->set_length(_branch_length);
+        branch->set_width(_branch_width);
 
         sw->register_shape(branch);
         add_owned_shape(branch->get_id());

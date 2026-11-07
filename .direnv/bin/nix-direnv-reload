@@ -9,11 +9,3 @@ fi
 
 # rebuild the cache forcefully
 _nix_direnv_force_reload=1 direnv exec "/home/lolibarmen/Code/limitless/limitless" true
-
-# Update the mtime for .envrc.
-# This will cause direnv to reload again - but without re-building.
-touch "/home/lolibarmen/Code/limitless/limitless/.envrc"
-
-# Also update the timestamp of whatever profile_rc we have.
-# This makes sure that we know we are up to date.
-touch -r "/home/lolibarmen/Code/limitless/limitless/.envrc" "/home/lolibarmen/Code/limitless/limitless/.direnv"/*.rc

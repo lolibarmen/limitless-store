@@ -17,6 +17,7 @@ Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chun
     float card_width = 1.0f;
     float card_height = 1.0f;
     float lean = 0.0f;
+
     if (SemanticWorld* sw = SemanticWorld::get_singleton()) {
         Ref<SemanticShape> base = sw->get_shape(shape_id);
         BranchShape* shape = Object::cast_to<BranchShape>(base.ptr());
@@ -27,46 +28,67 @@ Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chun
             lean = shape->lean();
         }
     }
-    if (width < 0.0001f) width = 0.0001f;
-    if (card_width < 0.0001f) card_width = 0.0001f;
-    if (card_height < 0.0001f) card_height = 0.0001f;
 
-    const int W = 32;
-    const float texel = card_width / (float)W;
-    int H = (int)Math::ceil(card_height / texel);
+    // Защита от деления на ноль и схлопывания
+    width = MAX(width, 0.01f);
+    card_width = MAX(card_width, 0.01f);
+    card_height = MAX(card_height, 0.01f);
+
+    // Фиксированный размер одного пикселя в мировых единицах (масштаб детализации)
+    const float fixed_texel_world_size = 0.05f; 
+
+    // Размеры текстуры в пикселях (округление вниз)
+    int W = (int)Math::floor(card_width / fixed_texel_world_size);
+    int H = (int)Math::floor(card_height / fixed_texel_world_size);
+
+    // Ограничиваем разумными пределами для производительности
+    W = CLAMP(W, 4, 128);
     H = CLAMP(H, 8, 256);
-
-    const float v_scale = card_height / ((float)H * texel);
 
     Ref<Image> img = Image::create_empty(W, H, false, Image::FORMAT_RGBA8);
 
     const Color bark_light(0.55f, 0.38f, 0.22f, 1.0f);
     const Color bark_dark(0.33f, 0.21f, 0.12f, 1.0f);
-    const Color outline(0.20f, 0.12f, 0.07f, 1.0f);
 
     const float base_cx = (float)(W - 1) * 0.5f;
-    const float lean_texels = lean / texel;
-    const float w_texels = width / texel;
+    
+    // Переводим мировые величины в тексели
+    const float w_texels = width / fixed_texel_world_size;
+    const float lean_texels = lean / fixed_texel_world_size;
 
+    // Проходим по каждой строке текстуры (снизу вверх)
     for (int y = 0; y < H; ++y) {
-        float t = (float)y * texel / card_height;
-        t = CLAMP(t, 0.0f, 1.0f);
+        // Нормализованная высота: 0.0 внизу, 1.0 на самом кончике
+        float t = (float)y / (float)H;
 
-        const float cx = base_cx + (2.0f / 16.0f) * w_texels * t * t + lean_texels * t;
-        const float hw = ((5.5f + (1.2f - 5.5f) * t) / 16.0f) * w_texels;
+        // 1. ФОРМУЛА ИЗГИБА (Квадратичная)
+        // При t=0 (основание) смещение равно 0. Ветка растет прямо из ствола.
+        // При t=1 (кончик) смещение равно полному lean_texels.
+        // Квадрат t*t обеспечивает плавный, органичный изгиб без резких заломов.
+        float cx = base_cx + (lean_texels * t * t);
 
-        for (int x = 0; x < W; ++x) {
-            const float d = Math::abs((float)x - cx);
-            if (d > hw) continue;
+        // 2. ФОРМУЛА СУЖЕНИЯ (Tapering)
+        // У основания (t=0) множитель равен 1.0 (полная ширина).
+        // У кончика (t=1) множитель равен 0.15 (ветка сужается, но не исчезает в точку, что выглядит лучше).
+        float taper_factor = 1.0f - (t * 0.85f);
+        
+        // Половина ширины ветки на текущей высоте Y
+        float current_half_width = (w_texels * 0.5f) * taper_factor;
 
-            Color c;
-            if (d > hw - 1.0f) {
-                c = outline;
-            } else {
-                const float n = Random::randf01(shape_id, y * W + x);
-                c = bark_dark.lerp(bark_light, n);
+        // Границы закрашивания по X
+        int x_start = (int)Math::floor(cx - current_half_width);
+        int x_end = (int)Math::ceil(cx + current_half_width);
+
+        // Закрашиваем пиксели внутри рассчитанной толщины
+        for (int x = x_start; x <= x_end; ++x) {
+            if (x >= 0 && x < W) {
+                // Используем детерминированный шум на основе координат и ID формы для текстуры коры
+                float noise = Random::randf01(shape_id, y * W + x);
+                
+                // Плавное смешивание темной и светлой коры
+                Color pixel_color = bark_dark.lerp(bark_light, noise);
+                img->set_pixel(x, y, pixel_color);
             }
-            img->set_pixel(x, y, c);
         }
     }
 
@@ -76,11 +98,16 @@ Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chun
     material.instantiate();
     material->set_albedo(Color(1.0f, 1.0f, 1.0f, 1.0f));
     material->set_texture(BaseMaterial3D::TEXTURE_ALBEDO, texture);
-    material->set_texture_filter(BaseMaterial3D::TEXTURE_FILTER_NEAREST_WITH_MIPMAPS);
+    
+    // Nearest с Mipmaps: сохраняет пиксельный вид вблизи, но не мерцает вдалеке
+    material->set_texture_filter(BaseMaterial3D::TEXTURE_FILTER_NEAREST_WITH_MIPMAPS); 
     material->set_transparency(BaseMaterial3D::TRANSPARENCY_ALPHA_SCISSOR);
     material->set_alpha_scissor_threshold(0.5f);
-    material->set_cull_mode(BaseMaterial3D::CULL_DISABLED);
+    
+    // КРИТИЧЕСКИ ВАЖНО: Делает плоский квад видимым с обеих сторон
+    material->set_cull_mode(BaseMaterial3D::CULL_DISABLED); 
+    
     material->set_roughness(0.9f);
-    material->set_uv1_scale(Vector3(1.0f, v_scale, 1.0f));
+
     return material;
 }
