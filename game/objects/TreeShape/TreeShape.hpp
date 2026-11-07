@@ -32,7 +32,7 @@ private:
     float _branch_length = 2.0f;
     float _branch_width = 0.35f;
     float _branch_spread = 0.7f;
-    float _branch_curvature = 1.0f;
+    float _branch_taper = 0.8f;
 
     uint64_t _trunk_id = 0;
 
@@ -91,6 +91,9 @@ public:
 
     void set_branch_spread(float v) { _branch_spread = v; notify_shape_changed(); }
     float get_branch_spread() const { return _branch_spread; }
+
+    void set_branch_taper(float v) { _branch_taper = v; notify_shape_changed(); }
+    float get_branch_taper() const { return _branch_taper; }
 
     uint64_t get_trunk_id() const { return _trunk_id; }
 

@@ -1,5 +1,4 @@
 #include "BranchShape.hpp"
-#include "MaterialGenerator/MaterialGenerator.hpp"
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -28,7 +27,6 @@ void BranchShape::_bind_methods() {
     ClassDB::bind_method(D_METHOD("up"), &BranchShape::up);
     ClassDB::bind_method(D_METHOD("side"), &BranchShape::side);
     ClassDB::bind_method(D_METHOD("card_height"), &BranchShape::card_height);
-    ClassDB::bind_method(D_METHOD("lean"), &BranchShape::lean);
     ClassDB::bind_method(D_METHOD("card_width"), &BranchShape::card_width);
 }
 
@@ -74,12 +72,9 @@ float BranchShape::card_height() const {
     return Math::max(0.0001f, _length * _direction.dot(up()));
 }
 
-float BranchShape::lean() const {
-    return _length * _direction.dot(side());
-}
-
 float BranchShape::card_width() const {
-    return _width + Math::abs(lean());
+    const float lean = _length * _direction.dot(side());
+    return Math::max(0.0001f, _width + Math::abs(lean));
 }
 
 void BranchShape::recompute_aabb() {

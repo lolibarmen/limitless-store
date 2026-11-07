@@ -47,7 +47,6 @@ public:
     Vector3 up() const;         // локальный верх планеты в точке крепления
     Vector3 side() const;       // боковая ось карточки (перпендикулярна up)
     float card_height() const;  // проекция length на up
-    float lean() const;         // проекция length на side
     float card_width() const;   // width + |lean|
 
     StringName get_shape_type() const override { return "branch"; }

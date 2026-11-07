@@ -1,10 +1,8 @@
 #include "TreeShape.hpp"
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
-#include <Utils/RandomUtils.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/math.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 #include <cmath>
 
 using namespace godot;
@@ -70,6 +68,10 @@ void TreeShape::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_branch_spread"), &TreeShape::get_branch_spread);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "branch_spread", PROPERTY_HINT_RANGE, "0.0,1.57,0.01"), "set_branch_spread", "get_branch_spread");
 
+    ClassDB::bind_method(D_METHOD("set_branch_taper", "taper"), &TreeShape::set_branch_taper);
+    ClassDB::bind_method(D_METHOD("get_branch_taper"), &TreeShape::get_branch_taper);
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "branch_taper", PROPERTY_HINT_RANGE, "0.0,1.0,0.01"), "set_branch_taper", "get_branch_taper");
+
     ClassDB::bind_method(D_METHOD("bind_planet", "planet"), &TreeShape::bind_planet);
     ClassDB::bind_method(D_METHOD("get_trunk_id"), &TreeShape::get_trunk_id);
 }
@@ -127,8 +129,8 @@ void TreeShape::_spawn_children() {
         const Vector3 dir = (tangent * std::cos(_branch_spread) + radial * std::sin(_branch_spread)).normalized();
 
         const float k = (float(i) / n);
-        const float length = _branch_length * (1.0f - k * 0.8f);
-        const float width = _branch_width * (1.0f - k * 0.8f);
+        const float length = _branch_length * (1.0f - k * _branch_taper);
+        const float width = _branch_width * (1.0f - k * _branch_taper);
 
         Ref<BranchShape> branch;
         branch.instantiate();

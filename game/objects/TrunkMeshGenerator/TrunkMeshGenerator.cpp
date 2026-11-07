@@ -24,7 +24,6 @@ void TrunkMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
 
     const int R = Math::max(shape->get_radial_segments(), 3);
     const int H = Math::max(shape->get_height_segments(), 1);
-    const uint64_t id = shape->get_id();
     const float ring_var = shape->get_ring_variation();
 
     const Vector3 up = shape->get_up();
@@ -40,7 +39,7 @@ void TrunkMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
         const float t = (float)k / (float)H;
         const Vector3 c = shape->centerline(t) - origin;
 
-        const float rv = 1.0f + (Random::randf01(id, 100 + k) - 0.5f) * 2.0f * ring_var;
+        const float rv = 1.0f + (Random::randf01(shape_id, 100 + k) - 0.5f) * 2.0f * ring_var;
         const float r = shape->radius_at(t) * rv;
 
         auto& ring = rings[k];

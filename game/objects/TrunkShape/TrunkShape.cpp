@@ -4,8 +4,6 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/math.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
-#include <algorithm>
 
 using namespace godot;
 
