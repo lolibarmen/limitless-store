@@ -126,13 +126,17 @@ void TreeShape::_spawn_children() {
 
         const Vector3 dir = (tangent * std::cos(_branch_spread) + radial * std::sin(_branch_spread)).normalized();
 
+        const float k = (float(i) / n);
+        const float length = _branch_length * (1.0f - k * 0.8f);
+        const float width = _branch_width * (1.0f - k * 0.8f);
+
         Ref<BranchShape> branch;
         branch.instantiate();
         branch->bind_planet(_planet);
         branch->set_position(attach);
         branch->set_direction(dir);
-        branch->set_length(_branch_length);
-        branch->set_width(_branch_width);
+        branch->set_length(length);
+        branch->set_width(width);
 
         sw->register_shape(branch);
         add_owned_shape(branch->get_id());

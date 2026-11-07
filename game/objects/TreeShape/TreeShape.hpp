@@ -32,6 +32,7 @@ private:
     float _branch_length = 2.0f;
     float _branch_width = 0.35f;
     float _branch_spread = 0.7f;
+    float _branch_curvature = 1.0f;
 
     uint64_t _trunk_id = 0;
 

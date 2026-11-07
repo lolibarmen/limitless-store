@@ -56,7 +56,7 @@ TrunkShape::TrunkShape() {
     _mesh_generator.instantiate();
     _material_generator.instantiate();
 
-    Ref<Texture2D> log = ResourceLoader::get_singleton()->load("res://assets/Tree/log.webp");
+    Ref<Texture2D> log = ResourceLoader::get_singleton()->load("res://assets/Tree/log.png");
     if (log.is_valid()) {
         _material_generator->set_albedo_texture(log);
     }

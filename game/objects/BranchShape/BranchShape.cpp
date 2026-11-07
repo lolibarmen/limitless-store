@@ -1,4 +1,5 @@
 #include "BranchShape.hpp"
+#include "MaterialGenerator/MaterialGenerator.hpp"
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/core/class_db.hpp>

@@ -18,74 +18,47 @@ Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chun
     float card_height = 1.0f;
     float lean = 0.0f;
 
-    if (SemanticWorld* sw = SemanticWorld::get_singleton()) {
-        Ref<SemanticShape> base = sw->get_shape(shape_id);
-        BranchShape* shape = Object::cast_to<BranchShape>(base.ptr());
-        if (shape) {
-            width = shape->get_width();
-            card_width = shape->card_width();
-            card_height = shape->card_height();
-            lean = shape->lean();
-        }
+    SemanticWorld* sw = SemanticWorld::get_singleton();
+    Ref<SemanticShape> base = sw->get_shape(shape_id);
+    Ref<BranchShape> shape = Object::cast_to<BranchShape>(base.ptr());
+    if (shape.is_valid()) {
+        width = shape->get_width();
+        card_width = shape->card_width();
+        card_height = shape->card_height();
+        lean = shape->lean();
     }
-
-    // Защита от деления на ноль и схлопывания
     width = MAX(width, 0.01f);
     card_width = MAX(card_width, 0.01f);
     card_height = MAX(card_height, 0.01f);
 
-    // Фиксированный размер одного пикселя в мировых единицах (масштаб детализации)
-    const float fixed_texel_world_size = 0.05f; 
+    const float pixel_size = 0.05f;
 
-    // Размеры текстуры в пикселях (округление вниз)
-    int W = (int)Math::floor(card_width / fixed_texel_world_size);
-    int H = (int)Math::floor(card_height / fixed_texel_world_size);
+    int W = (int)Math::floor(card_width / pixel_size);
+    int H = (int)Math::floor(card_height / pixel_size);
 
-    // Ограничиваем разумными пределами для производительности
-    W = CLAMP(W, 4, 128);
-    H = CLAMP(H, 8, 256);
-
-    Ref<Image> img = Image::create_empty(W, H, false, Image::FORMAT_RGBA8);
+    const float w_pixels = width / pixel_size;
+    const float lean_pixels = lean / pixel_size;
 
     const Color bark_light(0.55f, 0.38f, 0.22f, 1.0f);
     const Color bark_dark(0.33f, 0.21f, 0.12f, 1.0f);
+    Ref<Image> img = Image::create_empty(W, H, false, Image::FORMAT_RGBA8);
 
-    const float base_cx = (float)(W - 1) * 0.5f;
-    
-    // Переводим мировые величины в тексели
-    const float w_texels = width / fixed_texel_world_size;
-    const float lean_texels = lean / fixed_texel_world_size;
-
-    // Проходим по каждой строке текстуры (снизу вверх)
-    for (int y = 0; y < H; ++y) {
-        // Нормализованная высота: 0.0 внизу, 1.0 на самом кончике
-        float t = (float)y / (float)H;
-
-        // 1. ФОРМУЛА ИЗГИБА (Квадратичная)
-        // При t=0 (основание) смещение равно 0. Ветка растет прямо из ствола.
-        // При t=1 (кончик) смещение равно полному lean_texels.
-        // Квадрат t*t обеспечивает плавный, органичный изгиб без резких заломов.
-        float cx = base_cx + (lean_texels * t * t);
-
-        // 2. ФОРМУЛА СУЖЕНИЯ (Tapering)
-        // У основания (t=0) множитель равен 1.0 (полная ширина).
-        // У кончика (t=1) множитель равен 0.15 (ветка сужается, но не исчезает в точку, что выглядит лучше).
-        float taper_factor = 1.0f - (t * 0.85f);
+    for (int x = 0; x < W; ++x) {
         
-        // Половина ширины ветки на текущей высоте Y
-        float current_half_width = (w_texels * 0.5f) * taper_factor;
+        float t = (float)x / (float)W;
 
-        // Границы закрашивания по X
-        int x_start = (int)Math::floor(cx - current_half_width);
-        int x_end = (int)Math::ceil(cx + current_half_width);
+        float lean_progress = t;
+        float cy = lean_pixels * lean_progress;
 
-        // Закрашиваем пиксели внутри рассчитанной толщины
-        for (int x = x_start; x <= x_end; ++x) {
-            if (x >= 0 && x < W) {
-                // Используем детерминированный шум на основе координат и ID формы для текстуры коры
+        float width_digress = 1.0f - t;
+        float current_half_width = w_pixels * 0.5f * width_digress;
+
+        int y_start = (int)Math::floor(cy - current_half_width);
+        int y_end = (int)Math::ceil(cy + current_half_width);
+
+        for (int y = y_start; y <= y_end; ++y) {
+            if (y >= 0 && y < H) {
                 float noise = Random::randf01(shape_id, y * W + x);
-                
-                // Плавное смешивание темной и светлой коры
                 Color pixel_color = bark_dark.lerp(bark_light, noise);
                 img->set_pixel(x, y, pixel_color);
             }

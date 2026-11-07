@@ -68,12 +68,13 @@ void WorldCoordinator::_register_initial_shapes() {
     tree->set_origin(base);
     tree->set_up(dir);
     tree->set_height(3.0f);
-    tree->set_base_radius(0.2f);
-    tree->set_top_radius(0.0f);
-    tree->set_bend(Vector3(0.6f, 0.0f, 0.3f));
+    tree->set_base_radius(0.1f);
+    tree->set_top_radius(0.01f);
     tree->set_branch_count(12);
-    tree->set_branch_length(2.0f);
-    tree->set_branch_width(0.1f);
+    tree->set_branch_length(1.2f);
+    tree->set_branch_width(0.05f);
     tree->set_ring_variation(0.1f);
+    tree->set_branch_start(0.1f);
+    tree->set_branch_end(0.8f);
     sw->register_shape(tree);
 }
