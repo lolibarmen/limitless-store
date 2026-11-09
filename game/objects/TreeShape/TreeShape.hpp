@@ -8,7 +8,8 @@
 
 namespace godot {
 
-/// @brief Дерево: создаёт ствол и ветки, равномерно расставленные вдоль ствола.
+/// @brief Дерево: создаёт ствол и ветки; длина веток распределяется по стволу как
+/// D(x) = D_max * [4x(1-x)]^alpha, где x — относительная высота attachment-точки.
 class TreeShape : public SemanticShape {
     GDCLASS(TreeShape, SemanticShape)
 
@@ -32,7 +33,7 @@ private:
     float _branch_length = 2.0f;
     float _branch_width = 0.35f;
     float _branch_spread = 0.7f;
-    float _branch_taper = 4.0f;
+    float _branch_alpha = 1.0f;
 
     uint64_t _trunk_id = 0;
     bool _respawning = false;
@@ -95,8 +96,9 @@ public:
     void set_branch_spread(float v) { _branch_spread = v; notify_shape_changed(); }
     float get_branch_spread() const { return _branch_spread; }
 
-    void set_branch_taper(float v) { _branch_taper = v; notify_shape_changed(); }
-    float get_branch_taper() const { return _branch_taper; }
+    /// @brief Показатель alpha в законе распределения длины веток D(x) = D_max * [4x(1-x)]^alpha.
+    void set_branch_alpha(float v) { _branch_alpha = v; notify_shape_changed(); }
+    float get_branch_alpha() const { return _branch_alpha; }
 
     uint64_t get_trunk_id() const { return _trunk_id; }
 

@@ -68,9 +68,9 @@ void TreeShape::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_branch_spread"), &TreeShape::get_branch_spread);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "branch_spread", PROPERTY_HINT_RANGE, "0.0,1.57,0.01"), "set_branch_spread", "get_branch_spread");
 
-    ClassDB::bind_method(D_METHOD("set_branch_taper", "taper"), &TreeShape::set_branch_taper);
-    ClassDB::bind_method(D_METHOD("get_branch_taper"), &TreeShape::get_branch_taper);
-    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "branch_taper", PROPERTY_HINT_RANGE, "0.01,20.0,0.01"), "set_branch_taper", "get_branch_taper");
+    ClassDB::bind_method(D_METHOD("set_branch_alpha", "alpha"), &TreeShape::set_branch_alpha);
+    ClassDB::bind_method(D_METHOD("get_branch_alpha"), &TreeShape::get_branch_alpha);
+    ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "branch_alpha", PROPERTY_HINT_RANGE, "0.01,20.0,0.01"), "set_branch_alpha", "get_branch_alpha");
 
     ClassDB::bind_method(D_METHOD("bind_planet", "planet"), &TreeShape::bind_planet);
     ClassDB::bind_method(D_METHOD("get_planet"), &TreeShape::get_planet);
@@ -126,15 +126,12 @@ void TreeShape::_spawn_children() {
     auto height_at = [&](int i) {
         return CLAMP(_branch_start + ((float)i + 0.5f) * step, 0.0f, 1.0f);
     };
-    auto weight_at = [&](float t) {
-        return Math::pow(t, _branch_taper) * Math::exp(-t);
+    // Распределение длины веток по относительной высоте ствола x:
+    // D(x) = D_max * [4x(1-x)]^alpha (D_max = _branch_length).
+    auto distribution_at = [&](float x) {
+        const float base = CLAMP(4.0f * x * (1.0f - x), 0.0f, 1.0f);
+        return Math::pow(base, _branch_alpha);
     };
-
-    float max_weight = 0.0f;
-    for (int i = 0; i < n; ++i) {
-        max_weight = Math::max(max_weight, weight_at(height_at(i)));
-    }
-    const float inv_max = max_weight > 0.0f ? 1.0f / max_weight : 0.0f;
 
     for (int i = 0; i < n; ++i) {
         const float t = height_at(i);
@@ -151,7 +148,7 @@ void TreeShape::_spawn_children() {
 
         const Vector3 dir = (tangent * std::cos(_branch_spread) + radial * std::sin(_branch_spread)).normalized();
 
-        const float factor = weight_at(t) * inv_max;
+        const float factor = distribution_at(t);
         const float length = _branch_length * factor;
         const float width = _branch_width * factor;
 
