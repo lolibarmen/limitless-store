@@ -28,6 +28,35 @@ void PlanetShape::recompute_aabb() {
     _aabb_dirty = false;
 }
 
+void PlanetShape::notify_shape_changed() {
+    SemanticShape::notify_shape_changed();
+
+    if (get_id() == 0) {
+        return;
+    }
+
+    ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
+    if (!mgr) {
+        return;
+    }
+
+    const float r = _radius + _amplitude;
+    constexpr int kMaxDepth = 6;
+    mgr->rebuild_octree(get_id(), _center, r * 2.0f, kMaxDepth);
+}
+
+void PlanetShape::on_unregister() {
+    if (_surface_id != 0) {
+        SemanticWorld* sw = SemanticWorld::get_singleton();
+        if (sw && sw->get_shape(_surface_id).is_valid()) {
+            sw->unregister_shape_with_owned(_surface_id);
+        }
+    }
+
+    _surface_id = 0;
+    set_owned_shapes(PackedInt64Array());
+}
+
 void PlanetShape::on_register() {
     SemanticWorld* sw = SemanticWorld::get_singleton();
     ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();

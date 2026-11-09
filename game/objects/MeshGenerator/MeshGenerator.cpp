@@ -44,6 +44,9 @@ MeshGenerator::MeshBuilder MeshGenerator::builder(uint64_t shape_id, uint64_t ch
 MeshGenerator::MeshBuilder MeshGenerator::builder(uint64_t shape_id, uint64_t chunk_id, bool slice) const {
     MeshBuilder b;
     b.filter = false;
+    if (auto* wm = WorldMesh::get_singleton()) {
+        b.request_token = wm->current_token(shape_id, chunk_id);
+    }
     if (!slice) return b;
     auto* mgr = ShapeSpatialManager::get_singleton();
     if (!mgr) return b;
@@ -82,5 +85,5 @@ void MeshGenerator::submit(uint64_t shape_id, uint64_t chunk_id, const MeshBuild
         mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arr);
     }
 
-    wm->complete_mesh(shape_id, chunk_id, mesh);
+    wm->complete_mesh(shape_id, chunk_id, b.request_token, mesh);
 }

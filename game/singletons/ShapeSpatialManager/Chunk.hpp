@@ -1,10 +1,6 @@
 #pragma once
 
-#include <MaterialGenerator/MaterialGenerator.hpp>
 #include <godot_cpp/variant/vector3.hpp>
-#include <godot_cpp/classes/mesh_instance3d.hpp>
-#include <godot_cpp/classes/static_body3d.hpp>
-#include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/variant/aabb.hpp>
 #include <array>
 #include <memory>
@@ -12,6 +8,8 @@
 #include <unordered_map>
 
 namespace godot {
+
+class RenderRequest;
 
 /// @brief Узел октодерева, представляющий пространственный объем (чанк) и хранящий его визуальные данные.
 /// Примечание: Экземпляры этого класса управляются экземпляром ChunkOctree.
@@ -26,20 +24,9 @@ public:
     std::array<std::unique_ptr<Chunk>, 8> children; ///< Дочерние чанки (nullptr, если является листом).
     Chunk* parent = nullptr; ///< Указатель на родительский чанк.
 
-    /// @brief Словарь визуальных представлений фигур в этом чанке (ID фигуры -> MeshInstance3D).
-    std::unordered_map<uint64_t, MeshInstance3D*> shape_meshes;
-
-    /// @brief Коллизионное представление фигуры: тело и его форма.
-    struct ShapeCollision {
-        StaticBody3D* body = nullptr;
-        CollisionShape3D* shape_node = nullptr;
-    };
-
-    /// @brief Словарь коллизионных представлений фигур в этом чанке (ID фигуры -> тело и форма).
-    std::unordered_map<uint64_t, ShapeCollision> shape_collisions;
-
-    /// @brief Словарь генераторов материалов для фигур, ожидающих завершения асинхронной генерации меша.
-    std::unordered_map<uint64_t, Ref<MaterialGenerator>> shape_material_generators;
+    /// @brief Словарь ожидающих запросов отрисовки фигур в этом чанке (ID фигуры -> запрос).
+    /// Запрос владеет созданными узлами и отбрасывает устаревшие асинхронные результаты по токену.
+    std::unordered_map<uint64_t, std::unique_ptr<RenderRequest>> shape_requests;
 
     /// @brief Создает новый чанк.
     /// @param id Уникальный глобальный идентификатор.
@@ -61,14 +48,6 @@ public:
 
     /// @brief Вычисляет и возвращает ограничивающий объем (AABB) данного чанка на основе его центра и размера.
     AABB get_aabb() const;
-
-    /// @brief Удаляет визуальное представление (MeshInstance3D) конкретной фигуры из этого чанка и освобождает ресурсы Godot (queue_free).
-    /// @param shape_id ID семантической фигуры, меш которой нужно удалить.
-    void remove_shape_mesh(uint64_t shape_id);
-
-    /// @brief Удаляет коллизионное представление (StaticBody3D + CollisionShape3D) конкретной фигуры из этого чанка.
-    /// @param shape_id ID семантической фигуры, коллизию которой нужно удалить.
-    void remove_shape_collision(uint64_t shape_id);
 
     /// @brief Удаляет и визуальное, и коллизионное представление фигуры из этого чанка.
     /// @param shape_id ID семантической фигуры.

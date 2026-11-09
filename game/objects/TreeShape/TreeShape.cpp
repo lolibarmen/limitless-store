@@ -73,11 +73,21 @@ void TreeShape::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "branch_taper", PROPERTY_HINT_RANGE, "0.01,20.0,0.01"), "set_branch_taper", "get_branch_taper");
 
     ClassDB::bind_method(D_METHOD("bind_planet", "planet"), &TreeShape::bind_planet);
+    ClassDB::bind_method(D_METHOD("get_planet"), &TreeShape::get_planet);
+    ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "planet", PROPERTY_HINT_RESOURCE_TYPE, "PlanetShape"), "bind_planet", "get_planet");
     ClassDB::bind_method(D_METHOD("get_trunk_id"), &TreeShape::get_trunk_id);
 }
 
 void TreeShape::bind_planet(const Ref<PlanetShape>& planet) {
     _planet = planet;
+
+    if (get_id() != 0) {
+        ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
+        if (mgr && _planet.is_valid() && _planet->get_id() != 0) {
+            mgr->bind_spatially(get_id(), _planet->get_id());
+        }
+    }
+
     notify_shape_changed();
 }
 
@@ -156,6 +166,46 @@ void TreeShape::_spawn_children() {
         sw->register_shape(branch);
         add_owned_shape(branch->get_id());
     }
+}
+
+void TreeShape::_despawn_children() {
+    SemanticWorld* sw = SemanticWorld::get_singleton();
+    if (sw) {
+        const PackedInt64Array owned = get_owned_shapes();
+        for (int i = 0; i < owned.size(); ++i) {
+            sw->unregister_shape_with_owned((uint64_t)owned[i]);
+        }
+    }
+
+    set_owned_shapes(PackedInt64Array());
+    _trunk_id = 0;
+}
+
+void TreeShape::notify_shape_changed() {
+    if (get_id() != 0 && !_respawning) {
+        _respawning = true;
+        _despawn_children();
+        _spawn_children();
+        _respawning = false;
+    }
+
+    SemanticShape::notify_shape_changed();
+}
+
+void TreeShape::on_unregister() {
+    SemanticWorld* sw = SemanticWorld::get_singleton();
+    if (sw) {
+        const PackedInt64Array owned = get_owned_shapes();
+        for (int i = 0; i < owned.size(); ++i) {
+            const uint64_t child_id = (uint64_t)owned[i];
+            if (sw->get_shape(child_id).is_valid()) {
+                sw->unregister_shape_with_owned(child_id);
+            }
+        }
+    }
+
+    _trunk_id = 0;
+    set_owned_shapes(PackedInt64Array());
 }
 
 void TreeShape::recompute_aabb() {

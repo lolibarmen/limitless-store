@@ -20,6 +20,12 @@ void ChunkOctree::remove_user(uint64_t shape_id) {
     _pending_users.erase(shape_id);
 }
 
+void ChunkOctree::mark_user_pending(uint64_t shape_id) {
+    if (_users.find(shape_id) != _users.end()) {
+        _pending_users.insert(shape_id);
+    }
+}
+
 size_t ChunkOctree::user_count() const {
     return _users.size();
 }
@@ -225,6 +231,20 @@ void ChunkOctree::evaluate_and_update_lod(const Vector3& viewer_pos, int max_dep
 void ChunkOctree::for_each_leaf(std::function<void(Chunk*)> func) {
     for (Chunk* leaf : leaf_chunks) {
         if (leaf) func(leaf);
+    }
+}
+
+void ChunkOctree::for_each_chunk(std::function<void(Chunk*)> func) {
+    std::function<void(Chunk*)> walk = [&func, &walk](Chunk* node) {
+        if (!node) return;
+        func(node);
+        for (auto& child : node->children) {
+            if (child) walk(child.get());
+        }
+    };
+
+    for (auto& pair : roots) {
+        walk(pair.second);
     }
 }
 

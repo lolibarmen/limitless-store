@@ -1,9 +1,12 @@
 #include "SemanticWorld.hpp"
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
+#include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 using namespace godot;
 
@@ -36,13 +39,65 @@ uint64_t SemanticWorld::register_shape(Ref<SemanticShape> shape) {
 }
 
 void SemanticWorld::unregister_shape(uint64_t id) {
+    if (id == 0) return;
+
+    Ref<SemanticShape> shape;
     _shapes_mutex->lock();
-    _shapes.erase(id);
+    auto it = _shapes.find(id);
+    if (it != _shapes.end()) {
+        shape = it->second;
+        _shapes.erase(it);
+    }
     _shapes_mutex->unlock();
-    
+
+    // Сначала убираем представление, пока октодерево ещё существует.
+    if (WorldMesh* wm = WorldMesh::get_singleton()) {
+        wm->drop_shape(id);
+    }
+
     auto* spatial_mgr = ShapeSpatialManager::get_singleton();
     if (spatial_mgr) {
         spatial_mgr->unregister_shape(id);
+    }
+
+    if (shape.is_valid()) {
+        shape->set_id(0);
+        shape->on_unregister();
+    }
+}
+
+void SemanticWorld::unregister_shape_with_owned(uint64_t id) {
+    if (id == 0) return;
+
+    std::vector<std::pair<uint64_t, bool>> stack;
+    std::unordered_set<uint64_t> visited;
+    stack.push_back({id, false});
+
+    while (!stack.empty()) {
+        const uint64_t current_id = stack.back().first;
+        const bool expanded = stack.back().second;
+        stack.pop_back();
+
+        if (current_id == 0) continue;
+
+        if (expanded) {
+            unregister_shape(current_id);
+            continue;
+        }
+
+        if (!visited.insert(current_id).second) {
+            continue;
+        }
+
+        stack.push_back({current_id, true});
+
+        Ref<SemanticShape> shape = get_shape(current_id);
+        if (shape.is_valid()) {
+            const PackedInt64Array owned = shape->get_owned_shapes();
+            for (int i = owned.size() - 1; i >= 0; --i) {
+                stack.push_back({(uint64_t)owned[i], false});
+            }
+        }
     }
 }
 
@@ -79,6 +134,9 @@ void SemanticWorld::_commit_changes(const std::unordered_map<uint64_t, Ref<Seman
         // Б. Регистрируем новую фигуру через официальный метод
         // (Внутри он сам сгенерирует ID, вызовет set_id, захватит мьютекс и добавит в _shapes)
         uint64_t new_id = register_shape(new_shape);
+        if (WorldMesh* wm = WorldMesh::get_singleton()) {
+            wm->invalidate_shape(new_id);
+        }
         id_mapping[old] = new_id;
     }
 
@@ -217,6 +275,12 @@ void SemanticWorld::propose_shape_change(uint64_t old_id, Ref<SemanticShape> pro
         registered_shape.is_valid() && registered_shape.ptr() == proposed_shape.ptr();
 
     _run_change_cascade(old_id, proposed_shape, parameter_change);
+
+    if (parameter_change) {
+        if (WorldMesh* wm = WorldMesh::get_singleton()) {
+            wm->invalidate_shape(old_id);
+        }
+    }
 }
 
 void SemanticWorld::propose_shape_change(uint64_t old_id) {

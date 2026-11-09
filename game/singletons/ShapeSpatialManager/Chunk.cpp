@@ -1,4 +1,5 @@
 #include "Chunk.hpp"
+#include <WorldMesh/RenderRequest.hpp>
 #include <godot_cpp/core/math.hpp>
 
 using namespace godot;
@@ -16,47 +17,17 @@ AABB Chunk::get_aabb() const {
     return AABB(center - Vector3(half, half, half), Vector3(safe_size, safe_size, safe_size));
 }
 
-void Chunk::remove_shape_mesh(uint64_t shape_id) {
-    auto it = shape_meshes.find(shape_id);
-    if (it != shape_meshes.end()) {
-        if (it->second) {
-            it->second->queue_free();
-        }
-        shape_meshes.erase(it);
-    }
-}
-
-void Chunk::remove_shape_collision(uint64_t shape_id) {
-    auto it = shape_collisions.find(shape_id);
-    if (it != shape_collisions.end()) {
-        if (it->second.body) {
-            it->second.body->queue_free();
-        } else if (it->second.shape_node) {
-            it->second.shape_node->queue_free();
-        }
-        shape_collisions.erase(it);
-    }
-}
-
 void Chunk::remove_shape(uint64_t shape_id) {
-    remove_shape_mesh(shape_id);
-    remove_shape_collision(shape_id);
+    auto it = shape_requests.find(shape_id);
+    if (it != shape_requests.end()) {
+        it->second->drop();
+        shape_requests.erase(it);
+    }
 }
 
 void Chunk::clear_all_shape_meshes() {
-    for (auto& pair : shape_meshes) {
-        if (pair.second) {
-            pair.second->queue_free();
-        }
+    for (auto& pair : shape_requests) {
+        pair.second->drop();
     }
-    shape_meshes.clear();
-
-    for (auto& pair : shape_collisions) {
-        if (pair.second.body) {
-            pair.second.body->queue_free();
-        } else if (pair.second.shape_node) {
-            pair.second.shape_node->queue_free();
-        }
-    }
-    shape_collisions.clear();
+    shape_requests.clear();
 }

@@ -2,12 +2,24 @@
 
 [ext_resource type="Environment" uid="uid://bf1j2a28pxe0m" path="res://assets/day_sky.tres" id="1_u80x2"]
 
+[sub_resource type="PlanetShape" id="PlanetShape_m685e"]
+center = Vector3(0, -100, 0)
+
+[sub_resource type="TreeShape" id="TreeShape_yjok8"]
+origin = Vector3(10, -10, 0)
+branch_count = 12
+branch_start = 0.0
+branch_length = 5.0
+branch_width = 0.1
+planet = SubResource("PlanetShape_m685e")
+
 [sub_resource type="BoxShape3D" id="BoxShape3D_jaeev"]
 size = Vector3(6, 1, 8)
 
 [node name="Node3D" type="Node3D" unique_id=1806351155]
 
 [node name="WorldCoordinator" type="WorldCoordinator" parent="." unique_id=1276718905]
+shapes = Array[SemanticShape]([SubResource("PlanetShape_m685e"), SubResource("TreeShape_yjok8")])
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=373847748]
 transform = Transform3D(1, 0, 0, 0, 0.7071067, 0.7071067, 0, -0.7071067, 0.7071067, 0, 186.10132, 0)

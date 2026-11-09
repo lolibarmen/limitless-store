@@ -35,8 +35,10 @@ private:
     float _branch_taper = 4.0f;
 
     uint64_t _trunk_id = 0;
+    bool _respawning = false;
 
     void _spawn_children();
+    void _despawn_children();
 
 protected:
     static void _bind_methods();
@@ -46,6 +48,7 @@ public:
     virtual ~TreeShape() = default;
 
     void bind_planet(const Ref<PlanetShape>& planet);
+    Ref<PlanetShape> get_planet() const { return _planet; }
 
     void set_origin(const Vector3& v) { _origin = v; notify_shape_changed(); }
     Vector3 get_origin() const { return _origin; }
@@ -99,7 +102,9 @@ public:
 
     StringName get_shape_type() const override { return "tree"; }
     void recompute_aabb() override;
+    void notify_shape_changed() override;
     void on_register() override;
+    void on_unregister() override;
 };
 
 } // namespace godot

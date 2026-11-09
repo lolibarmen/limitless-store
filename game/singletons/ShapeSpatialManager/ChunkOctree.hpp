@@ -47,6 +47,9 @@ public:
     /// @brief Удаляет фигуру из пользователей дерева.
     void remove_user(uint64_t shape_id);
 
+    /// @brief Помечает существующего пользователя нуждающимся в повторной отрисовке всех чанков.
+    void mark_user_pending(uint64_t shape_id);
+
     /// @brief Возвращает количество пользователей дерева.
     size_t user_count() const;
 
@@ -74,6 +77,9 @@ public:
     );
 
     void for_each_leaf(std::function<void(Chunk*)> func);
+
+    /// @brief Выполняет func для каждого узла дерева (включая внутренние и корневые).
+    void for_each_chunk(std::function<void(Chunk*)> func);
 
     Chunk* find(uint64_t id) const;
 

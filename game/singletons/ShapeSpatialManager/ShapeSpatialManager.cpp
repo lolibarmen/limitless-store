@@ -37,6 +37,41 @@ uint64_t ShapeSpatialManager::create_octree(
     return octree_id;
 }
 
+uint64_t ShapeSpatialManager::rebuild_octree(
+    uint64_t shape_id,
+    const Vector3& center,
+    float root_size,
+    int max_depth
+) {
+    auto shape_it = _shape_octree.find(shape_id);
+    if (shape_it == _shape_octree.end()) {
+        return create_octree(shape_id, center, root_size, max_depth);
+    }
+
+    const uint64_t old_octree_id = shape_it->second;
+    auto octree_it = _octrees.find(old_octree_id);
+    if (octree_it == _octrees.end()) {
+        return create_octree(shape_id, center, root_size, max_depth);
+    }
+
+    std::vector<uint64_t> users;
+    octree_it->second->for_each_user([&users](uint64_t user_id) {
+        users.push_back(user_id);
+    });
+
+    destroy_octree(old_octree_id);
+
+    const uint64_t new_octree_id = create_octree(shape_id, center, root_size, max_depth);
+
+    for (uint64_t user_id : users) {
+        if (user_id != shape_id) {
+            attach_shape(user_id, new_octree_id);
+        }
+    }
+
+    return new_octree_id;
+}
+
 void ShapeSpatialManager::attach_shape(uint64_t shape_id, uint64_t octree_id) {
     auto current_it = _shape_octree.find(shape_id);
     if (current_it != _shape_octree.end() && current_it->second == octree_id) {

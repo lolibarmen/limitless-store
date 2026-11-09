@@ -22,28 +22,16 @@ void SurfaceGenerator::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "voxel_count"), "set_voxel_count", "get_voxel_count");
 
     // ОБНОВЛЕНО: Добавлены аргументы chunk_key и collision_faces в привязку метода
-    ClassDB::bind_method(D_METHOD("_on_mesh_generated", "shape_id", "chunk_key", "mesh", "collision_faces"), &SurfaceGenerator::_on_mesh_generated);
+    ClassDB::bind_method(D_METHOD("_on_mesh_generated", "shape_id", "chunk_key", "token", "mesh", "collision_faces"), &SurfaceGenerator::_on_mesh_generated);
 }
 
 void SurfaceGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
     uint64_t generator_id = get_instance_id();
 
-    WorkerThreadPool::get_singleton()->add_task(
-        callable_mp_static(&SurfaceGenerator::_build_mesh_task).bind(generator_id, shape_id, chunk_id),
-        false,
-        "SurfaceGenerator::generate"
-    );
-}
-
-void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id, uint64_t chunk_id) {
-    Object* obj = ObjectDB::get_instance(generator_id);
-    SurfaceGenerator* gen = Object::cast_to<SurfaceGenerator>(obj);
-    
-    if (!gen) return;
-
-    SemanticWorld* sw = SemanticWorld::get_singleton();
-    Ref<SemanticShape> shape = sw->get_shape(shape_id);
-    if (shape.is_null()) return;
+    uint64_t token = 0;
+    if (WorldMesh* wm = WorldMesh::get_singleton()) {
+        token = wm->current_token(shape_id, chunk_id);
+    }
 
     auto* mgr = ShapeSpatialManager::get_singleton();
     if (!mgr) return;
@@ -54,9 +42,31 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     Chunk* chunk = octree->find(chunk_id);
     if (!chunk) return;
 
-    Vector3 chunk_pos = chunk->center;
-    float chunk_size = chunk->size; 
-    
+    const Vector3 chunk_pos = chunk->center;
+    const float chunk_size = chunk->size;
+
+    WorkerThreadPool::get_singleton()->add_task(
+        callable_mp_static(&SurfaceGenerator::_build_mesh_task).bind(generator_id, shape_id, chunk_id, token, chunk_pos, chunk_size),
+        false,
+        "SurfaceGenerator::generate"
+    );
+}
+
+void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id, uint64_t chunk_id, uint64_t token, Vector3 chunk_pos, float chunk_size) {
+    Object* obj = ObjectDB::get_instance(generator_id);
+    SurfaceGenerator* gen = Object::cast_to<SurfaceGenerator>(obj);
+
+    if (!gen) return;
+
+    WorldMesh* wm = WorldMesh::get_singleton();
+    if (wm && !wm->is_current(shape_id, chunk_id, token)) return;
+
+    SemanticWorld* sw = SemanticWorld::get_singleton();
+    if (!sw) return;
+
+    Ref<SemanticShape> shape = sw->get_shape(shape_id);
+    if (shape.is_null()) return;
+
     auto inp = std::make_shared<ChunkBuildInput>();
     inp->lod_level   = gen->_lod_level;
     inp->voxel_count = gen->_voxel_count;
@@ -82,8 +92,10 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
 
     const MeshData data = build_neochunk_mesh(*inp);
 
+    if (wm && !wm->is_current(shape_id, chunk_id, token)) return;
+
     if (data.vertices.is_empty()) {
-        gen->call_deferred("_on_mesh_generated", shape_id, chunk_id, Ref<ArrayMesh>(), PackedVector3Array());
+        gen->call_deferred("_on_mesh_generated", shape_id, chunk_id, token, Ref<ArrayMesh>(), PackedVector3Array());
         return;
     }
     
@@ -108,10 +120,10 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     mesh.instantiate();
     mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
 
-    gen->call_deferred("_on_mesh_generated", shape_id, chunk_id, mesh, data.vertices);
+    gen->call_deferred("_on_mesh_generated", shape_id, chunk_id, token, mesh, data.vertices);
 }
 
-void SurfaceGenerator::_on_mesh_generated(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMesh> mesh, PackedVector3Array collision_faces) {
+void SurfaceGenerator::_on_mesh_generated(uint64_t shape_id, uint64_t chunk_id, uint64_t token, Ref<ArrayMesh> mesh, PackedVector3Array collision_faces) {
     Ref<ConcavePolygonShape3D> collision_shape;
     if (mesh.is_valid() && !collision_faces.is_empty()) {
         collision_shape.instantiate();
@@ -120,6 +132,6 @@ void SurfaceGenerator::_on_mesh_generated(uint64_t shape_id, uint64_t chunk_id, 
 
     WorldMesh* wm = WorldMesh::get_singleton();
     if (wm) {
-        wm->complete_mesh(shape_id, chunk_id, mesh, collision_shape);
+        wm->complete_mesh(shape_id, chunk_id, token, mesh, collision_shape);
     }
 }

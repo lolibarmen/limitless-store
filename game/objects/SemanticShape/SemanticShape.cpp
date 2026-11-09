@@ -30,6 +30,10 @@ void SemanticShape::notify_shape_changed() {
         return;
     }
 
+    if (WorldMesh* wm = WorldMesh::get_singleton()) {
+        wm->invalidate_shape(_id);
+    }
+
     SemanticWorld* world = SemanticWorld::get_singleton();
     if (world) {
         world->propose_shape_change(_id);

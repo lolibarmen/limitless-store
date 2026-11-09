@@ -38,7 +38,9 @@ public:
 
     StringName get_shape_type() const override { return "planet"; }
     void recompute_aabb() override;
+    void notify_shape_changed() override;
     void on_register() override;
+    void on_unregister() override;
 };
 
 } // namespace godot

@@ -5,6 +5,8 @@
 
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
+#include <godot_cpp/classes/sub_viewport.hpp>
 #include <godot_cpp/classes/viewport.hpp>
 #include <godot_cpp/classes/camera3d.hpp>
 
@@ -21,13 +23,31 @@ SpatialStreaming* SpatialStreaming::get_singleton() {
 }
 
 void SpatialStreaming::_bind_methods() {}
-void SpatialStreaming::_ready() {}
+void SpatialStreaming::_ready() {
+    set_process(true);
+}
 
 void SpatialStreaming::_process(double delta) {
-    auto* vp = get_viewport();
-    if (!vp) return;
+    Camera3D* cam = nullptr;
 
-    auto* cam = vp->get_camera_3d();
+    Engine* engine = Engine::get_singleton();
+    if (engine && engine->is_editor_hint()) {
+        EditorInterface* editor = EditorInterface::get_singleton();
+        if (editor) {
+            SubViewport* viewport_3d = editor->get_editor_viewport_3d(0);
+            if (viewport_3d) {
+                cam = viewport_3d->get_camera_3d();
+            }
+        }
+    }
+
+    if (!cam) {
+        Viewport* vp = get_viewport();
+        if (vp) {
+            cam = vp->get_camera_3d();
+        }
+    }
+
     if (!cam) return;
 
     player_pos = cam->get_global_position();
