@@ -4,6 +4,8 @@ This project is a modern take on Minecraft using the Godot engine. The main obje
 
 ## Architectural rules
 - The relationship between shapes via add_owned_shape must be bidirectional (since a house cannot exist without walls and a roof, and a roof cannot exist if the house is destroyed)
+- The owned list defines the traversal direction: change notifications and reactions only visit shapes explicitly listed in the current shape's owned list. A parent is never called unless it is itself listed in the child's owned list.
+- propose_shape_change is the only entry point for a fundamental replacement (e.g. a branch becoming a burnt branch). Plain parameter changes are propagated by the shape itself down its owned list via notify_shape_changed().
 
 ## Code rules
 - Avoid creating new fields, classes, or functions unless clearly necessary.

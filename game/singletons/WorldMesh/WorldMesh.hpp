@@ -5,6 +5,7 @@
 #include <godot_cpp/classes/array_mesh.hpp>
 #include <godot_cpp/classes/concave_polygon_shape3d.hpp>
 #include <cstdint>
+#include <deque>
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
@@ -31,6 +32,45 @@ private:
     std::unordered_set<uint64_t> _dirty_shapes;
     double _dirty_timer = 0.0;
 
+    struct PendingRender {
+        uint64_t shape_id = 0;
+        uint64_t chunk_id = 0;
+        uint64_t token = 0;
+    };
+
+    struct ActiveRender {
+        uint64_t shape_id = 0;
+        uint64_t chunk_id = 0;
+    };
+
+    /// @brief Очередь задач, ожидающих свободного слота генерации.
+    std::deque<PendingRender> _pending_renders;
+
+    /// @brief Активные задачи: token -> (shape_id, chunk_id). Задача занимает слот до complete_mesh/finish_render.
+    std::unordered_map<uint64_t, ActiveRender> _active_renders;
+
+    /// @brief Актуальные токены ожидающих задач: shape_id -> (chunk_id -> token).
+    std::unordered_map<uint64_t, std::unordered_map<uint64_t, uint64_t>> _pending_tokens;
+
+    /// @brief Максимум одновременно выполняющихся генераций меша.
+    int _max_concurrent_renders = 0;
+    bool _pumping_renders = false;
+
+    /// @brief Запускает задачи из очереди, пока есть свободные слоты.
+    void _pump_renders();
+
+    /// @brief Создаёт сценовые узлы и запускает генерацию для задачи, если она всё ещё актуальна.
+    bool _start_render(const PendingRender& job);
+
+    /// @brief Убирает пару из очереди ожидания и инвалидирует её токен.
+    void _cancel_pending(uint64_t shape_id, uint64_t chunk_id);
+
+    /// @brief Освобождает слот активной задачи по токену.
+    void _release_active(uint64_t token);
+
+    /// @brief Deferred-завершение задачи без результата (вызывается из рабочих потоков).
+    void _on_render_task_finished(uint64_t shape_id, uint64_t chunk_id, uint64_t token);
+
     /// @brief Удаляет визуальное и коллизионное представление фигуры из конкретного чанка.
     void _remove_mesh_from_chunk(Chunk* chunk, uint64_t shape_id);
 
@@ -51,10 +91,14 @@ public:
     void _ready() override;
     void _process(double delta) override;
 
+    /// @brief Максимум одновременно выполняющихся генераций меша.
+    int get_max_concurrent_renders() const { return _max_concurrent_renders; }
+    void set_max_concurrent_renders(int count);
+
     /// @brief Инициирует процесс рендеринга фигуры в заданном чанке.
     /// Очищает старые меши этой фигуры в текущем чанке и его родителях для предотвращения визуальных артефактов.
-    /// Создает базовые MeshInstance3D, StaticBody3D и CollisionShape3D, сохраняет генераторы
-    /// для последующего применения материалов и геометрии коллизии.
+    /// Задача ставится в очередь и запускается только при наличии свободного слота;
+    /// сценовые узлы создаются в момент старта задачи.
     /// @param shape_id Уникальный ID семантической фигуры.
     /// @param chunk_id ID чанка, в котором требуется отрисовка.
     /// @param mesh_generator Генератор геометрии.
@@ -65,6 +109,10 @@ public:
     /// @param shape_id Уникальный ID семантической фигуры.
     /// @param chunk_id ID чанка, из которого нужно удалить меш.
     void cancel_render(uint64_t shape_id, uint64_t chunk_id);
+
+    /// @brief Инвалидирует запрос пары (фигура, чанк) без удаления узлов.
+    /// Используется при уничтожении чанка/запроса: активная задача доживёт и сама освободит слот.
+    void cancel_request(uint64_t shape_id, uint64_t chunk_id);
 
     /// @brief Завершает асинхронный процесс рендеринга, применяя сгенерированный Mesh, Material и коллизию.
     /// Устаревшая версия без токена: использует токен текущего запроса чанка.

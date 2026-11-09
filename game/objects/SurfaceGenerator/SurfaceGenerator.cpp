@@ -28,19 +28,28 @@ void SurfaceGenerator::_bind_methods() {
 void SurfaceGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
     uint64_t generator_id = get_instance_id();
 
-    uint64_t token = 0;
-    if (WorldMesh* wm = WorldMesh::get_singleton()) {
-        token = wm->current_token(shape_id, chunk_id);
-    }
+    WorldMesh* wm = WorldMesh::get_singleton();
+    if (!wm) return;
+
+    const uint64_t token = wm->current_token(shape_id, chunk_id);
 
     auto* mgr = ShapeSpatialManager::get_singleton();
-    if (!mgr) return;
+    if (!mgr) {
+        wm->call_deferred("_on_render_task_finished", (int64_t)shape_id, (int64_t)chunk_id, (int64_t)token);
+        return;
+    }
 
     ChunkOctree* octree = mgr->get_octree(shape_id);
-    if (!octree) return;
+    if (!octree) {
+        wm->call_deferred("_on_render_task_finished", (int64_t)shape_id, (int64_t)chunk_id, (int64_t)token);
+        return;
+    }
 
     Chunk* chunk = octree->find(chunk_id);
-    if (!chunk) return;
+    if (!chunk) {
+        wm->call_deferred("_on_render_task_finished", (int64_t)shape_id, (int64_t)chunk_id, (int64_t)token);
+        return;
+    }
 
     const Vector3 chunk_pos = chunk->center;
     const float chunk_size = chunk->size;
@@ -53,19 +62,38 @@ void SurfaceGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
 }
 
 void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id, uint64_t chunk_id, uint64_t token, Vector3 chunk_pos, float chunk_size) {
+    WorldMesh* wm = WorldMesh::get_singleton();
+
+    auto finish_without_result = [wm, shape_id, chunk_id, token]() {
+        if (wm) {
+            wm->call_deferred("_on_render_task_finished", (int64_t)shape_id, (int64_t)chunk_id, (int64_t)token);
+        }
+    };
+
     Object* obj = ObjectDB::get_instance(generator_id);
     SurfaceGenerator* gen = Object::cast_to<SurfaceGenerator>(obj);
 
-    if (!gen) return;
+    if (!gen) {
+        finish_without_result();
+        return;
+    }
 
-    WorldMesh* wm = WorldMesh::get_singleton();
-    if (wm && !wm->is_current(shape_id, chunk_id, token)) return;
+    if (wm && !wm->is_current(shape_id, chunk_id, token)) {
+        finish_without_result();
+        return;
+    }
 
     SemanticWorld* sw = SemanticWorld::get_singleton();
-    if (!sw) return;
+    if (!sw) {
+        finish_without_result();
+        return;
+    }
 
     Ref<SemanticShape> shape = sw->get_shape(shape_id);
-    if (shape.is_null()) return;
+    if (shape.is_null()) {
+        finish_without_result();
+        return;
+    }
 
     auto inp = std::make_shared<ChunkBuildInput>();
     inp->lod_level   = gen->_lod_level;
@@ -92,7 +120,10 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
 
     const MeshData data = build_neochunk_mesh(*inp);
 
-    if (wm && !wm->is_current(shape_id, chunk_id, token)) return;
+    if (wm && !wm->is_current(shape_id, chunk_id, token)) {
+        finish_without_result();
+        return;
+    }
 
     if (data.vertices.is_empty()) {
         gen->call_deferred("_on_mesh_generated", shape_id, chunk_id, token, Ref<ArrayMesh>(), PackedVector3Array());

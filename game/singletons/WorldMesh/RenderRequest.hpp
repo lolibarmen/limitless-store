@@ -1,6 +1,7 @@
 #pragma once
 
 #include <MaterialGenerator/MaterialGenerator.hpp>
+#include <MeshGenerator/MeshGenerator.hpp>
 #include <godot_cpp/classes/array_mesh.hpp>
 #include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/classes/concave_polygon_shape3d.hpp>
@@ -18,6 +19,7 @@ public:
     MeshInstance3D* mesh_instance = nullptr;
     StaticBody3D* collision_body = nullptr;
     CollisionShape3D* collision_shape = nullptr;
+    Ref<MeshGenerator> mesh_generator;
     Ref<MaterialGenerator> material_generator;
     bool active = true;
 

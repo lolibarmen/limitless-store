@@ -28,6 +28,7 @@ public:
     ~SurfaceGenerator() override = default;
 
     void generate(uint64_t shape_id, uint64_t chunk_id) const override;
+    bool is_async() const override { return true; }
 
     void set_lod_level(int level) { _lod_level = level; }
     int get_lod_level() const { return _lod_level; }

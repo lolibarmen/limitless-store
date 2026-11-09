@@ -34,10 +34,31 @@ void SemanticShape::notify_shape_changed() {
         wm->invalidate_shape(_id);
     }
 
-    SemanticWorld* world = SemanticWorld::get_singleton();
-    if (world) {
-        world->propose_shape_change(_id);
+    if (_notifying) {
+        return;
     }
+
+    SemanticWorld* world = SemanticWorld::get_singleton();
+    if (!world) {
+        return;
+    }
+
+    _notifying = true;
+
+    const PackedInt64Array owned = get_owned_shapes();
+    for (int i = 0; i < owned.size(); ++i) {
+        const uint64_t child_id = (uint64_t)owned[i];
+        if (child_id == 0) {
+            continue;
+        }
+
+        Ref<SemanticShape> child = world->get_shape(child_id);
+        if (child.is_valid()) {
+            child->notify_shape_changed();
+        }
+    }
+
+    _notifying = false;
 }
 
 float SemanticShape::evaluate_sdf(const Vector3& world_pos) const {

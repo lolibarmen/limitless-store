@@ -1,5 +1,6 @@
 #include "Chunk.hpp"
 #include <WorldMesh/RenderRequest.hpp>
+#include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/core/math.hpp>
 
 using namespace godot;
@@ -18,6 +19,10 @@ AABB Chunk::get_aabb() const {
 }
 
 void Chunk::remove_shape(uint64_t shape_id) {
+    if (WorldMesh* wm = WorldMesh::get_singleton()) {
+        wm->cancel_request(shape_id, id);
+    }
+
     auto it = shape_requests.find(shape_id);
     if (it != shape_requests.end()) {
         it->second->drop();
@@ -26,7 +31,12 @@ void Chunk::remove_shape(uint64_t shape_id) {
 }
 
 void Chunk::clear_all_shape_meshes() {
+    WorldMesh* wm = WorldMesh::get_singleton();
+
     for (auto& pair : shape_requests) {
+        if (wm) {
+            wm->cancel_request(pair.first, id);
+        }
         pair.second->drop();
     }
     shape_requests.clear();

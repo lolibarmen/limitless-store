@@ -27,6 +27,7 @@ void RenderRequest::drop() {
         mesh_instance = nullptr;
     }
 
+    mesh_generator = Ref<MeshGenerator>();
     material_generator = Ref<MaterialGenerator>();
 }
 
@@ -63,6 +64,7 @@ bool RenderRequest::apply(uint64_t shape_id, uint64_t chunk_id, uint64_t p_token
         }
     }
 
+    mesh_generator = Ref<MeshGenerator>();
     material_generator = Ref<MaterialGenerator>();
     return true;
 }

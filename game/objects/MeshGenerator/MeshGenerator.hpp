@@ -99,6 +99,10 @@ public:
 
     /// @brief Точка входа. Возвращает void; обязан закончить вызовом submit().
     virtual void generate(uint64_t shape_id, uint64_t chunk_id) const;
+
+    /// @brief true, если generate() завершает работу асинхронно и сам вызывает complete_mesh().
+    /// Для синхронных генераторов WorldMesh освобождает слот сразу после возврата из generate().
+    virtual bool is_async() const { return false; }
 };
 
 } // namespace godot
