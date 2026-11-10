@@ -14,12 +14,12 @@ namespace {
 const Color BARK_LIGHT(0.55f, 0.38f, 0.22f, 1.0f);
 const Color BARK_DARK(0.33f, 0.21f, 0.12f, 1.0f);
 
-void draw_segment(Image* image, Vector2 a, Vector2 b, float thickness, const Color& color) {
-    const float radius = thickness * 0.5f;
-    const int min_x = MAX(0, (int)Math::floor(MIN(a.x, b.x) - radius));
-    const int max_x = MIN(image->get_width() - 1, (int)Math::ceil(MAX(a.x, b.x) + radius));
-    const int min_y = MAX(0, (int)Math::floor(MIN(a.y, b.y) - radius));
-    const int max_y = MIN(image->get_height() - 1, (int)Math::ceil(MAX(a.y, b.y) + radius));
+void draw_segment(Image* image, Vector2 a, Vector2 b, float thickness_a, float thickness_b, const Color& color) {
+    const float max_radius = MAX(thickness_a, thickness_b);
+    const int min_x = MAX(0, (int)Math::floor(MIN(a.x, b.x) - max_radius));
+    const int max_x = MIN(image->get_width() - 1, (int)Math::ceil(MAX(a.x, b.x) + max_radius));
+    const int min_y = MAX(0, (int)Math::floor(MIN(a.y, b.y) - max_radius));
+    const int max_y = MIN(image->get_height() - 1, (int)Math::ceil(MAX(a.y, b.y) + max_radius));
 
     const Vector2 ab = b - a;
     const float len_sq = ab.length_squared();
@@ -28,6 +28,7 @@ void draw_segment(Image* image, Vector2 a, Vector2 b, float thickness, const Col
         for (int x = min_x; x <= max_x; ++x) {
             const Vector2 p(x + 0.5f, y + 0.5f);
             const float t = len_sq > 0.0f ? CLAMP((p - a).dot(ab) / len_sq, 0.0f, 1.0f) : 0.0f;
+            const float radius = Math::lerp(thickness_a, thickness_b, t) * 0.5f;
             if (p.distance_to(a + ab * t) <= radius) {
                 image->set_pixel(x, y, color);
             }
@@ -35,31 +36,42 @@ void draw_segment(Image* image, Vector2 a, Vector2 b, float thickness, const Col
     }
 }
 
-void draw_branch(Image* image, RandomNumberGenerator* rng, Vector2 pos, float angle, float length, float thickness, int depth) {
+void draw_branch(Image* image, RandomNumberGenerator* rng, Vector2 pos, float angle,
+                 float length, float thickness, int depth, int total_depth, float bend) {
     if (depth <= 0 || length < 1.0f || thickness < 0.5f) {
         return;
     }
 
-    const Vector2 end = pos + Vector2(Math::sin(angle), -Math::cos(angle)) * length;
-    draw_segment(image, pos, end, thickness, BARK_LIGHT.lerp(BARK_DARK, rng->randf_range(0.0f, 0.35f)));
+    const float progress = (float)(total_depth - depth) / (float)total_depth;
+    const float tip_thickness = thickness * rng->randf_range(0.62f, 0.8f);
+    const float seg_angle = angle + bend * rng->randf_range(0.5f, 1.5f) + rng->randf_range(-0.1f, 0.1f);
+    const Vector2 end = pos + Vector2(Math::sin(seg_angle), -Math::cos(seg_angle)) * length;
 
-    if (depth == 1) {
+    draw_segment(image, pos, end, thickness, tip_thickness, BARK_LIGHT.lerp(BARK_DARK, rng->randf_range(0.0f, 0.35f)));
+
+    const int remaining = depth - 1;
+    if (remaining <= 0) {
         return;
     }
 
-    const int count = rng->randf() < 0.75f ? 2 : 1;
-    for (int i = 0; i < count; ++i) {
-        const float side = i == 0 ? -1.0f : 1.0f;
-        const float child_angle = angle + side * rng->randf_range(0.3f, 0.75f) + rng->randf_range(-0.12f, 0.12f);
-        draw_branch(
-            image,
-            rng,
-            pos.lerp(end, rng->randf_range(0.55f, 0.85f)),
-            child_angle,
-            length * rng->randf_range(0.62f, 0.78f),
-            thickness * rng->randf_range(0.55f, 0.72f),
-            depth - 1
-        );
+    if (rng->randf() < Math::lerp(0.95f, 0.55f, progress)) {
+        draw_branch(image, rng, pos.lerp(end, rng->randf_range(0.85f, 1.0f)), seg_angle,
+                    length * rng->randf_range(0.68f, 0.82f), tip_thickness, remaining, total_depth, bend);
+    }
+
+    if (rng->randf() < 0.8f * (1.0f - progress)) {
+        const float side = rng->randf() < 0.5f ? -1.0f : 1.0f;
+        const float child_angle = seg_angle + side * rng->randf_range(0.5f, 1.1f) + rng->randf_range(-0.15f, 0.15f);
+        draw_branch(image, rng, pos.lerp(end, rng->randf_range(0.3f, 0.95f)), child_angle,
+                    length * rng->randf_range(0.42f, 0.68f), tip_thickness * rng->randf_range(0.35f, 0.55f),
+                    remaining, total_depth, bend);
+
+        if (rng->randf() < 0.25f * (1.0f - progress)) {
+            const float other_angle = seg_angle - side * rng->randf_range(0.5f, 1.1f) + rng->randf_range(-0.15f, 0.15f);
+            draw_branch(image, rng, pos.lerp(end, rng->randf_range(0.25f, 0.85f)), other_angle,
+                        length * rng->randf_range(0.42f, 0.68f), tip_thickness * rng->randf_range(0.35f, 0.55f),
+                        remaining, total_depth, bend);
+        }
     }
 }
 
@@ -120,16 +132,26 @@ Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chun
     Ref<Image> image = Image::create_empty(image_width, image_height, false, Image::FORMAT_RGBA8);
     image->fill(Color(0, 0, 0, 0));
 
+    uint64_t seed = shape_id;
+    seed ^= seed >> 30;
+    seed *= 0xbf58476d1ce4e5b9ULL;
+    seed ^= seed >> 27;
+    seed *= 0x94d049bb133111ebULL;
+    seed ^= seed >> 31;
+
     Ref<RandomNumberGenerator> rng;
     rng.instantiate();
-    rng->randomize();
+    rng->set_seed(seed);
+    const float bend = rng->randf_range(-0.15f, 0.15f);
 
     const float span_x = image_width * 0.94f;
     const float span_y = image_height * 0.94f;
     const float reach = Math::sqrt(span_x * span_x + span_y * span_y) * 0.5f;
 
+    const float chain = (1.0f - Math::pow(0.75f, (float)_max_depth)) / 0.25f;
+
     draw_branch(image.ptr(), rng.ptr(), Vector2(image_width * 0.03f, image_height * 0.03f),
-                draw_angle, reach, root_width / _pixel_size, _max_depth);
+                draw_angle, reach / chain, root_width / _pixel_size, _max_depth, _max_depth, bend);
 
     return make_material(image);
 }

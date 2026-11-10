@@ -6,16 +6,14 @@
 center = Vector3(0, -100, 0)
 
 [sub_resource type="TreeShape" id="TreeShape_jaeev"]
-origin = Vector3(14, -12.5, 0)
-base_radius = 0.25
-top_radius = 0.05
-bend = Vector3(0.5, 0, 0.5)
+origin = Vector3(14, -12, 0)
+height = 3.0
+base_radius = 0.1
+top_radius = 0.0
 ring_variation = 0.1
-branch_count = 12
-branch_start = 0.2
-branch_length = 3.0
-branch_width = 0.1
-branch_alpha = 1.0
+branch_count = 10
+branch_start = 0.3
+branch_width = 0.05
 planet = SubResource("PlanetShape_m685e")
 
 [sub_resource type="TreeShape" id="TreeShape_u80x2"]
@@ -24,11 +22,10 @@ base_radius = 0.25
 top_radius = 0.05
 bend = Vector3(0, 0, -0.5)
 ring_variation = 0.1
-branch_count = 12
-branch_start = 0.2
+branch_count = 20
+branch_start = 0.3
 branch_length = 3.0
 branch_width = 0.1
-branch_alpha = 1.0
 planet = SubResource("PlanetShape_m685e")
 
 [sub_resource type="TreeShape" id="TreeShape_bodal"]
@@ -37,11 +34,10 @@ base_radius = 0.25
 top_radius = 0.05
 bend = Vector3(0.5, 0, 0.25)
 ring_variation = 0.1
-branch_count = 12
-branch_start = 0.2
+branch_count = 20
+branch_start = 0.3
 branch_length = 3.0
 branch_width = 0.1
-branch_alpha = 1.0
 planet = SubResource("PlanetShape_m685e")
 
 [sub_resource type="TreeShape" id="TreeShape_yjok8"]
@@ -50,11 +46,10 @@ base_radius = 0.25
 top_radius = 0.05
 bend = Vector3(0.25, 0, 0.5)
 ring_variation = 0.1
-branch_count = 12
-branch_start = 0.2
+branch_count = 20
+branch_start = 0.3
 branch_length = 3.0
 branch_width = 0.1
-branch_alpha = 1.0
 planet = SubResource("PlanetShape_m685e")
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_jaeev"]
