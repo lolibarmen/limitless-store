@@ -16,6 +16,7 @@ public:
     virtual ~BranchMeshGenerator() = default;
 
     void generate(uint64_t shape_id, uint64_t chunk_id) const override;
+    bool has_collision() const override { return false; }
 };
 
 } // namespace godot

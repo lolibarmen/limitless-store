@@ -103,6 +103,9 @@ public:
     /// @brief true, если generate() завершает работу асинхронно и сам вызывает complete_mesh().
     /// Для синхронных генераторов WorldMesh освобождает слот сразу после возврата из generate().
     virtual bool is_async() const { return false; }
+
+    /// @brief true, если для меша нужно создавать коллизию.
+    virtual bool has_collision() const { return true; }
 };
 
 } // namespace godot

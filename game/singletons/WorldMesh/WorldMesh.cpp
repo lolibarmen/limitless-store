@@ -118,7 +118,7 @@ bool WorldMesh::_start_render(const PendingRender& job) {
 
         Engine* engine = Engine::get_singleton();
         const bool editor = engine && engine->is_editor_hint();
-        if (!editor) {
+        if (!editor && request->mesh_generator->has_collision()) {
             StaticBody3D* collision_body = memnew(StaticBody3D);
             add_child(collision_body);
             collision_body->set_global_position(chunk->center);
