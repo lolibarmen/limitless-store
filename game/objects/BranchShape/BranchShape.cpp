@@ -1,4 +1,5 @@
 #include "BranchShape.hpp"
+#include "MaterialGenerator/MaterialGenerator.hpp"
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <WorldMesh/WorldMesh.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -44,6 +45,19 @@ void BranchShape::set_direction(const Vector3& v) {
     const float len = v.length();
     _direction = len > 0.0001f ? v / len : Vector3(0.0f, 1.0f, 0.0f);
     notify_shape_changed();
+}
+
+void BranchShape::set_fork_count(int v) {
+    const int clamped = CLAMP(v, 0, 6);
+    if (_material_generator->get_fork_count() == clamped) {
+        return;
+    }
+    _material_generator->set_fork_count(clamped);
+    notify_shape_changed();
+}
+
+int BranchShape::get_fork_count() const {
+    return _material_generator->get_fork_count();
 }
 
 Vector3 BranchShape::up() const {

@@ -34,6 +34,7 @@ private:
     float _branch_width = 0.35f;
     float _branch_spread = 0.7f;
     float _branch_alpha = 1.0f;
+    int _branch_fork_count = 3;
 
     uint64_t _trunk_id = 0;
     bool _respawning = false;
@@ -103,6 +104,10 @@ public:
     /// @brief Показатель alpha в законе распределения длины веток D(x) = D_max * [4x(1-x)]^alpha.
     void set_branch_alpha(float v) { _branch_alpha = v; notify_branches_changed(); }
     float get_branch_alpha() const { return _branch_alpha; }
+
+    /// @brief Количество боковых веточек, ответвляемых на каждом узле текстуры ветки.
+    void set_branch_fork_count(int v) { _branch_fork_count = v; notify_branches_changed(); }
+    int get_branch_fork_count() const { return _branch_fork_count; }
 
     uint64_t get_trunk_id() const { return _trunk_id; }
 

@@ -44,6 +44,9 @@ public:
     void set_width(float v) { _width = v; notify_shape_changed(); }
     float get_width() const { return _width; }
 
+    void set_fork_count(int v);
+    int get_fork_count() const;
+
     Vector3 up() const;         // локальный верх планеты в точке крепления
     Vector3 side() const;       // боковая ось карточки (перпендикулярна up)
     float card_height() const;  // проекция length на up

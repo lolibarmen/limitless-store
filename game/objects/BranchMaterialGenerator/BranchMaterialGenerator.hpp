@@ -2,6 +2,7 @@
 
 #include <MaterialGenerator/MaterialGenerator.hpp>
 #include <godot_cpp/classes/standard_material3d.hpp>
+#include <godot_cpp/core/math.hpp>
 
 namespace godot {
 
@@ -12,6 +13,7 @@ class BranchMaterialGenerator : public MaterialGenerator {
 private:
     float _pixel_size = 0.025f;
     int _max_depth = 7;
+    int _fork_count = 3;
 
 protected:
     static void _bind_methods();
@@ -25,6 +27,10 @@ public:
 
     void set_max_depth(int v) { _max_depth = v > 0 ? v : 1; }
     int get_max_depth() const { return _max_depth; }
+
+    /// @brief Количество боковых веточек, ответвляемых на каждом узле.
+    void set_fork_count(int v) { _fork_count = CLAMP(v, 0, 6); }
+    int get_fork_count() const { return _fork_count; }
 
     Ref<Material> generate(uint64_t shape_id, uint64_t chunk_id) const override;
 };

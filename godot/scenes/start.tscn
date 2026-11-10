@@ -5,51 +5,214 @@
 [sub_resource type="PlanetShape" id="PlanetShape_m685e"]
 center = Vector3(0, -100, 0)
 
-[sub_resource type="TreeShape" id="TreeShape_jaeev"]
-origin = Vector3(14, -12, 0)
-height = 3.0
+[sub_resource type="TreeShape" id="TreeShape_u80x2"]
+origin = Vector3(12, -12, 0)
+height = 5.0
 base_radius = 0.1
 top_radius = 0.0
-ring_variation = 0.1
-branch_count = 10
-branch_start = 0.3
-branch_width = 0.05
-planet = SubResource("PlanetShape_m685e")
-
-[sub_resource type="TreeShape" id="TreeShape_u80x2"]
-origin = Vector3(6, -12, 0)
-base_radius = 0.25
-top_radius = 0.05
-bend = Vector3(0, 0, -0.5)
+radial_segments = 6
+height_segments = 1
 ring_variation = 0.1
 branch_count = 20
 branch_start = 0.3
 branch_length = 3.0
-branch_width = 0.1
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_jaeev"]
+origin = Vector3(14, -12, 0)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
 
 [sub_resource type="TreeShape" id="TreeShape_bodal"]
-origin = Vector3(2, -11, 0)
-base_radius = 0.25
-top_radius = 0.05
-bend = Vector3(0.5, 0, 0.25)
+origin = Vector3(16.195, -10.955, -0.285)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
 ring_variation = 0.1
 branch_count = 20
 branch_start = 0.3
 branch_length = 3.0
-branch_width = 0.1
+branch_width = 0.06
+branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
 
-[sub_resource type="TreeShape" id="TreeShape_yjok8"]
-origin = Vector3(10, -12.5, 0)
-base_radius = 0.25
-top_radius = 0.05
-bend = Vector3(0.25, 0, 0.5)
+[sub_resource type="TreeShape" id="TreeShape_kdmts"]
+origin = Vector3(18.005, -10, 0.145)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
 ring_variation = 0.1
 branch_count = 20
 branch_start = 0.3
 branch_length = 3.0
-branch_width = 0.1
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_0auqf"]
+origin = Vector3(13.175, -12, -2.56)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_y16t7"]
+origin = Vector3(11.22, -12.11, -1.715)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_4ge6i"]
+origin = Vector3(9.775, -12.2, 0.025)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_8itgj"]
+origin = Vector3(11.54, -12, 2.145)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_tn317"]
+origin = Vector3(13.9, -12, 1.975)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_m8nf6"]
+origin = Vector3(15.875, -11.64, 2.455)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_pgjjs"]
+origin = Vector3(12.205, -11.18, -4)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_1nvso"]
+origin = Vector3(15.705, -11.055, -1.76)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_gsp51"]
+origin = Vector3(10.405, -12, -3.205)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+
+[sub_resource type="TreeShape" id="TreeShape_r8uic"]
+origin = Vector3(9.44, -12, -1.695)
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_jaeev"]
@@ -58,7 +221,7 @@ size = Vector3(6, 1, 8)
 [node name="Node3D" type="Node3D" unique_id=1806351155]
 
 [node name="WorldCoordinator" type="WorldCoordinator" parent="." unique_id=1276718905]
-shapes = Array[SemanticShape]([SubResource("PlanetShape_m685e"), SubResource("TreeShape_jaeev"), SubResource("TreeShape_u80x2"), SubResource("TreeShape_bodal"), SubResource("TreeShape_yjok8")])
+shapes = Array[SemanticShape]([SubResource("PlanetShape_m685e"), SubResource("TreeShape_u80x2"), SubResource("TreeShape_jaeev"), SubResource("TreeShape_bodal"), SubResource("TreeShape_kdmts"), SubResource("TreeShape_0auqf"), SubResource("TreeShape_y16t7"), SubResource("TreeShape_4ge6i"), SubResource("TreeShape_8itgj"), SubResource("TreeShape_tn317"), SubResource("TreeShape_m8nf6"), SubResource("TreeShape_pgjjs"), SubResource("TreeShape_1nvso"), SubResource("TreeShape_gsp51"), SubResource("TreeShape_r8uic")])
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=373847748]
 transform = Transform3D(1, 0, 0, 0, 0.7071067, 0.7071067, 0, -0.7071067, 0.7071067, 0, 186.10132, 0)

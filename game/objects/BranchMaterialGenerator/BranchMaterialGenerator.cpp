@@ -37,7 +37,8 @@ void draw_segment(Image* image, Vector2 a, Vector2 b, float thickness_a, float t
 }
 
 void draw_branch(Image* image, RandomNumberGenerator* rng, Vector2 pos, float angle,
-                 float length, float thickness, int depth, int total_depth, float bend) {
+                 float length, float thickness, int depth, int total_depth, float bend,
+                 int fork_count) {
     if (depth <= 0 || length < 1.0f || thickness < 0.5f) {
         return;
     }
@@ -56,22 +57,21 @@ void draw_branch(Image* image, RandomNumberGenerator* rng, Vector2 pos, float an
 
     if (rng->randf() < Math::lerp(0.95f, 0.55f, progress)) {
         draw_branch(image, rng, pos.lerp(end, rng->randf_range(0.85f, 1.0f)), seg_angle,
-                    length * rng->randf_range(0.68f, 0.82f), tip_thickness, remaining, total_depth, bend);
+                    length * rng->randf_range(0.68f, 0.82f), tip_thickness, remaining, total_depth, bend,
+                    fork_count);
     }
 
-    if (rng->randf() < 0.8f * (1.0f - progress)) {
-        const float side = rng->randf() < 0.5f ? -1.0f : 1.0f;
+    for (int i = 0; i < fork_count; ++i) {
+        const float side = (i % 2 == 0) ? -1.0f : 1.0f;
+        const float chance = (0.85f - 0.1f * (float)i) * (1.0f - progress);
+        if (chance <= 0.0f || rng->randf() >= chance) {
+            continue;
+        }
+
         const float child_angle = seg_angle + side * rng->randf_range(0.5f, 1.1f) + rng->randf_range(-0.15f, 0.15f);
         draw_branch(image, rng, pos.lerp(end, rng->randf_range(0.3f, 0.95f)), child_angle,
                     length * rng->randf_range(0.42f, 0.68f), tip_thickness * rng->randf_range(0.35f, 0.55f),
-                    remaining, total_depth, bend);
-
-        if (rng->randf() < 0.25f * (1.0f - progress)) {
-            const float other_angle = seg_angle - side * rng->randf_range(0.5f, 1.1f) + rng->randf_range(-0.15f, 0.15f);
-            draw_branch(image, rng, pos.lerp(end, rng->randf_range(0.25f, 0.85f)), other_angle,
-                        length * rng->randf_range(0.42f, 0.68f), tip_thickness * rng->randf_range(0.35f, 0.55f),
-                        remaining, total_depth, bend);
-        }
+                    remaining, total_depth, bend, fork_count);
     }
 }
 
@@ -98,6 +98,10 @@ void BranchMaterialGenerator::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_max_depth", "depth"), &BranchMaterialGenerator::set_max_depth);
     ClassDB::bind_method(D_METHOD("get_max_depth"), &BranchMaterialGenerator::get_max_depth);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "max_depth", PROPERTY_HINT_RANGE, "1,16,1"), "set_max_depth", "get_max_depth");
+
+    ClassDB::bind_method(D_METHOD("set_fork_count", "count"), &BranchMaterialGenerator::set_fork_count);
+    ClassDB::bind_method(D_METHOD("get_fork_count"), &BranchMaterialGenerator::get_fork_count);
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "fork_count", PROPERTY_HINT_RANGE, "0,6,1"), "set_fork_count", "get_fork_count");
 }
 
 Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
@@ -151,7 +155,8 @@ Ref<Material> BranchMaterialGenerator::generate(uint64_t shape_id, uint64_t chun
     const float chain = (1.0f - Math::pow(0.75f, (float)_max_depth)) / 0.25f;
 
     draw_branch(image.ptr(), rng.ptr(), Vector2(image_width * 0.03f, image_height * 0.03f),
-                draw_angle, reach / chain, root_width / _pixel_size, _max_depth, _max_depth, bend);
+                draw_angle, reach / chain, root_width / _pixel_size, _max_depth, _max_depth, bend,
+                _fork_count);
 
     return make_material(image);
 }

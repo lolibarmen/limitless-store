@@ -73,6 +73,10 @@ void TreeShape::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_branch_alpha"), &TreeShape::get_branch_alpha);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "branch_alpha", PROPERTY_HINT_RANGE, "0.01,20.0,0.01"), "set_branch_alpha", "get_branch_alpha");
 
+    ClassDB::bind_method(D_METHOD("set_branch_fork_count", "count"), &TreeShape::set_branch_fork_count);
+    ClassDB::bind_method(D_METHOD("get_branch_fork_count"), &TreeShape::get_branch_fork_count);
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "branch_fork_count", PROPERTY_HINT_RANGE, "0,6,1"), "set_branch_fork_count", "get_branch_fork_count");
+
     ClassDB::bind_method(D_METHOD("bind_planet", "planet"), &TreeShape::bind_planet);
     ClassDB::bind_method(D_METHOD("get_planet"), &TreeShape::get_planet);
     ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "planet", PROPERTY_HINT_RESOURCE_TYPE, "PlanetShape"), "bind_planet", "get_planet");
@@ -123,6 +127,7 @@ void TreeShape::_apply_branch_params(int i, const Ref<TrunkShape>& trunk, const 
     branch->set_direction(dir);
     branch->set_length(_branch_length * factor);
     branch->set_width(_branch_width * factor);
+    branch->set_fork_count(_branch_fork_count);
 }
 
 void TreeShape::_sync_children(bool trunk_changed) {
