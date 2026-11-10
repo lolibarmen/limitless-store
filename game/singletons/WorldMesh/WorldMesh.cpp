@@ -111,9 +111,12 @@ bool WorldMesh::_start_render(const PendingRender& job) {
     }
 
     if (!request->mesh_instance) {
+        request->chunk_center = chunk->center;
+
         MeshInstance3D* mesh_instance = memnew(MeshInstance3D);
         add_child(mesh_instance);
-        mesh_instance->set_global_position(chunk->center);
+        mesh_instance->set_global_position(request->chunk_center);
+        mesh_instance->set_visible(false);
         request->mesh_instance = mesh_instance;
 
         Engine* engine = Engine::get_singleton();
@@ -121,9 +124,10 @@ bool WorldMesh::_start_render(const PendingRender& job) {
         if (!editor && request->mesh_generator->has_collision()) {
             StaticBody3D* collision_body = memnew(StaticBody3D);
             add_child(collision_body);
-            collision_body->set_global_position(chunk->center);
+            collision_body->set_global_position(request->chunk_center);
 
             CollisionShape3D* collision_shape = memnew(CollisionShape3D);
+            collision_shape->set_disabled(true);
             collision_body->add_child(collision_shape);
 
             request->collision_body = collision_body;

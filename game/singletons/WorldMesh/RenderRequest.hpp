@@ -7,6 +7,7 @@
 #include <godot_cpp/classes/concave_polygon_shape3d.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 #include <godot_cpp/classes/static_body3d.hpp>
+#include <godot_cpp/variant/vector3.hpp>
 #include <cstdint>
 
 namespace godot {
@@ -16,6 +17,7 @@ namespace godot {
 class RenderRequest {
 public:
     uint64_t token = 0;
+    Vector3 chunk_center;
     MeshInstance3D* mesh_instance = nullptr;
     StaticBody3D* collision_body = nullptr;
     CollisionShape3D* collision_shape = nullptr;

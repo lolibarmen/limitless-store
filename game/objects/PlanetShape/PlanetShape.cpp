@@ -6,6 +6,20 @@
 
 using namespace godot;
 
+namespace {
+constexpr int kMinChunkSize = 16;
+
+int compute_max_depth(float size) {
+    int root_size = kMinChunkSize;
+    int depth = 0;
+    while (static_cast<float>(root_size) < size) {
+        root_size *= 2;
+        ++depth;
+    }
+    return depth;
+}
+} // namespace
+
 void PlanetShape::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_center", "center"), &PlanetShape::set_center);
     ClassDB::bind_method(D_METHOD("get_center"), &PlanetShape::get_center);
@@ -41,8 +55,7 @@ void PlanetShape::notify_shape_changed() {
     }
 
     const float r = _radius + _amplitude;
-    constexpr int kMaxDepth = 6;
-    mgr->rebuild_octree(get_id(), _center, r * 2.0f, kMaxDepth);
+    mgr->rebuild_octree(get_id(), _center, r * 2.0f, compute_max_depth(r * 2.0f));
 }
 
 void PlanetShape::on_unregister() {
@@ -66,8 +79,7 @@ void PlanetShape::on_register() {
 
     // Собственное октодерево планеты: к нему привязываются все фигуры внутри неё.
     const float r = _radius + _amplitude;
-    constexpr int kMaxDepth = 6;
-    mgr->create_octree(get_id(), _center, r * 2.0f, kMaxDepth);
+    mgr->create_octree(get_id(), _center, r * 2.0f, compute_max_depth(r * 2.0f));
 
     if (_surface_id != 0) {
         return;
