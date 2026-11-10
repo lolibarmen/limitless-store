@@ -40,6 +40,10 @@ private:
 
     void _spawn_children();
     void _despawn_children();
+    void _sync_children(bool trunk_changed);
+    void _apply_branch_params(int i, const Ref<TrunkShape>& trunk, const Ref<BranchShape>& branch);
+    void notify_trunk_changed();
+    void notify_branches_changed();
 
 protected:
     static void _bind_methods();
@@ -51,53 +55,53 @@ public:
     void bind_planet(const Ref<PlanetShape>& planet);
     Ref<PlanetShape> get_planet() const { return _planet; }
 
-    void set_origin(const Vector3& v) { _origin = v; notify_shape_changed(); }
+    void set_origin(const Vector3& v) { _origin = v; notify_trunk_changed(); }
     Vector3 get_origin() const { return _origin; }
 
     void set_up(const Vector3& v);
     Vector3 get_up() const { return _up; }
 
-    void set_height(float v) { _height = v; notify_shape_changed(); }
+    void set_height(float v) { _height = v; notify_trunk_changed(); }
     float get_height() const { return _height; }
 
-    void set_base_radius(float v) { _base_radius = v; notify_shape_changed(); }
+    void set_base_radius(float v) { _base_radius = v; notify_trunk_changed(); }
     float get_base_radius() const { return _base_radius; }
 
-    void set_top_radius(float v) { _top_radius = v; notify_shape_changed(); }
+    void set_top_radius(float v) { _top_radius = v; notify_trunk_changed(); }
     float get_top_radius() const { return _top_radius; }
 
-    void set_bend(const Vector3& v) { _bend = v; notify_shape_changed(); }
+    void set_bend(const Vector3& v) { _bend = v; notify_trunk_changed(); }
     Vector3 get_bend() const { return _bend; }
 
-    void set_radial_segments(int v) { _radial_segments = v; notify_shape_changed(); }
+    void set_radial_segments(int v) { _radial_segments = v; notify_trunk_changed(); }
     int get_radial_segments() const { return _radial_segments; }
 
-    void set_height_segments(int v) { _height_segments = v; notify_shape_changed(); }
+    void set_height_segments(int v) { _height_segments = v; notify_trunk_changed(); }
     int get_height_segments() const { return _height_segments; }
 
-    void set_ring_variation(float v) { _ring_variation = v; notify_shape_changed(); }
+    void set_ring_variation(float v) { _ring_variation = v; notify_trunk_changed(); }
     float get_ring_variation() const { return _ring_variation; }
 
-    void set_branch_count(int v) { _branch_count = v; notify_shape_changed(); }
+    void set_branch_count(int v) { _branch_count = v; notify_branches_changed(); }
     int get_branch_count() const { return _branch_count; }
 
-    void set_branch_start(float v) { _branch_start = v; notify_shape_changed(); }
+    void set_branch_start(float v) { _branch_start = v; notify_branches_changed(); }
     float get_branch_start() const { return _branch_start; }
 
-    void set_branch_end(float v) { _branch_end = v; notify_shape_changed(); }
+    void set_branch_end(float v) { _branch_end = v; notify_branches_changed(); }
     float get_branch_end() const { return _branch_end; }
 
-    void set_branch_length(float v) { _branch_length = v; notify_shape_changed(); }
+    void set_branch_length(float v) { _branch_length = v; notify_branches_changed(); }
     float get_branch_length() const { return _branch_length; }
 
-    void set_branch_width(float v) { _branch_width = v; notify_shape_changed(); }
+    void set_branch_width(float v) { _branch_width = v; notify_branches_changed(); }
     float get_branch_width() const { return _branch_width; }
 
-    void set_branch_spread(float v) { _branch_spread = v; notify_shape_changed(); }
+    void set_branch_spread(float v) { _branch_spread = v; notify_branches_changed(); }
     float get_branch_spread() const { return _branch_spread; }
 
     /// @brief Показатель alpha в законе распределения длины веток D(x) = D_max * [4x(1-x)]^alpha.
-    void set_branch_alpha(float v) { _branch_alpha = v; notify_shape_changed(); }
+    void set_branch_alpha(float v) { _branch_alpha = v; notify_branches_changed(); }
     float get_branch_alpha() const { return _branch_alpha; }
 
     uint64_t get_trunk_id() const { return _trunk_id; }

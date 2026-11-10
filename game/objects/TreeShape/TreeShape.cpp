@@ -4,6 +4,7 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/math.hpp>
 #include <cmath>
+#include <vector>
 
 using namespace godot;
 
@@ -94,75 +95,114 @@ void TreeShape::bind_planet(const Ref<PlanetShape>& planet) {
 void TreeShape::set_up(const Vector3& v) {
     const float len = v.length();
     _up = len > 0.0001f ? v / len : Vector3(0.0f, 1.0f, 0.0f);
-    notify_shape_changed();
+    notify_trunk_changed();
+}
+
+// Распределение длины веток по относительной высоте ствола x:
+// D(x) = D_max * [4x(1-x)]^alpha (D_max = _branch_length).
+void TreeShape::_apply_branch_params(int i, const Ref<TrunkShape>& trunk, const Ref<BranchShape>& branch) {
+    const float step = (_branch_end - _branch_start) / (float)_branch_count;
+    const float t = CLAMP(_branch_start + ((float)i + 0.5f) * step, 0.0f, 1.0f);
+
+    const Vector3 attach = trunk->centerline(t);
+    const Vector3 tangent = trunk->centerline_tangent(t);
+
+    const Vector3 helper = Math::abs(tangent.y) < 0.99f ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(1.0f, 0.0f, 0.0f);
+    const Vector3 right = tangent.cross(helper).normalized();
+    const Vector3 forward = right.cross(tangent).normalized();
+
+    const float azimuth = (float)i * Math_PI * (3.0f - Math::sqrt(5.0f));
+    const Vector3 radial = (right * std::cos(azimuth) + forward * std::sin(azimuth)).normalized();
+
+    const Vector3 dir = (tangent * std::cos(_branch_spread) + radial * std::sin(_branch_spread)).normalized();
+
+    const float base = CLAMP(4.0f * t * (1.0f - t), 0.0f, 1.0f);
+    const float factor = Math::pow(base, _branch_alpha);
+
+    branch->set_position(attach);
+    branch->set_direction(dir);
+    branch->set_length(_branch_length * factor);
+    branch->set_width(_branch_width * factor);
+}
+
+void TreeShape::_sync_children(bool trunk_changed) {
+    SemanticWorld* sw = SemanticWorld::get_singleton();
+    if (!sw || _planet.is_null() || _trunk_id == 0) return;
+
+    Ref<SemanticShape> trunk_base = sw->get_shape(_trunk_id);
+    Ref<TrunkShape> trunk = Object::cast_to<TrunkShape>(trunk_base.ptr());
+    if (trunk.is_null()) return;
+
+    if (trunk_changed) {
+        trunk->set_origin(_origin);
+        trunk->set_up(_up);
+        trunk->set_height(_height);
+        trunk->set_base_radius(_base_radius);
+        trunk->set_top_radius(_top_radius);
+        trunk->set_bend(_bend);
+        trunk->set_radial_segments(_radial_segments);
+        trunk->set_height_segments(_height_segments);
+        trunk->set_ring_variation(_ring_variation);
+    }
+
+    std::vector<Ref<BranchShape>> branches;
+    const PackedInt64Array owned = get_owned_shapes();
+    for (int i = 0; i < owned.size(); ++i) {
+        const uint64_t child_id = (uint64_t)owned[i];
+        if (child_id == 0 || child_id == _trunk_id) continue;
+        Ref<SemanticShape> base = sw->get_shape(child_id);
+        Ref<BranchShape> branch = Object::cast_to<BranchShape>(base.ptr());
+        if (branch.is_valid()) {
+            branches.push_back(branch);
+        }
+    }
+
+    const int n = Math::max(_branch_count, 0);
+
+    while ((int)branches.size() > n) {
+        const uint64_t removed_id = branches.back()->get_id();
+        branches.pop_back();
+        sw->unregister_shape_with_owned(removed_id);
+        remove_owned_shape(removed_id);
+    }
+
+    while ((int)branches.size() < n) {
+        Ref<BranchShape> branch;
+        branch.instantiate();
+        branch->bind_planet(_planet);
+        sw->register_shape(branch);
+        add_owned_shape(branch->get_id());
+        branches.push_back(branch);
+    }
+
+    for (int i = 0; i < (int)branches.size(); ++i) {
+        _apply_branch_params(i, trunk, branches[i]);
+    }
 }
 
 void TreeShape::_spawn_children() {
     SemanticWorld* sw = SemanticWorld::get_singleton();
     if (!sw || _planet.is_null()) return;
 
-    Ref<TrunkShape> trunk;
-    trunk.instantiate();
-    trunk->bind_planet(_planet);
-    trunk->set_origin(_origin);
-    trunk->set_up(_up);
-    trunk->set_height(_height);
-    trunk->set_base_radius(_base_radius);
-    trunk->set_top_radius(_top_radius);
-    trunk->set_bend(_bend);
-    trunk->set_radial_segments(_radial_segments);
-    trunk->set_height_segments(_height_segments);
-    trunk->set_ring_variation(_ring_variation);
-    sw->register_shape(trunk);
-    _trunk_id = trunk->get_id();
-    add_owned_shape(_trunk_id);
-
-    const int n = Math::max(_branch_count, 0);
-    if (n == 0) return;
-
-    const float step = (_branch_end - _branch_start) / (float)n;
-    const float golden_angle = Math_PI * (3.0f - Math::sqrt(5.0f));
-
-    auto height_at = [&](int i) {
-        return CLAMP(_branch_start + ((float)i + 0.5f) * step, 0.0f, 1.0f);
-    };
-    // Распределение длины веток по относительной высоте ствола x:
-    // D(x) = D_max * [4x(1-x)]^alpha (D_max = _branch_length).
-    auto distribution_at = [&](float x) {
-        const float base = CLAMP(4.0f * x * (1.0f - x), 0.0f, 1.0f);
-        return Math::pow(base, _branch_alpha);
-    };
-
-    for (int i = 0; i < n; ++i) {
-        const float t = height_at(i);
-
-        const Vector3 attach = trunk->centerline(t);
-        const Vector3 tangent = trunk->centerline_tangent(t);
-
-        const Vector3 helper = Math::abs(tangent.y) < 0.99f ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(1.0f, 0.0f, 0.0f);
-        const Vector3 right = tangent.cross(helper).normalized();
-        const Vector3 forward = right.cross(tangent).normalized();
-
-        const float azimuth = (float)i * golden_angle;
-        const Vector3 radial = (right * std::cos(azimuth) + forward * std::sin(azimuth)).normalized();
-
-        const Vector3 dir = (tangent * std::cos(_branch_spread) + radial * std::sin(_branch_spread)).normalized();
-
-        const float factor = distribution_at(t);
-        const float length = _branch_length * factor;
-        const float width = _branch_width * factor;
-
-        Ref<BranchShape> branch;
-        branch.instantiate();
-        branch->bind_planet(_planet);
-        branch->set_position(attach);
-        branch->set_direction(dir);
-        branch->set_length(length);
-        branch->set_width(width);
-
-        sw->register_shape(branch);
-        add_owned_shape(branch->get_id());
+    if (_trunk_id == 0) {
+        Ref<TrunkShape> trunk;
+        trunk.instantiate();
+        trunk->bind_planet(_planet);
+        trunk->set_origin(_origin);
+        trunk->set_up(_up);
+        trunk->set_height(_height);
+        trunk->set_base_radius(_base_radius);
+        trunk->set_top_radius(_top_radius);
+        trunk->set_bend(_bend);
+        trunk->set_radial_segments(_radial_segments);
+        trunk->set_height_segments(_height_segments);
+        trunk->set_ring_variation(_ring_variation);
+        sw->register_shape(trunk);
+        _trunk_id = trunk->get_id();
+        add_owned_shape(_trunk_id);
     }
+
+    _sync_children(false);
 }
 
 void TreeShape::_despawn_children() {
@@ -183,6 +223,26 @@ void TreeShape::notify_shape_changed() {
         _respawning = true;
         _despawn_children();
         _spawn_children();
+        _respawning = false;
+    }
+
+    SemanticShape::notify_shape_changed();
+}
+
+void TreeShape::notify_trunk_changed() {
+    if (get_id() != 0 && !_respawning) {
+        _respawning = true;
+        _sync_children(true);
+        _respawning = false;
+    }
+
+    SemanticShape::notify_shape_changed();
+}
+
+void TreeShape::notify_branches_changed() {
+    if (get_id() != 0 && !_respawning) {
+        _respawning = true;
+        _sync_children(false);
         _respawning = false;
     }
 
