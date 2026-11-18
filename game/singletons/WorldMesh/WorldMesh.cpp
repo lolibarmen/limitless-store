@@ -1,16 +1,18 @@
 #include "WorldMesh.hpp"
 #include "RenderRequest.hpp"
+#include <SemanticWorld/SemanticWorld.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <MeshGenerator/MeshGenerator.hpp>
 #include <MaterialGenerator/MaterialGenerator.hpp>
+#include <godot_cpp/classes/area3d.hpp>
+#include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/os.hpp>
-#include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/static_body3d.hpp>
-#include <godot_cpp/classes/collision_shape3d.hpp>
-#include <godot_cpp/classes/concave_polygon_shape3d.hpp>
+#include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -23,6 +25,7 @@ void WorldMesh::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::INT, "max_concurrent_renders"), "set_max_concurrent_renders", "get_max_concurrent_renders");
 
     ClassDB::bind_method(D_METHOD("_on_render_task_finished", "shape_id", "chunk_id", "token"), &WorldMesh::_on_render_task_finished);
+    ClassDB::bind_method(D_METHOD("_on_alchemy_area_entered", "area", "self_id"), &WorldMesh::_on_alchemy_area_entered);
 }
 
 WorldMesh* WorldMesh::get_singleton() {
@@ -44,6 +47,8 @@ void WorldMesh::_ready() {
 }
 
 void WorldMesh::_process(double delta) {
+    _flush_alchemy();
+
     if (!_dirty_shapes.empty()) {
         _dirty_timer += delta;
         if (_dirty_timer >= 0.15) {
@@ -63,7 +68,16 @@ void WorldMesh::set_max_concurrent_renders(int count) {
 }
 
 void WorldMesh::_release_active(uint64_t token) {
-    _active_renders.erase(token);
+    auto it = _active_renders.find(token);
+    if (it == _active_renders.end()) {
+        return;
+    }
+    if (it->second.pending > 0) {
+        --it->second.pending;
+    }
+    if (it->second.pending == 0) {
+        _active_renders.erase(it);
+    }
 }
 
 void WorldMesh::_cancel_pending(uint64_t shape_id, uint64_t chunk_id) {
@@ -106,11 +120,11 @@ bool WorldMesh::_start_render(const PendingRender& job) {
     if (it == chunk->shape_requests.end()) return false;
 
     RenderRequest* request = it->second.get();
-    if (!request || !request->active || request->token != job.token || request->mesh_generator.is_null()) {
+    if (!request || !request->active || request->token != job.token) {
         return false;
     }
 
-    if (!request->mesh_instance) {
+    if (job.visual_generator.is_valid() && !request->mesh_instance) {
         request->chunk_center = chunk->center;
 
         MeshInstance3D* mesh_instance = memnew(MeshInstance3D);
@@ -118,30 +132,71 @@ bool WorldMesh::_start_render(const PendingRender& job) {
         mesh_instance->set_global_position(request->chunk_center);
         mesh_instance->set_visible(false);
         request->mesh_instance = mesh_instance;
-
-        Engine* engine = Engine::get_singleton();
-        const bool editor = engine && engine->is_editor_hint();
-        if (!editor && request->mesh_generator->has_collision()) {
-            StaticBody3D* collision_body = memnew(StaticBody3D);
-            add_child(collision_body);
-            collision_body->set_global_position(request->chunk_center);
-
-            CollisionShape3D* collision_shape = memnew(CollisionShape3D);
-            collision_shape->set_disabled(true);
-            collision_body->add_child(collision_shape);
-
-            request->collision_body = collision_body;
-            request->collision_shape = collision_shape;
-        }
     }
 
-    _active_renders[job.token] = ActiveRender{job.shape_id, job.chunk_id};
+    Engine* engine = Engine::get_singleton();
+    const bool editor = engine && engine->is_editor_hint();
 
-    Ref<MeshGenerator> generator = request->mesh_generator;
-    generator->generate(job.shape_id, job.chunk_id);
+    if (!editor && job.collision_generator.is_valid() && !request->collision_body) {
+        StaticBody3D* collision_body = memnew(StaticBody3D);
+        add_child(collision_body);
+        collision_body->set_global_position(request->chunk_center);
 
-    if (!generator->is_async()) {
-        _release_active(job.token);
+        CollisionShape3D* collision_shape = memnew(CollisionShape3D);
+        collision_shape->set_disabled(true);
+        collision_body->add_child(collision_shape);
+
+        request->collision_body = collision_body;
+        request->collision_shape = collision_shape;
+    }
+
+    if (job.area_generator.is_valid() && !request->area) {
+        Area3D* area = memnew(Area3D);
+        add_child(area);
+        area->set_global_position(request->chunk_center);
+        area->set_meta("shape_id", (int64_t)job.shape_id);
+        area->connect("area_entered", Callable(this, "_on_alchemy_area_entered").bind((int64_t)job.shape_id));
+
+        CollisionShape3D* area_shape = memnew(CollisionShape3D);
+        area_shape->set_disabled(true);
+        area->add_child(area_shape);
+
+        request->area = area;
+        request->area_shape = area_shape;
+    }
+
+    request->material_generator = job.material_generator;
+
+    struct GeneratorSlot {
+        Ref<MeshGenerator> generator;
+        uint32_t mask = 0;
+    };
+
+    std::vector<GeneratorSlot> slots;
+    auto add_slot = [&slots](const Ref<MeshGenerator>& generator, uint32_t mask) {
+        if (generator.is_null()) return;
+        for (GeneratorSlot& slot : slots) {
+            if (slot.generator.ptr() == generator.ptr()) {
+                slot.mask |= mask;
+                return;
+            }
+        }
+        slots.push_back({generator, mask});
+    };
+
+    add_slot(job.visual_generator, MESH_TARGET_VISUAL);
+    add_slot(job.collision_generator, MESH_TARGET_COLLISION);
+    add_slot(job.area_generator, MESH_TARGET_AREA);
+
+    std::stable_sort(slots.begin(), slots.end(), [](const GeneratorSlot& a, const GeneratorSlot& b) {
+        return a.generator->is_async() < b.generator->is_async();
+    });
+
+    _active_renders[job.token] = ActiveRender{job.shape_id, job.chunk_id, (int)slots.size()};
+
+    for (const GeneratorSlot& slot : slots) {
+        request->target_mask = slot.mask;
+        slot.generator->generate(job.shape_id, job.chunk_id);
     }
 
     return true;
@@ -225,16 +280,20 @@ void WorldMesh::_flush_invalidations() {
     }
 }
 
-void WorldMesh::request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGenerator> mesh_generator, Ref<MaterialGenerator> material_generator) {
-    if (shape_id == 0 || mesh_generator.is_null() || material_generator.is_null()) {
-        UtilityFunctions::printerr("WorldMesh::request_render: Неверные входные данные.");
+void WorldMesh::request_render(uint64_t shape_id, uint64_t chunk_id,
+                               Ref<MeshGenerator> visual_mesh_generator,
+                               Ref<MeshGenerator> collision_mesh_generator,
+                               Ref<MeshGenerator> area_mesh_generator,
+                               Ref<MaterialGenerator> material_generator) {
+    if (shape_id == 0) return;
+    if (visual_mesh_generator.is_null() && collision_mesh_generator.is_null() && area_mesh_generator.is_null()) {
         return;
     }
 
     auto* mgr = ShapeSpatialManager::get_singleton();
     if (!mgr) { UtilityFunctions::printerr("WorldMesh::request_render: ShapeSpatialManager не найден."); return; }
     ChunkOctree* octree = mgr->get_octree(shape_id);
-    if (!octree) { UtilityFunctions::printerr("WorldMesh::request_render: Октодерево для shape_id ", shape_id, " не найдено! Фигура не зарегистрирована в ShapeSpatialManager (см. on_register/create_octree)."); return; }
+    if (!octree) { UtilityFunctions::printerr("WorldMesh::request_render: Октодерево для shape_id ", shape_id, " не найдено!"); return; }
     Chunk* chunk = octree->find(chunk_id);
     if (!chunk) { UtilityFunctions::printerr("WorldMesh::request_render: Чанк ", chunk_id, " не найден в октодереве фигуры ", shape_id, "."); return; }
 
@@ -257,13 +316,15 @@ void WorldMesh::request_render(uint64_t shape_id, uint64_t chunk_id, Ref<MeshGen
 
     auto request = std::make_unique<RenderRequest>();
     request->token = token;
-    request->mesh_generator = mesh_generator;
     request->material_generator = material_generator;
 
     chunk->shape_requests[shape_id] = std::move(request);
 
     _pending_tokens[shape_id][chunk_id] = token;
-    _pending_renders.push_back(PendingRender{shape_id, chunk_id, token});
+    _pending_renders.push_back(PendingRender{
+        shape_id, chunk_id, token,
+        visual_mesh_generator, collision_mesh_generator, area_mesh_generator, material_generator
+    });
 
     _pump_renders();
 }
@@ -323,26 +384,14 @@ void WorldMesh::drop_shape(uint64_t shape_id) {
     });
 }
 
-void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, Ref<ArrayMesh> mesh, Ref<ConcavePolygonShape3D> collision_shape) {
-    auto* mgr = ShapeSpatialManager::get_singleton();
-    if (!mgr) return;
-
-    ChunkOctree* octree = mgr->get_octree(shape_id);
-    if (!octree) return;
-
-    Chunk* chunk = octree->find(chunk_id);
-    if (!chunk) return;
-
-    auto it = chunk->shape_requests.find(shape_id);
-    if (it == chunk->shape_requests.end()) return;
-
-    complete_mesh(shape_id, chunk_id, it->second->token, mesh, collision_shape);
-}
-
-void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, uint64_t token, Ref<ArrayMesh> mesh, Ref<ConcavePolygonShape3D> collision_shape) {
+void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, uint64_t token, Ref<ArrayMesh> mesh) {
     if (token == 0) return;
 
-    _release_active(token);
+    auto active_it = _active_renders.find(token);
+    if (active_it == _active_renders.end()) return;
+
+    shape_id = active_it->second.shape_id;
+    chunk_id = active_it->second.chunk_id;
 
     auto* mgr = ShapeSpatialManager::get_singleton();
     if (mgr) {
@@ -351,15 +400,55 @@ void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, uint64_t tok
             Chunk* chunk = octree->find(chunk_id);
             if (chunk) {
                 auto it = chunk->shape_requests.find(shape_id);
-                if (it != chunk->shape_requests.end()) {
+                if (it != chunk->shape_requests.end() && it->second) {
                     RenderRequest* request = it->second.get();
                     if (request) {
-                        request->apply(shape_id, chunk_id, token, mesh, collision_shape);
+                        request->apply(shape_id, chunk_id, token, mesh, request->target_mask);
                     }
                 }
             }
         }
     }
 
+    _release_active(token);
     _pump_renders();
+}
+
+void WorldMesh::_on_alchemy_area_entered(Area3D* other, int64_t self_id) {
+    if (!other || self_id == 0) return;
+
+    const int64_t other_id = (int64_t)other->get_meta("shape_id");
+    if (other_id == 0 || other_id == self_id) return;
+
+    SemanticWorld* sw = SemanticWorld::get_singleton();
+    if (!sw) return;
+
+    const uint64_t self = (uint64_t)self_id;
+    Ref<SemanticShape> self_shape = sw->get_shape(self);
+    Ref<SemanticShape> other_shape = sw->get_shape((uint64_t)other_id);
+    if (self_shape.is_null() || other_shape.is_null()) return;
+
+    Ref<SemanticShape> proposed = self_shape->evaluate_alchemy((uint64_t)other_id, other_shape);
+    if (proposed.is_null()) return;
+    if (proposed->get_shape_type() == StringName("shape")) return;
+    if (proposed.ptr() == self_shape.ptr()) return;
+    if (sw->get_shape(self).ptr() != self_shape.ptr()) return;
+
+    _pending_alchemy.push_back({self, proposed});
+}
+
+void WorldMesh::_flush_alchemy() {
+    if (_pending_alchemy.empty()) return;
+
+    std::vector<PendingAlchemy> pending = std::move(_pending_alchemy);
+    _pending_alchemy.clear();
+
+    SemanticWorld* sw = SemanticWorld::get_singleton();
+    if (!sw) return;
+
+    for (const PendingAlchemy& item : pending) {
+        if (sw->get_shape(item.self_id).is_valid()) {
+            sw->propose_shape_change(item.self_id, item.proposed);
+        }
+    }
 }

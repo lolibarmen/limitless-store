@@ -18,7 +18,7 @@ private:
     float _voxel_count = 16.0f;
 
     static void _build_mesh_task(uint64_t generator_id, uint64_t shape_id, uint64_t chunk_id, uint64_t token, Vector3 chunk_pos, float chunk_size);
-    void _on_mesh_generated(uint64_t shape_id, uint64_t chunk_id, uint64_t token, Ref<ArrayMesh> mesh, PackedVector3Array collision_faces);
+    void _on_mesh_generated(uint64_t shape_id, uint64_t chunk_id, uint64_t token, Ref<ArrayMesh> mesh);
 
 protected:
     static void _bind_methods();

@@ -108,6 +108,7 @@ void SurfaceShape::on_register() {
 void SurfaceShape::on_zone_changed(uint64_t chunk_id) {
     WorldMesh* wm = WorldMesh::get_singleton();
     if (wm) {
-        wm->request_render(get_id(), chunk_id, _mesh_generator, _material_generator);
+        wm->request_render(get_id(), chunk_id, _mesh_generator, _mesh_generator,
+                           Ref<MeshGenerator>(), _material_generator);
     }
 }

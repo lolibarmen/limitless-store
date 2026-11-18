@@ -123,6 +123,10 @@ public:
         return nullptr;
     }
 
+    virtual Ref<SemanticShape> evaluate_alchemy(uint64_t other_id, Ref<SemanticShape> other_shape) const {
+        return nullptr;
+    }
+
     void add_owned_shape(uint64_t id);
     void remove_owned_shape(uint64_t id);
     bool has_owned_shape(uint64_t id) const;

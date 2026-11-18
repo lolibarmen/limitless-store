@@ -1,8 +1,8 @@
 #include "RenderRequest.hpp"
 
+#include <godot_cpp/classes/concave_polygon_shape3d.hpp>
 #include <godot_cpp/classes/material.hpp>
 #include <godot_cpp/classes/mesh.hpp>
-#include <godot_cpp/classes/shape3d.hpp>
 
 using namespace godot;
 
@@ -22,27 +22,41 @@ void RenderRequest::drop() {
         collision_shape = nullptr;
     }
 
+    if (area) {
+        area->set_monitoring(false);
+        area->queue_free();
+        area = nullptr;
+        area_shape = nullptr;
+    } else if (area_shape) {
+        area_shape->queue_free();
+        area_shape = nullptr;
+    }
+
     if (mesh_instance) {
         mesh_instance->queue_free();
         mesh_instance = nullptr;
     }
 
-    mesh_generator = Ref<MeshGenerator>();
     material_generator = Ref<MaterialGenerator>();
+    target_mask = 0;
+    applied_targets = 0;
 }
 
 bool RenderRequest::apply(uint64_t shape_id, uint64_t chunk_id, uint64_t p_token,
-                          const Ref<ArrayMesh>& mesh,
-                          const Ref<ConcavePolygonShape3D>& collision_faces) {
+                          const Ref<ArrayMesh>& mesh, uint32_t targets) {
     if (!active || p_token == 0 || p_token != token) {
         return false;
     }
 
-    active = false;
+    targets &= ~applied_targets;
+    if (targets == 0) {
+        return false;
+    }
+    applied_targets |= targets;
 
     const bool has_surface = mesh.is_valid() && mesh->get_surface_count() > 0;
 
-    if (mesh_instance) {
+    if (mesh_instance && (targets & MESH_TARGET_VISUAL)) {
         mesh_instance->set_global_position(chunk_center);
         mesh_instance->set_mesh(mesh);
         if (has_surface && material_generator.is_valid()) {
@@ -52,26 +66,36 @@ bool RenderRequest::apply(uint64_t shape_id, uint64_t chunk_id, uint64_t p_token
             }
         }
         mesh_instance->set_visible(has_surface);
+        material_generator = Ref<MaterialGenerator>();
     }
 
-    if (collision_shape) {
+    if (collision_shape && (targets & MESH_TARGET_COLLISION)) {
         if (collision_body) {
             collision_body->set_global_position(chunk_center);
         }
         if (has_surface) {
-            Ref<ConcavePolygonShape3D> shape = collision_faces;
-            if (shape.is_null()) {
-                shape = mesh->create_trimesh_shape();
-            }
+            Ref<ConcavePolygonShape3D> shape = mesh->create_trimesh_shape();
             collision_shape->set_shape(shape);
-            collision_shape->set_disabled(false);
+            collision_shape->set_disabled(shape.is_null());
         } else {
             collision_shape->set_shape(Ref<Shape3D>());
             collision_shape->set_disabled(true);
         }
     }
 
-    mesh_generator = Ref<MeshGenerator>();
-    material_generator = Ref<MaterialGenerator>();
+    if (area_shape && (targets & MESH_TARGET_AREA)) {
+        if (area) {
+            area->set_global_position(chunk_center);
+        }
+        if (has_surface) {
+            Ref<ConcavePolygonShape3D> shape = mesh->create_trimesh_shape();
+            area_shape->set_shape(shape);
+            area_shape->set_disabled(shape.is_null());
+        } else {
+            area_shape->set_shape(Ref<Shape3D>());
+            area_shape->set_disabled(true);
+        }
+    }
+
     return true;
 }
