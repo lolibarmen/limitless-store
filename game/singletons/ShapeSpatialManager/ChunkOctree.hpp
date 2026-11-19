@@ -11,6 +11,12 @@
 
 namespace godot {
 
+/// @brief Октодерево со своей позицией в мире.
+///
+/// Позиция берётся от фигуры-создателя при create_octree(). Все чанки, их AABB
+/// и SDF-координаты локальны относительно position: глобальная точка равна
+/// position + локальная точка. Наблюдатель для LOD тоже передаётся в локальных
+/// координатах; переход в глобальные выполняют WorldMesh и SpatialStreaming.
 class ChunkOctree {
     
 private:
@@ -35,6 +41,9 @@ private:
 public:
     /// @brief Уникальный ID дерева, выдаваемый ShapeSpatialManager.
     uint64_t id = 0;
+
+    /// @brief Позиция октодерева в мировых координатах.
+    Vector3 position;
 
     /// @brief Максимальная глубина детализации дерева. Задаётся только при создании (create_octree).
     int max_depth = 0;
@@ -68,6 +77,7 @@ public:
     void evaluate_and_update_lod(const Vector3& viewer_pos, int max_depth);
 
     /// @brief Обновляет LOD дерева и уведомляет пользователей о активированных для них чанках.
+    /// @param viewer_pos Позиция наблюдателя в локальных координатах дерева.
     /// @details Глубина детализации берётся из самого дерева (поле max_depth),
     /// которое задаётся единственным способом — при создании через
     /// ShapeSpatialManager::create_octree().

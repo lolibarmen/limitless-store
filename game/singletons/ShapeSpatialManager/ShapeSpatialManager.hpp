@@ -52,7 +52,7 @@ public:
 
     /// @brief Создаёт октодерево и делает фигуру его первым пользователем (регистрирует её).
     /// @param shape_id ID фигуры — будущего владельца дерева.
-    /// @param center Центр корневой области дерева.
+    /// @param position Позиция октодерева, равная позиции создавшей его фигуры.
     /// @param root_size Размер (сторона) корневого чанка дерева.
     /// @param max_depth Максимальная глубина детализации дерева (обязательный параметр:
     ///        это единственный способ задать глубину — она хранится в самом дереве
@@ -62,7 +62,7 @@ public:
     /// передавая необходимые им параметры разбиения. Если фигура уже была привязана к
     /// какому-либо дереву, сначала отвязывается от него.
     uint64_t create_octree(uint64_t shape_id,
-                           const Vector3& center,
+                           const Vector3& position,
                            float root_size,
                            int max_depth);
 
@@ -71,7 +71,7 @@ public:
     /// Если у фигуры ещё нет дерева, создаёт новое.
     /// @return ID нового дерева.
     uint64_t rebuild_octree(uint64_t shape_id,
-                            const Vector3& center,
+                            const Vector3& position,
                             float root_size,
                             int max_depth);
 

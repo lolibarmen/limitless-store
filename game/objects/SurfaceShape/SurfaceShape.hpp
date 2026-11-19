@@ -11,8 +11,8 @@ namespace godot {
 
 /// @brief Семантическая фигура поверхности планеты.
 /// Владеет SDF, шумом рельефа, распределением материалов и генераторами поверхности.
-/// Параметры формы (центр, радиус, амплитуда) читает у родительской PlanetShape:
-/// планета — источник истины для фигур внутри неё.
+/// Радиус и амплитуду читает у родительской PlanetShape; центр — собственная
+/// позиция, равная нулю в локальном пространстве октодерева планеты.
 class SurfaceShape : public SemanticShape {
     GDCLASS(SurfaceShape, SemanticShape)
 
@@ -37,11 +37,11 @@ public:
     void bind_planet(const Ref<PlanetShape>& planet);
 
     /// @brief Возвращает ID материала (0-7) в заданной точке на поверхности планеты.
-    int get_material_id(const Vector3& world_pos) const;
+    int get_material_id(const Vector3& local_pos) const;
 
     StringName get_shape_type() const override { return "surface"; }
     void notify_shape_changed() override;
-    float evaluate_sdf(const Vector3& world_pos) const override;
+    float evaluate_sdf(const Vector3& local_pos) const override;
     void paint_vertices(const Vector3* positions, const Vector3* normals, Color* out_colors, int count, const Vector3& posoff) const override;
     void recompute_aabb() override;
     void on_register() override;

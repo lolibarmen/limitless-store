@@ -16,8 +16,6 @@ class TreeShape : public SemanticShape {
 private:
     Ref<PlanetShape> _planet;
 
-    Vector3 _origin;
-
     float _height = 8.0f;
     float _base_radius = 0.5f;
     float _top_radius = 0.18f;
@@ -55,8 +53,7 @@ public:
     void bind_planet(const Ref<PlanetShape>& planet);
     Ref<PlanetShape> get_planet() const { return _planet; }
 
-    void set_origin(const Vector3& v) { _origin = v; notify_trunk_changed(); }
-    Vector3 get_origin() const { return _origin; }
+    void set_position(const Vector3& v) override;
 
     Vector3 get_up() const;
 

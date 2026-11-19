@@ -1,6 +1,7 @@
 #include "SemanticShape.hpp"
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <WorldMesh/WorldMesh.hpp>
+#include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/math.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -12,7 +13,9 @@ SemanticShape::~SemanticShape() {
 }
 
 void SemanticShape::_bind_methods() {
-    // Binding'и для Godot, если нужны
+    ClassDB::bind_method(D_METHOD("set_position", "position"), &SemanticShape::set_position);
+    ClassDB::bind_method(D_METHOD("get_position"), &SemanticShape::get_position);
+    ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "position"), "set_position", "get_position");
 }
 
 AABB SemanticShape::get_aabb() {
@@ -61,7 +64,7 @@ void SemanticShape::notify_shape_changed() {
     _notifying = false;
 }
 
-float SemanticShape::evaluate_sdf(const Vector3& world_pos) const {
+float SemanticShape::evaluate_sdf(const Vector3& local_pos) const {
     return 1e10f;
 }
 

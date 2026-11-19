@@ -21,10 +21,6 @@ int compute_max_depth(float size) {
 } // namespace
 
 void PlanetShape::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("set_center", "center"), &PlanetShape::set_center);
-    ClassDB::bind_method(D_METHOD("get_center"), &PlanetShape::get_center);
-    ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "center"), "set_center", "get_center");
-
     ClassDB::bind_method(D_METHOD("set_radius", "radius"), &PlanetShape::set_radius);
     ClassDB::bind_method(D_METHOD("get_radius"), &PlanetShape::get_radius);
     ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "radius"), "set_radius", "get_radius");
@@ -38,7 +34,7 @@ PlanetShape::PlanetShape() = default;
 
 void PlanetShape::recompute_aabb() {
     const float r = _radius + _amplitude;
-    _aabb = AABB(_center - Vector3(r, r, r), Vector3(r * 2.0f, r * 2.0f, r * 2.0f));
+    _aabb = AABB(-Vector3(r, r, r), Vector3(r * 2.0f, r * 2.0f, r * 2.0f));
     _aabb_dirty = false;
 }
 
@@ -55,7 +51,7 @@ void PlanetShape::notify_shape_changed() {
     }
 
     const float r = _radius + _amplitude;
-    mgr->rebuild_octree(get_id(), _center, r * 2.0f, compute_max_depth(r * 2.0f));
+    mgr->rebuild_octree(get_id(), _position, r * 2.0f, compute_max_depth(r * 2.0f));
 }
 
 void PlanetShape::on_unregister() {
@@ -79,7 +75,7 @@ void PlanetShape::on_register() {
 
     // Собственное октодерево планеты: к нему привязываются все фигуры внутри неё.
     const float r = _radius + _amplitude;
-    mgr->create_octree(get_id(), _center, r * 2.0f, compute_max_depth(r * 2.0f));
+    mgr->create_octree(get_id(), _position, r * 2.0f, compute_max_depth(r * 2.0f));
 
     if (_surface_id != 0) {
         return;

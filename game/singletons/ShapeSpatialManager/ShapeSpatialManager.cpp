@@ -16,7 +16,7 @@ ShapeSpatialManager* ShapeSpatialManager::get_singleton() {
 
 uint64_t ShapeSpatialManager::create_octree(
     uint64_t shape_id,
-    const Vector3& center,
+    const Vector3& position,
     float root_size,
     int max_depth
 ) {
@@ -27,9 +27,10 @@ uint64_t ShapeSpatialManager::create_octree(
 
     auto octree = std::make_unique<ChunkOctree>();
     octree->id = octree_id;
+    octree->position = position;
     octree->max_depth = max_depth;
     octree->add_user(shape_id);
-    octree->add_root(center, root_size);
+    octree->add_root(Vector3(), root_size);
 
     _octrees.emplace(octree_id, std::move(octree));
     _shape_octree[shape_id] = octree_id;
@@ -39,19 +40,19 @@ uint64_t ShapeSpatialManager::create_octree(
 
 uint64_t ShapeSpatialManager::rebuild_octree(
     uint64_t shape_id,
-    const Vector3& center,
+    const Vector3& position,
     float root_size,
     int max_depth
 ) {
     auto shape_it = _shape_octree.find(shape_id);
     if (shape_it == _shape_octree.end()) {
-        return create_octree(shape_id, center, root_size, max_depth);
+        return create_octree(shape_id, position, root_size, max_depth);
     }
 
     const uint64_t old_octree_id = shape_it->second;
     auto octree_it = _octrees.find(old_octree_id);
     if (octree_it == _octrees.end()) {
-        return create_octree(shape_id, center, root_size, max_depth);
+        return create_octree(shape_id, position, root_size, max_depth);
     }
 
     std::vector<uint64_t> users;
@@ -61,7 +62,7 @@ uint64_t ShapeSpatialManager::rebuild_octree(
 
     destroy_octree(old_octree_id);
 
-    const uint64_t new_octree_id = create_octree(shape_id, center, root_size, max_depth);
+    const uint64_t new_octree_id = create_octree(shape_id, position, root_size, max_depth);
 
     for (uint64_t user_id : users) {
         if (user_id != shape_id) {

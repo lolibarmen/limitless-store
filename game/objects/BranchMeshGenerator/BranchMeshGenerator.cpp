@@ -29,8 +29,8 @@ void BranchMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
     const Vector3 tip = pos + up * height;
     const Vector3 normal = side.cross(up);
 
-    auto uv_at = [&](const Vector3& world_pos) {
-        const Vector3 d = world_pos - pos;
+    auto uv_at = [&](const Vector3& local_pos) {
+        const Vector3 d = local_pos - pos;
         return Vector2(d.dot(side) / width, d.dot(up) / height);
     };
 

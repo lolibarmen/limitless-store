@@ -8,10 +8,6 @@
 using namespace godot;
 
 void BranchShape::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("set_position", "position"), &BranchShape::set_position);
-    ClassDB::bind_method(D_METHOD("get_position"), &BranchShape::get_position);
-    ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "position"), "set_position", "get_position");
-
     ClassDB::bind_method(D_METHOD("set_up", "up"), &BranchShape::set_up);
     ClassDB::bind_method(D_METHOD("get_up"), &BranchShape::get_up);
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "up"), "set_up", "get_up");

@@ -15,7 +15,6 @@ class BranchShape : public SemanticShape {
 private:
     Ref<PlanetShape> _planet;
 
-    Vector3 _position;
     Vector3 _up = Vector3(0.0f, 1.0f, 0.0f);
     Vector3 _direction = Vector3(0.0f, 1.0f, 0.0f);
     float _length = 1.5f;
@@ -32,9 +31,6 @@ public:
     virtual ~BranchShape() = default;
 
     void bind_planet(const Ref<PlanetShape>& planet);
-
-    void set_position(const Vector3& v) { _position = v; notify_shape_changed(); }
-    Vector3 get_position() const { return _position; }
 
     void set_up(const Vector3& v);
     Vector3 get_up() const { return _up; }

@@ -22,6 +22,13 @@ class MeshGenerator;
 /// для генераторов — геттеры или публичные поля. При изменении полей-параметров
 /// вызывать notify_shape_changed() для инвалидации AABB и уведомления зависимых.
 ///
+/// Система координат. Поле _position, AABB и аргументы evaluate_sdf() задаются
+/// в локальном пространстве октодерева фигуры; глобальная точка равна
+/// octree.position + локальная точка. Фигура-владелец задаёт position октодерева
+/// своим _position; для фигур внутри дерева локальный центр — ноль (например, SurfaceShape::_position).
+/// Перевод в глобальные координаты выполняется только на границах: WorldMesh при
+/// размещении мешей и SpatialStreaming при переводе камеры в LOD.
+///
 /// Построение дочернего класса:
 ///  1. Объявить поля-параметры формы и открыть к ним доступ геттерами/публичными полями.
 ///  2. Переопределить get_shape_type() — вернуть StringName типа фигуры.
@@ -47,6 +54,7 @@ private:
 
 protected:
     uint64_t _id = 0;
+    Vector3 _position;
     godot::PackedInt64Array _owned_shape_ids;
 
     AABB _aabb;
@@ -61,6 +69,10 @@ public:
 
     void set_id(uint64_t id) { _id = id; }
     uint64_t get_id() const { return _id; }
+
+    /// @brief Локальная позиция фигуры в пространстве её октодерева.
+    virtual void set_position(const Vector3& v) { _position = v; notify_shape_changed(); }
+    Vector3 get_position() const { return _position; }
 
     AABB get_aabb();
     
@@ -78,8 +90,8 @@ public:
     /// @brief Возвращает тип фигуры. Использует StringName для быстрого сравнения O(1).
     virtual StringName get_shape_type() const { return StringName("shape"); }
     
-    /// @brief Вычисляет значение SDF (Signed Distance Field) для точки в мировом пространстве.
-    virtual float evaluate_sdf(const Vector3& world_pos) const;
+    /// @brief Вычисляет значение SDF (Signed Distance Field) для точки в локальном пространстве октодерева.
+    virtual float evaluate_sdf(const Vector3& local_pos) const;
     
     /// @brief Раскрашивает вершины меша. По умолчанию — белый цвет (для шейдера с фолбэком).
     /// @param positions Позиции вершин
@@ -105,7 +117,7 @@ public:
     /// @details По умолчанию ничего не делает: такая фигура не участвует в пространственном
     /// разбиении до тех пор, пока явно не зарегистрируется в ShapeSpatialManager.
     /// Фигурам, которым нужно собственное октодерево, следует переопределить этот метод и
-    /// вызвать в нём ShapeSpatialManager::create_octree(get_id(), get_aabb(), ...) с
+    /// вызвать в нём ShapeSpatialManager::create_octree(get_id(), get_position(), ...) с
     /// необходимыми параметрами (максимальная глубина, размер корня). Дочерние фигуры,
     /// использующие сетку родителя, могут вызвать bind_spatially(get_id(), parent_id).
     virtual void on_register() {}

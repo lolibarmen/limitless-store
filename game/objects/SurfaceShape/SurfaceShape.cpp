@@ -43,14 +43,14 @@ void SurfaceShape::_sync_from_planet() {
     _shared_voronoi->set_frequency(frequency);
 }
 
-int SurfaceShape::get_material_id(const Vector3& world_pos) const {
+int SurfaceShape::get_material_id(const Vector3& local_pos) const {
     if (_planet.is_null()) {
         return 0;
     }
 
     // Используем направление от центра, как и в evaluate_sdf,
     // чтобы биомы не "плыли" по вертикали вместе с рельефом.
-    const Vector3 d = world_pos - _planet->get_center();
+    const Vector3 d = local_pos - _position;
     const float len = d.length();
     const Vector3 dir = len > 0.0f ? d / len : Vector3(0.0f, 1.0f, 0.0f);
 
@@ -64,12 +64,12 @@ int SurfaceShape::get_material_id(const Vector3& world_pos) const {
     return (int)(normalized * kMat);
 }
 
-float SurfaceShape::evaluate_sdf(const Vector3& world_pos) const {
+float SurfaceShape::evaluate_sdf(const Vector3& local_pos) const {
     if (_planet.is_null()) {
         return 1e10f;
     }
 
-    const Vector3 d = world_pos - _planet->get_center();
+    const Vector3 d = local_pos - _position;
     // Шум берётся по направлению (нормализованный вектор), а не по полной точке:
     // иначе высота зависит от расстояния до центра и радиус «плывёт» вместе с удалением.
     const float len = d.length();
@@ -80,9 +80,9 @@ float SurfaceShape::evaluate_sdf(const Vector3& world_pos) const {
 
 void SurfaceShape::paint_vertices(const Vector3* positions, const Vector3* normals, Color* out_colors, int count, const Vector3& posoff) const {
     for (int i = 0; i < count; ++i) {
-        Vector3 world_pos = positions[i] + posoff;
+        Vector3 local_pos = positions[i] + posoff;
 
-        int biome_id = get_material_id(world_pos);
+        int biome_id = get_material_id(local_pos);
         out_colors[i] = Color((float)biome_id / 7.0f, 0.0f, 0.0f, 1.0f);
     }
 }

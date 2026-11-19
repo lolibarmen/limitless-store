@@ -7,6 +7,10 @@
 
 namespace godot {
 
+/// @brief Обновляет LOD октодеревьев по позиции камеры.
+///
+/// Камера возвращает мировую позицию; перед вызовом LOD из неё вычитается
+/// position октодерева, потому что чанки и позиция наблюдателя локальны.
 class SpatialStreaming : public Node {
     GDCLASS(SpatialStreaming, Node)
 

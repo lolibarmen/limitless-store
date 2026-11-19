@@ -15,7 +15,6 @@ class TrunkShape : public SemanticShape {
 private:
     Ref<PlanetShape> _planet;
 
-    Vector3 _origin;
     Vector3 _up = Vector3(0.0f, 1.0f, 0.0f);
     float _height = 8.0f;
     float _base_radius = 0.5f;
@@ -36,9 +35,6 @@ public:
     virtual ~TrunkShape() = default;
 
     void bind_planet(const Ref<PlanetShape>& planet);
-
-    void set_origin(const Vector3& v) { _origin = v; notify_shape_changed(); }
-    Vector3 get_origin() const { return _origin; }
 
     void set_up(const Vector3& v);
     Vector3 get_up() const { return _up; }

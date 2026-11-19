@@ -14,7 +14,6 @@ class PlanetShape : public SemanticShape {
     GDCLASS(PlanetShape, SemanticShape)
 
 private:
-    Vector3 _center;
     float _radius = 100.0f;
     float _amplitude = 20.0f;
 
@@ -26,9 +25,6 @@ protected:
 public:
     PlanetShape();
     virtual ~PlanetShape() = default;
-
-    void set_center(const Vector3& c) { _center = c; notify_shape_changed(); }
-    Vector3 get_center() const { return _center; }
 
     void set_radius(float r) { _radius = r; notify_shape_changed(); }
     float get_radius() const { return _radius; }

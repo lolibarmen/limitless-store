@@ -8,10 +8,6 @@
 using namespace godot;
 
 void TrunkShape::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("set_origin", "origin"), &TrunkShape::set_origin);
-    ClassDB::bind_method(D_METHOD("get_origin"), &TrunkShape::get_origin);
-    ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "origin"), "set_origin", "get_origin");
-
     ClassDB::bind_method(D_METHOD("set_up", "up"), &TrunkShape::set_up);
     ClassDB::bind_method(D_METHOD("get_up"), &TrunkShape::get_up);
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "up"), "set_up", "get_up");
@@ -76,7 +72,7 @@ void TrunkShape::set_up(const Vector3& v) {
 Vector3 TrunkShape::centerline(float t) const {
     const float s = CLAMP(t, 0.0f, 1.0f);
     const float smooth = s * s * (3.0f - 2.0f * s);
-    return _origin + _up * (_height * s) + _bend * smooth;
+    return _position + _up * (_height * s) + _bend * smooth;
 }
 
 Vector3 TrunkShape::centerline_tangent(float t) const {

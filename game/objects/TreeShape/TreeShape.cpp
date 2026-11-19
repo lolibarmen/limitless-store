@@ -9,10 +9,6 @@
 using namespace godot;
 
 void TreeShape::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("set_origin", "origin"), &TreeShape::set_origin);
-    ClassDB::bind_method(D_METHOD("get_origin"), &TreeShape::get_origin);
-    ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "origin"), "set_origin", "get_origin");
-
     ClassDB::bind_method(D_METHOD("get_up"), &TreeShape::get_up);
 
     ClassDB::bind_method(D_METHOD("set_height", "height"), &TreeShape::set_height);
@@ -94,13 +90,15 @@ void TreeShape::bind_planet(const Ref<PlanetShape>& planet) {
     notify_shape_changed();
 }
 
+void TreeShape::set_position(const Vector3& v) {
+    _position = v;
+    notify_trunk_changed();
+}
+
 Vector3 TreeShape::get_up() const {
-    if (_planet.is_valid()) {
-        const Vector3 nose = _origin - _planet->get_center();
-        const float len = nose.length();
-        if (len > 0.0001f) {
-            return nose / len;
-        }
+    const float len = _position.length();
+    if (len > 0.0001f) {
+        return _position / len;
     }
     return Vector3(0.0f, 1.0f, 0.0f);
 }
@@ -147,7 +145,7 @@ void TreeShape::_sync_children(bool trunk_changed) {
     if (trunk.is_null()) return;
 
     if (trunk_changed) {
-        trunk->set_origin(_origin);
+        trunk->set_position(_position);
         trunk->set_up(get_up());
         trunk->set_height(_height);
         trunk->set_base_radius(_base_radius);
@@ -201,7 +199,7 @@ void TreeShape::_spawn_children() {
         Ref<TrunkShape> trunk;
         trunk.instantiate();
         trunk->bind_planet(_planet);
-        trunk->set_origin(_origin);
+        trunk->set_position(_position);
         trunk->set_up(get_up());
         trunk->set_height(_height);
         trunk->set_base_radius(_base_radius);
@@ -301,7 +299,7 @@ void TreeShape::recompute_aabb() {
     }
 
     if (empty) {
-        box = AABB(_origin, Vector3(0.01f, 0.01f, 0.01f));
+        box = AABB(_position, Vector3(0.01f, 0.01f, 0.01f));
     }
 
     _aabb = box;

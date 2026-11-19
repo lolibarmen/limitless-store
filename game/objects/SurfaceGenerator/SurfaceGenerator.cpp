@@ -99,11 +99,11 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     inp->chunk_size  = chunk_size;
 
     const int cells = Math::max(1, (int)Math::round(gen->_voxel_count));
-    const Vector3 world_min = chunk_pos - Vector3(chunk_size, chunk_size, chunk_size) * 0.5f;
+    const Vector3 local_min = chunk_pos - Vector3(chunk_size, chunk_size, chunk_size) * 0.5f;
     inp->chunk_coord = Vector3i(
-        (int)Math::floor(world_min.x),
-        (int)Math::floor(world_min.y),
-        (int)Math::floor(world_min.z)
+        (int)Math::floor(local_min.x),
+        (int)Math::floor(local_min.y),
+        (int)Math::floor(local_min.z)
     );
 
     const float cell_size_raw = chunk_size / cells;

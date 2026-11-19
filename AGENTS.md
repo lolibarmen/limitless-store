@@ -6,6 +6,7 @@ This project is a modern take on Minecraft using the Godot engine. The main obje
 - The relationship between shapes via add_owned_shape must be bidirectional (since a house cannot exist without walls and a roof, and a roof cannot exist if the house is destroyed)
 - The owned list defines the traversal direction: change notifications and reactions only visit shapes explicitly listed in the current shape's owned list. A parent is never called unless it is itself listed in the child's owned list.
 - propose_shape_change is the only entry point for a fundamental replacement (e.g. a branch becoming a burnt branch). Plain parameter changes are propagated by the shape itself down its owned list via notify_shape_changed().
+- Coordinates: SemanticShape::_position, AABB and SDF arguments are local to the shape's octree. The octree takes its position from the shape that created it (PlanetShape), and a global point is `octree.position + local`. WorldMesh converts chunk centers to global when placing render nodes; SpatialStreaming converts the camera to local before LOD. SurfaceShape's local position is zero, so its center matches PlanetShape.
 
 ## Code rules
 - Avoid creating new fields, classes, or functions unless clearly necessary.
