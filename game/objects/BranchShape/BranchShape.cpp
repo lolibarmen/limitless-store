@@ -12,6 +12,10 @@ void BranchShape::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_position"), &BranchShape::get_position);
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "position"), "set_position", "get_position");
 
+    ClassDB::bind_method(D_METHOD("set_up", "up"), &BranchShape::set_up);
+    ClassDB::bind_method(D_METHOD("get_up"), &BranchShape::get_up);
+    ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "up"), "set_up", "get_up");
+
     ClassDB::bind_method(D_METHOD("set_direction", "direction"), &BranchShape::set_direction);
     ClassDB::bind_method(D_METHOD("get_direction"), &BranchShape::get_direction);
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "direction"), "set_direction", "get_direction");
@@ -41,6 +45,16 @@ void BranchShape::bind_planet(const Ref<PlanetShape>& planet) {
     notify_shape_changed();
 }
 
+void BranchShape::set_up(const Vector3& v) {
+    const float len = v.length();
+    const Vector3 normalized = len > 0.0001f ? v / len : Vector3(0.0f, 1.0f, 0.0f);
+    if (_up == normalized) {
+        return;
+    }
+    _up = normalized;
+    notify_shape_changed();
+}
+
 void BranchShape::set_direction(const Vector3& v) {
     const float len = v.length();
     _direction = len > 0.0001f ? v / len : Vector3(0.0f, 1.0f, 0.0f);
@@ -61,14 +75,7 @@ int BranchShape::get_fork_count() const {
 }
 
 Vector3 BranchShape::up() const {
-    if (_planet.is_valid()) {
-        const Vector3 nose = _position - _planet->get_center();
-        const float len = nose.length();
-        if (len > 0.0001f) {
-            return nose / len;
-        }
-    }
-    return Vector3(0.0f, 1.0f, 0.0f);
+    return _up;
 }
 
 Vector3 BranchShape::side() const {
@@ -78,7 +85,10 @@ Vector3 BranchShape::side() const {
     if (len > 0.0001f) {
         return w / len;
     }
-    const Vector3 helper = Math::abs(u.y) < 0.99f ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(1.0f, 0.0f, 0.0f);
+    const Vector3 a = u.abs();
+    const Vector3 helper = a.x <= a.y && a.x <= a.z ? Vector3(1.0f, 0.0f, 0.0f)
+                         : a.y <= a.z                ? Vector3(0.0f, 1.0f, 0.0f)
+                                                     : Vector3(0.0f, 0.0f, 1.0f);
     return u.cross(helper).normalized();
 }
 

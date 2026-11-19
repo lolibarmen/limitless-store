@@ -13,9 +13,7 @@ void TreeShape::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_origin"), &TreeShape::get_origin);
     ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "origin"), "set_origin", "get_origin");
 
-    ClassDB::bind_method(D_METHOD("set_up", "up"), &TreeShape::set_up);
     ClassDB::bind_method(D_METHOD("get_up"), &TreeShape::get_up);
-    ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "up"), "set_up", "get_up");
 
     ClassDB::bind_method(D_METHOD("set_height", "height"), &TreeShape::set_height);
     ClassDB::bind_method(D_METHOD("get_height"), &TreeShape::get_height);
@@ -96,10 +94,15 @@ void TreeShape::bind_planet(const Ref<PlanetShape>& planet) {
     notify_shape_changed();
 }
 
-void TreeShape::set_up(const Vector3& v) {
-    const float len = v.length();
-    _up = len > 0.0001f ? v / len : Vector3(0.0f, 1.0f, 0.0f);
-    notify_trunk_changed();
+Vector3 TreeShape::get_up() const {
+    if (_planet.is_valid()) {
+        const Vector3 nose = _origin - _planet->get_center();
+        const float len = nose.length();
+        if (len > 0.0001f) {
+            return nose / len;
+        }
+    }
+    return Vector3(0.0f, 1.0f, 0.0f);
 }
 
 // Распределение длины веток по относительной высоте ствола x:
@@ -110,8 +113,12 @@ void TreeShape::_apply_branch_params(int i, const Ref<TrunkShape>& trunk, const 
 
     const Vector3 attach = trunk->centerline(t);
     const Vector3 tangent = trunk->centerline_tangent(t);
+    const Vector3 up = get_up();
 
-    const Vector3 helper = Math::abs(tangent.y) < 0.99f ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(1.0f, 0.0f, 0.0f);
+    const Vector3 a = up.abs();
+    const Vector3 helper = a.x <= a.y && a.x <= a.z ? Vector3(1.0f, 0.0f, 0.0f)
+                         : a.y <= a.z                ? Vector3(0.0f, 1.0f, 0.0f)
+                                                     : Vector3(0.0f, 0.0f, 1.0f);
     const Vector3 right = tangent.cross(helper).normalized();
     const Vector3 forward = right.cross(tangent).normalized();
 
@@ -124,6 +131,7 @@ void TreeShape::_apply_branch_params(int i, const Ref<TrunkShape>& trunk, const 
     const float factor = Math::pow(base, _branch_alpha);
 
     branch->set_position(attach);
+    branch->set_up(up);
     branch->set_direction(dir);
     branch->set_length(_branch_length * factor);
     branch->set_width(_branch_width * factor);
@@ -140,7 +148,7 @@ void TreeShape::_sync_children(bool trunk_changed) {
 
     if (trunk_changed) {
         trunk->set_origin(_origin);
-        trunk->set_up(_up);
+        trunk->set_up(get_up());
         trunk->set_height(_height);
         trunk->set_base_radius(_base_radius);
         trunk->set_top_radius(_top_radius);
@@ -194,7 +202,7 @@ void TreeShape::_spawn_children() {
         trunk.instantiate();
         trunk->bind_planet(_planet);
         trunk->set_origin(_origin);
-        trunk->set_up(_up);
+        trunk->set_up(get_up());
         trunk->set_height(_height);
         trunk->set_base_radius(_base_radius);
         trunk->set_top_radius(_top_radius);

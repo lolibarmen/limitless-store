@@ -8,7 +8,7 @@
 
 namespace godot {
 
-/// @brief Ветка: прямоугольная карточка вдоль локального верха планеты; наклон запечён в текстуру.
+/// @brief Ветка: прямоугольная карточка вдоль локального верха, переданного деревом; наклон запечён в текстуру.
 class BranchShape : public SemanticShape {
     GDCLASS(BranchShape, SemanticShape)
 
@@ -16,6 +16,7 @@ private:
     Ref<PlanetShape> _planet;
 
     Vector3 _position;
+    Vector3 _up = Vector3(0.0f, 1.0f, 0.0f);
     Vector3 _direction = Vector3(0.0f, 1.0f, 0.0f);
     float _length = 1.5f;
     float _width = 0.3f;
@@ -35,6 +36,9 @@ public:
     void set_position(const Vector3& v) { _position = v; notify_shape_changed(); }
     Vector3 get_position() const { return _position; }
 
+    void set_up(const Vector3& v);
+    Vector3 get_up() const { return _up; }
+
     void set_direction(const Vector3& v);
     Vector3 get_direction() const { return _direction; }
 
@@ -47,7 +51,7 @@ public:
     void set_fork_count(int v);
     int get_fork_count() const;
 
-    Vector3 up() const;         // локальный верх планеты в точке крепления
+    Vector3 up() const;         // локальный верх дерева в точке крепления
     Vector3 side() const;       // боковая ось карточки (перпендикулярна up)
     float card_height() const;  // проекция length на up
     float card_width() const;   // width + |lean|

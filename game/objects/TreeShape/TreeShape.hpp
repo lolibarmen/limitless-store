@@ -17,7 +17,6 @@ private:
     Ref<PlanetShape> _planet;
 
     Vector3 _origin;
-    Vector3 _up = Vector3(0.0f, 1.0f, 0.0f);
 
     float _height = 8.0f;
     float _base_radius = 0.5f;
@@ -59,8 +58,7 @@ public:
     void set_origin(const Vector3& v) { _origin = v; notify_trunk_changed(); }
     Vector3 get_origin() const { return _origin; }
 
-    void set_up(const Vector3& v);
-    Vector3 get_up() const { return _up; }
+    Vector3 get_up() const;
 
     void set_height(float v) { _height = v; notify_trunk_changed(); }
     float get_height() const { return _height; }
