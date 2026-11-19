@@ -7,6 +7,7 @@
 #include <WorldMesh/WorldMesh.hpp>
 #include <SpatialStreaming/SpatialStreaming.hpp>
 #include <PlanetShape/PlanetShape.hpp>
+#include <WorldShapeNode/WorldShapeNode.hpp>
 
 #include <vector>
 
@@ -19,6 +20,53 @@ void WorldCoordinator::_bind_methods() {
         PropertyInfo(Variant::ARRAY, "shapes", PROPERTY_HINT_ARRAY_TYPE, "24/17:SemanticShape"),
         "set_shapes", "get_shapes"
     );
+    ClassDB::bind_method(D_METHOD("refresh_shapes"), &WorldCoordinator::refresh_shapes);
+}
+
+TypedArray<Ref<SemanticShape>> WorldCoordinator::_collect_effective_shapes() const {
+    TypedArray<Ref<SemanticShape>> result;
+
+    for (int i = 0; i < _shapes.size(); ++i) {
+        Ref<SemanticShape> shape = _shapes[i];
+        if (shape.is_null()) {
+            continue;
+        }
+        bool exists = false;
+        for (int j = 0; j < result.size(); ++j) {
+            Ref<SemanticShape> existing = result[j];
+            if (existing.is_valid() && existing.ptr() == shape.ptr()) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            result.push_back(shape);
+        }
+    }
+
+    for (int i = 0; i < get_child_count(); ++i) {
+        WorldShapeNode* node = Object::cast_to<WorldShapeNode>(get_child(i));
+        if (!node) {
+            continue;
+        }
+        Ref<SemanticShape> shape = node->get_shape();
+        if (shape.is_null()) {
+            continue;
+        }
+        bool exists = false;
+        for (int j = 0; j < result.size(); ++j) {
+            Ref<SemanticShape> existing = result[j];
+            if (existing.is_valid() && existing.ptr() == shape.ptr()) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            result.push_back(shape);
+        }
+    }
+
+    return result;
 }
 
 void WorldCoordinator::set_shapes(const TypedArray<Ref<SemanticShape>>& shapes) {
@@ -27,21 +75,37 @@ void WorldCoordinator::set_shapes(const TypedArray<Ref<SemanticShape>>& shapes) 
         return;
     }
 
+    _shapes = shapes;
+
     if (_exiting) {
         return;
     }
 
+    refresh_shapes();
+}
+
+TypedArray<Ref<SemanticShape>> WorldCoordinator::get_shapes() const {
+    return _shapes;
+}
+
+void WorldCoordinator::refresh_shapes() {
+    if (_exiting || _registering || !is_inside_tree()) {
+        return;
+    }
+
+    TypedArray<Ref<SemanticShape>> new_effective = _collect_effective_shapes();
+
     SemanticWorld* sw = SemanticWorld::get_singleton();
     if (sw) {
-        for (int i = 0; i < _shapes.size(); ++i) {
-            Ref<SemanticShape> old_shape = _shapes[i];
+        for (int i = 0; i < _effective_shapes.size(); ++i) {
+            Ref<SemanticShape> old_shape = _effective_shapes[i];
             if (old_shape.is_null() || old_shape->get_id() == 0) {
                 continue;
             }
 
             bool still_present = false;
-            for (int j = 0; j < shapes.size(); ++j) {
-                Ref<SemanticShape> candidate = shapes[j];
+            for (int j = 0; j < new_effective.size(); ++j) {
+                Ref<SemanticShape> candidate = new_effective[j];
                 if (candidate.is_valid() && candidate.ptr() == old_shape.ptr()) {
                     still_present = true;
                     break;
@@ -54,12 +118,8 @@ void WorldCoordinator::set_shapes(const TypedArray<Ref<SemanticShape>>& shapes) 
         }
     }
 
-    _shapes = shapes;
+    _effective_shapes = new_effective;
     _register_shapes();
-}
-
-TypedArray<Ref<SemanticShape>> WorldCoordinator::get_shapes() const {
-    return _shapes;
 }
 
 void WorldCoordinator::_attach_render_nodes() {
@@ -90,6 +150,7 @@ void WorldCoordinator::_detach_render_nodes() {
 void WorldCoordinator::_enter_tree() {
     _exiting = false;
     _attach_render_nodes();
+    _effective_shapes = _collect_effective_shapes();
     _register_shapes();
 }
 
@@ -103,9 +164,9 @@ void WorldCoordinator::_exit_tree() {
     SemanticWorld* sw = SemanticWorld::get_singleton();
     if (sw) {
         std::vector<uint64_t> ids;
-        ids.reserve(_shapes.size());
-        for (int i = 0; i < _shapes.size(); ++i) {
-            Ref<SemanticShape> shape = _shapes[i];
+        ids.reserve(_effective_shapes.size());
+        for (int i = 0; i < _effective_shapes.size(); ++i) {
+            Ref<SemanticShape> shape = _effective_shapes[i];
             if (shape.is_valid() && shape->get_id() != 0) {
                 ids.push_back(shape->get_id());
             }
@@ -116,6 +177,7 @@ void WorldCoordinator::_exit_tree() {
         }
     }
 
+    _effective_shapes.clear();
     _detach_render_nodes();
     _exiting = false;
 }
@@ -136,8 +198,8 @@ void WorldCoordinator::_register_shapes() {
 
     // Планеты регистрируются первыми: остальные фигуры привязываются к их октодеревьям.
     for (int pass = 0; pass < 2; ++pass) {
-        for (int i = 0; i < _shapes.size(); ++i) {
-            Ref<SemanticShape> shape = _shapes[i];
+        for (int i = 0; i < _effective_shapes.size(); ++i) {
+            Ref<SemanticShape> shape = _effective_shapes[i];
             if (shape.is_null() || shape->get_id() != 0) {
                 continue;
             }

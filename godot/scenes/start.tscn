@@ -6,7 +6,6 @@
 position = Vector3(0, -100, 0)
 
 [sub_resource type="TreeShape" id="TreeShape_u80x2"]
-position = Vector3(12, 88, 0)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -19,9 +18,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(12, 88, 0)
 
 [sub_resource type="TreeShape" id="TreeShape_jaeev"]
-position = Vector3(14, 88, 0)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -34,9 +33,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(14, 88, 0)
 
 [sub_resource type="TreeShape" id="TreeShape_bodal"]
-position = Vector3(16.195, 89.045, -0.285)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -49,9 +48,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(16.195, 89.045, -0.285)
 
 [sub_resource type="TreeShape" id="TreeShape_kdmts"]
-position = Vector3(18.005, 90, 0.145)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -64,9 +63,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(18.005, 90, 0.145)
 
 [sub_resource type="TreeShape" id="TreeShape_0auqf"]
-position = Vector3(13.175, 88, -2.56)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -79,9 +78,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(13.175, 88, -2.56)
 
 [sub_resource type="TreeShape" id="TreeShape_y16t7"]
-position = Vector3(11.22, 87.89, -1.715)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -94,9 +93,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(11.22, 87.89, -1.715)
 
 [sub_resource type="TreeShape" id="TreeShape_4ge6i"]
-position = Vector3(9.775, 87.8, 0.025)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -109,9 +108,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(9.775, 87.8, 0.025)
 
 [sub_resource type="TreeShape" id="TreeShape_8itgj"]
-position = Vector3(11.54, 88, 2.145)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -124,9 +123,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(11.54, 88, 2.145)
 
 [sub_resource type="TreeShape" id="TreeShape_tn317"]
-position = Vector3(13.9, 88, 1.975)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -139,9 +138,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(13.9, 88, 1.975)
 
 [sub_resource type="TreeShape" id="TreeShape_m8nf6"]
-position = Vector3(15.875, 88.36, 2.455)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -154,9 +153,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(15.875, 88.36, 2.455)
 
 [sub_resource type="TreeShape" id="TreeShape_pgjjs"]
-position = Vector3(12.205, 88.82, -4)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -169,9 +168,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(12.205, 88.82, -4)
 
 [sub_resource type="TreeShape" id="TreeShape_1nvso"]
-position = Vector3(15.705, 88.945, -1.76)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -184,9 +183,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(15.705, 88.945, -1.76)
 
 [sub_resource type="TreeShape" id="TreeShape_gsp51"]
-position = Vector3(10.405, 88, -3.205)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -199,9 +198,9 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(10.405, 88, -3.205)
 
 [sub_resource type="TreeShape" id="TreeShape_r8uic"]
-position = Vector3(9.44, 88, -1.695)
 height = 5.0
 base_radius = 0.1
 top_radius = 0.0
@@ -214,6 +213,20 @@ branch_length = 3.0
 branch_width = 0.06
 branch_fork_count = 5
 planet = SubResource("PlanetShape_m685e")
+position = Vector3(9.44, 88, -1.695)
+
+[sub_resource type="TreeShape" id="TreeShape_g2vwp"]
+base_radius = 0.2
+top_radius = 0.01
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.0
+branch_count = 32
+branch_start = 0.2
+branch_length = 4.0
+branch_width = 0.12
+planet = SubResource("PlanetShape_m685e")
+position = Vector3(0, 89.4, 0)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_jaeev"]
 size = Vector3(6, 1, 8)
@@ -221,7 +234,70 @@ size = Vector3(6, 1, 8)
 [node name="Node3D" type="Node3D" unique_id=1806351155]
 
 [node name="WorldCoordinator" type="WorldCoordinator" parent="." unique_id=1276718905]
-shapes = Array[SemanticShape]([SubResource("PlanetShape_m685e"), SubResource("TreeShape_u80x2"), SubResource("TreeShape_jaeev"), SubResource("TreeShape_bodal"), SubResource("TreeShape_kdmts"), SubResource("TreeShape_0auqf"), SubResource("TreeShape_y16t7"), SubResource("TreeShape_4ge6i"), SubResource("TreeShape_8itgj"), SubResource("TreeShape_tn317"), SubResource("TreeShape_m8nf6"), SubResource("TreeShape_pgjjs"), SubResource("TreeShape_1nvso"), SubResource("TreeShape_gsp51"), SubResource("TreeShape_r8uic")])
+
+[node name="Planet" type="WorldShapeNode" parent="WorldCoordinator" unique_id=180285378]
+shape = SubResource("PlanetShape_m685e")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -100, 0)
+
+[node name="Tree" type="WorldShapeNode" parent="WorldCoordinator" unique_id=1668076659]
+shape = SubResource("TreeShape_u80x2")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, -12, 0)
+
+[node name="Tree2" type="WorldShapeNode" parent="WorldCoordinator" unique_id=1449925519]
+shape = SubResource("TreeShape_jaeev")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, -12, 0)
+
+[node name="Tree3" type="WorldShapeNode" parent="WorldCoordinator" unique_id=2137210842]
+shape = SubResource("TreeShape_bodal")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.195, -10.955002, -0.285)
+
+[node name="Tree4" type="WorldShapeNode" parent="WorldCoordinator" unique_id=1474173256]
+shape = SubResource("TreeShape_kdmts")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.005, -10, 0.145)
+
+[node name="Tree5" type="WorldShapeNode" parent="WorldCoordinator" unique_id=1647041481]
+shape = SubResource("TreeShape_0auqf")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.175, -12, -2.56)
+
+[node name="Tree6" type="WorldShapeNode" parent="WorldCoordinator" unique_id=937604153]
+shape = SubResource("TreeShape_y16t7")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.22, -12.110001, -1.715)
+
+[node name="Tree7" type="WorldShapeNode" parent="WorldCoordinator" unique_id=99235235]
+shape = SubResource("TreeShape_4ge6i")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.775, -12.199997, 0.025)
+
+[node name="Tree8" type="WorldShapeNode" parent="WorldCoordinator" unique_id=1579142115]
+shape = SubResource("TreeShape_8itgj")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.54, -12, 2.145)
+
+[node name="Tree9" type="WorldShapeNode" parent="WorldCoordinator" unique_id=1981965754]
+shape = SubResource("TreeShape_tn317")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.9, -12, 1.975)
+
+[node name="Tree10" type="WorldShapeNode" parent="WorldCoordinator" unique_id=882526082]
+shape = SubResource("TreeShape_m8nf6")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.875, -11.639999, 2.455)
+
+[node name="Tree11" type="WorldShapeNode" parent="WorldCoordinator" unique_id=1117903824]
+shape = SubResource("TreeShape_pgjjs")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.205, -11.18, -4)
+
+[node name="Tree12" type="WorldShapeNode" parent="WorldCoordinator" unique_id=821439930]
+shape = SubResource("TreeShape_1nvso")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.705, -11.055, -1.76)
+
+[node name="Tree13" type="WorldShapeNode" parent="WorldCoordinator" unique_id=558198538]
+shape = SubResource("TreeShape_gsp51")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.405, -12, -3.205)
+
+[node name="Tree14" type="WorldShapeNode" parent="WorldCoordinator" unique_id=1877782686]
+shape = SubResource("TreeShape_r8uic")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.44, -12, -1.695)
+
+[node name="TreeMain" type="WorldShapeNode" parent="WorldCoordinator" unique_id=303292104]
+shape = SubResource("TreeShape_g2vwp")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10.6, 0)
 
 [node name="Sun" type="DirectionalLight3D" parent="." unique_id=373847748]
 transform = Transform3D(1, 0, 0, 0, 0.7071067, 0.7071067, 0, -0.7071067, 0.7071067, 0, 186.10132, 0)

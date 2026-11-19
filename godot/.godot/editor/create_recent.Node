@@ -1,11 +1,8 @@
+WorldShapeNode
 MeshInstance3D
 CollisionShape3D
 StaticBody3D
-MeshYJoint
-TreeGenerator
-MeshCylinder
 Node3D
-MeshPrimitive
 WorldCoordinator
 MultiMeshInstance3D
 MultiMeshInstance2D

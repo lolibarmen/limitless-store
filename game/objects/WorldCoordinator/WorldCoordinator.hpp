@@ -10,9 +10,11 @@ class WorldCoordinator : public Node3D {
 
 private:
     TypedArray<Ref<SemanticShape>> _shapes;
+    TypedArray<Ref<SemanticShape>> _effective_shapes;
     bool _registering = false;
     bool _exiting = false;
 
+    TypedArray<Ref<SemanticShape>> _collect_effective_shapes() const;
     void _register_shapes();
     void _attach_render_nodes();
     void _detach_render_nodes();
@@ -26,6 +28,8 @@ public:
 
     void set_shapes(const TypedArray<Ref<SemanticShape>>& shapes);
     TypedArray<Ref<SemanticShape>> get_shapes() const;
+
+    void refresh_shapes();
 
     void _enter_tree() override;
     void _exit_tree() override;
