@@ -1,4 +1,5 @@
 #include "PlanetShape.hpp"
+#include <GravityShape/GravityShape.hpp>
 #include <SurfaceShape/SurfaceShape.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
@@ -38,6 +39,20 @@ void PlanetShape::recompute_aabb() {
     _aabb_dirty = false;
 }
 
+Ref<GravityShape> PlanetShape::get_gravity() const {
+    if (_gravity_id == 0) {
+        return nullptr;
+    }
+
+    SemanticWorld* sw = SemanticWorld::get_singleton();
+    if (!sw) {
+        return nullptr;
+    }
+
+    Ref<SemanticShape> base = sw->get_shape(_gravity_id);
+    return Object::cast_to<GravityShape>(base.ptr());
+}
+
 void PlanetShape::notify_shape_changed() {
     SemanticShape::notify_shape_changed();
 
@@ -55,14 +70,18 @@ void PlanetShape::notify_shape_changed() {
 }
 
 void PlanetShape::on_unregister() {
-    if (_surface_id != 0) {
-        SemanticWorld* sw = SemanticWorld::get_singleton();
-        if (sw && sw->get_shape(_surface_id).is_valid()) {
+    SemanticWorld* sw = SemanticWorld::get_singleton();
+    if (sw) {
+        if (_gravity_id != 0 && sw->get_shape(_gravity_id).is_valid()) {
+            sw->unregister_shape_with_owned(_gravity_id);
+        }
+        if (_surface_id != 0 && sw->get_shape(_surface_id).is_valid()) {
             sw->unregister_shape_with_owned(_surface_id);
         }
     }
 
     _surface_id = 0;
+    _gravity_id = 0;
     set_owned_shapes(PackedInt64Array());
 }
 
@@ -76,6 +95,15 @@ void PlanetShape::on_register() {
     // Собственное октодерево планеты: к нему привязываются все фигуры внутри неё.
     const float r = _radius + _amplitude;
     mgr->create_octree(get_id(), _position, r * 2.0f, compute_max_depth(r * 2.0f));
+
+    if (_gravity_id == 0) {
+        Ref<GravityShape> gravity;
+        gravity.instantiate();
+        gravity->bind_planet(Ref<PlanetShape>(this));
+        sw->register_shape(gravity);
+        _gravity_id = gravity->get_id();
+        add_owned_shape(_gravity_id);
+    }
 
     if (_surface_id != 0) {
         return;

@@ -4,12 +4,14 @@
 using namespace godot;
 
 #include "SurfaceGenerator/SurfaceGenerator.hpp"
+#include "GravityShape/GravityShape.hpp"
 #include "TreeShape/TreeShape.hpp"
 #include "Tool/Tool.hpp"
 #include "BranchShape/BranchShape.hpp"
 #include "TriplanarMaterialGenerator/TriplanarMaterialGenerator.hpp"
 #include "PlayerCamera/PlayerCamera.hpp"
 #include "PlanetMaterialGenerator/PlanetMaterialGenerator.hpp"
+#include "GravityAreaGenerator/GravityAreaGenerator.hpp"
 #include "SurfaceShape/SurfaceShape.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
 #include "BranchMaterialGenerator/BranchMaterialGenerator.hpp"
@@ -45,12 +47,14 @@ inline void auto_register_classes() {
     ClassDB::register_class<MeshGenerator>();
     ClassDB::register_class<SurfaceShape>();
     ClassDB::register_class<SurfaceGenerator>();
+    ClassDB::register_class<GravityShape>();
     ClassDB::register_class<TreeShape>();
     ClassDB::register_class<Tool>();
     ClassDB::register_class<BranchShape>();
     ClassDB::register_class<TriplanarMaterialGenerator>();
     ClassDB::register_class<PlayerCamera>();
     ClassDB::register_class<PlanetMaterialGenerator>();
+    ClassDB::register_class<GravityAreaGenerator>();
     ClassDB::register_class<PlayerMovement>();
     ClassDB::register_class<BranchMaterialGenerator>();
     ClassDB::register_class<BranchMeshGenerator>();

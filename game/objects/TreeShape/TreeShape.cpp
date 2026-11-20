@@ -1,4 +1,5 @@
 #include "TreeShape.hpp"
+#include <GravityShape/GravityShape.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -96,6 +97,13 @@ void TreeShape::set_position(const Vector3& v) {
 }
 
 Vector3 TreeShape::get_up() const {
+    if (_planet.is_valid()) {
+        Ref<GravityShape> gravity = _planet->get_gravity();
+        if (gravity.is_valid()) {
+            return gravity->get_up_at(_position);
+        }
+    }
+
     const float len = _position.length();
     if (len > 0.0001f) {
         return _position / len;

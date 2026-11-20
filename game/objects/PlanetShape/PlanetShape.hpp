@@ -5,6 +5,8 @@
 
 namespace godot {
 
+class GravityShape;
+
 /// @brief Планета — семантическая фигура-владелец поверхности.
 ///
 /// Хранит параметры планеты (центр, радиус, амплитуду) и служит источником истины
@@ -18,6 +20,7 @@ private:
     float _amplitude = 20.0f;
 
     uint64_t _surface_id = 0;
+    uint64_t _gravity_id = 0;
 
 protected:
     static void _bind_methods();
@@ -31,6 +34,8 @@ public:
 
     void set_amplitude(float a) { _amplitude = a; notify_shape_changed(); }
     float get_amplitude() const { return _amplitude; }
+
+    Ref<GravityShape> get_gravity() const;
 
     StringName get_shape_type() const override { return "planet"; }
     void recompute_aabb() override;
