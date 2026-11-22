@@ -120,5 +120,5 @@ Returning `nullptr` is the normal way to say “no replacement is needed”. A g
 
 ## Work rules
 
-- Creating additional agents is not recommended for performing sequential tasks
+- Creating additional agents is prohibited without the user’s permission or request
 - Don’t use git
