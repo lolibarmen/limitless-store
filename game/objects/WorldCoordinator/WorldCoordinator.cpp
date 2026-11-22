@@ -5,7 +5,6 @@
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <WorldMesh/WorldMesh.hpp>
-#include <SpatialStreaming/SpatialStreaming.hpp>
 #include <PlanetShape/PlanetShape.hpp>
 #include <WorldShapeNode/WorldShapeNode.hpp>
 
@@ -132,7 +131,6 @@ void WorldCoordinator::_attach_render_nodes() {
         add_child(node, false, Node::INTERNAL_MODE_FRONT);
     };
 
-    attach(SpatialStreaming::get_singleton());
     attach(WorldMesh::get_singleton());
 }
 
@@ -143,7 +141,6 @@ void WorldCoordinator::_detach_render_nodes() {
         }
     };
 
-    detach(SpatialStreaming::get_singleton());
     detach(WorldMesh::get_singleton());
 }
 

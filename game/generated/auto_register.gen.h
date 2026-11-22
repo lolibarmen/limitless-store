@@ -27,14 +27,13 @@ using namespace godot;
 #include "WorldCoordinator/WorldCoordinator.hpp"
 #include "PlayerInteraction/PlayerInteraction.hpp"
 #include "SemanticShape/SemanticShape.hpp"
+#include "ChunkOctree/ChunkOctree.hpp"
 #include "ToolManager/ToolManager.hpp"
 #include "ShapeSpatialManager/ShapeSpatialManager.hpp"
-#include "SpatialStreaming/SpatialStreaming.hpp"
 #include "WorldMesh/WorldMesh.hpp"
 #include "SemanticWorld/SemanticWorld.hpp"
 
 static ShapeSpatialManager *ShapeSpatialManager_instance = nullptr;
-static SpatialStreaming *SpatialStreaming_instance = nullptr;
 static WorldMesh *WorldMesh_instance = nullptr;
 static SemanticWorld *SemanticWorld_instance = nullptr;
 
@@ -66,9 +65,9 @@ inline void auto_register_classes() {
     ClassDB::register_class<PickableTool>();
     ClassDB::register_class<WorldCoordinator>();
     ClassDB::register_class<PlayerInteraction>();
+    ClassDB::register_class<ChunkOctree>();
     ClassDB::register_class<ToolManager>();
     ClassDB::register_class<ShapeSpatialManager>();
-    ClassDB::register_class<SpatialStreaming>();
     ClassDB::register_class<WorldMesh>();
     ClassDB::register_class<SemanticWorld>();
 }
@@ -76,8 +75,6 @@ inline void auto_register_classes() {
 inline void auto_register_singletons() {
     ShapeSpatialManager_instance = memnew(ShapeSpatialManager);
     Engine::get_singleton()->register_singleton("ShapeSpatialManager", ShapeSpatialManager_instance);
-    SpatialStreaming_instance = memnew(SpatialStreaming);
-    Engine::get_singleton()->register_singleton("SpatialStreaming", SpatialStreaming_instance);
     WorldMesh_instance = memnew(WorldMesh);
     Engine::get_singleton()->register_singleton("WorldMesh", WorldMesh_instance);
     SemanticWorld_instance = memnew(SemanticWorld);
@@ -88,9 +85,6 @@ inline void auto_unregister_singletons() {
     Engine::get_singleton()->unregister_singleton("ShapeSpatialManager");
     memdelete(ShapeSpatialManager_instance);
     ShapeSpatialManager_instance = nullptr;
-    Engine::get_singleton()->unregister_singleton("SpatialStreaming");
-    memdelete(SpatialStreaming_instance);
-    SpatialStreaming_instance = nullptr;
     Engine::get_singleton()->unregister_singleton("WorldMesh");
     memdelete(WorldMesh_instance);
     WorldMesh_instance = nullptr;

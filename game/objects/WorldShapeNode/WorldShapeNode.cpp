@@ -58,7 +58,7 @@ Vector3 WorldShapeNode::_get_shape_space_origin() const {
         if (mgr) {
             ChunkOctree *octree = mgr->get_octree(_shape->get_id());
             if (octree) {
-                return octree->position;
+                return octree->get_position();
             }
         }
     }

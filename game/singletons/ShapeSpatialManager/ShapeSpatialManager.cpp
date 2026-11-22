@@ -1,4 +1,5 @@
 #include "ShapeSpatialManager.hpp"
+#include <WorldMesh/WorldMesh.hpp>
 
 #include <godot_cpp/classes/engine.hpp>
 
@@ -25,14 +26,18 @@ uint64_t ShapeSpatialManager::create_octree(
 
     uint64_t octree_id = _next_octree_id++;
 
-    auto octree = std::make_unique<ChunkOctree>();
+    ChunkOctree* octree = memnew(ChunkOctree);
     octree->id = octree_id;
-    octree->position = position;
+    octree->set_position(position);
     octree->max_depth = max_depth;
     octree->add_user(shape_id);
     octree->add_root(Vector3(), root_size);
 
-    _octrees.emplace(octree_id, std::move(octree));
+    if (WorldMesh* world_mesh = WorldMesh::get_singleton()) {
+        world_mesh->add_child(octree);
+    }
+
+    _octrees.emplace(octree_id, octree);
     _shape_octree[shape_id] = octree_id;
 
     return octree_id;
@@ -104,7 +109,7 @@ void ShapeSpatialManager::detach_shape(uint64_t shape_id) {
         return;
     }
 
-    ChunkOctree* octree = octree_it->second.get();
+    ChunkOctree* octree = octree_it->second;
     octree->remove_user(shape_id);
 
     if (octree->user_count() == 0) {
@@ -118,13 +123,22 @@ void ShapeSpatialManager::destroy_octree(uint64_t octree_id) {
         return;
     }
 
-    ChunkOctree* octree = octree_it->second.get();
+    ChunkOctree* octree = octree_it->second;
 
-    octree->for_each_user([this](uint64_t user_id) {
-        _shape_octree.erase(user_id);
+    std::vector<uint64_t> users;
+    octree->for_each_user([&users](uint64_t user_id) {
+        users.push_back(user_id);
     });
 
+    for (uint64_t user_id : users) {
+        _shape_octree.erase(user_id);
+    }
+
     _octrees.erase(octree_it);
+
+    octree->clear();
+    octree->set_process(false);
+    octree->queue_free();
 }
 
 void ShapeSpatialManager::bind_spatially(uint64_t child_shape_id, uint64_t parent_shape_id) {
@@ -170,7 +184,7 @@ ChunkOctree* ShapeSpatialManager::get_octree(uint64_t shape_id) const {
         return nullptr;
     }
 
-    return octree_it->second.get();
+    return octree_it->second;
 }
 
 Chunk* ShapeSpatialManager::get_chunk(uint64_t shape_id, uint64_t chunk_id) const {
@@ -180,24 +194,6 @@ Chunk* ShapeSpatialManager::get_chunk(uint64_t shape_id, uint64_t chunk_id) cons
     }
 
     return octree->find(chunk_id);
-}
-
-void ShapeSpatialManager::for_each_octree(
-    std::function<void(uint64_t octree_id, ChunkOctree* octree)> func
-) {
-    std::vector<uint64_t> ids;
-    ids.reserve(_octrees.size());
-
-    for (const auto& pair : _octrees) {
-        ids.push_back(pair.first);
-    }
-
-    for (uint64_t octree_id : ids) {
-        auto it = _octrees.find(octree_id);
-        if (it != _octrees.end()) {
-            func(octree_id, it->second.get());
-        }
-    }
 }
 
 } // namespace godot

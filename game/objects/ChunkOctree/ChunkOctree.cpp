@@ -1,12 +1,68 @@
 #include "ChunkOctree.hpp"
-#include "Chunk.hpp"
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp> // Для глобального счетчика ID
+#include <SemanticWorld/SemanticWorld.hpp>
+#include <godot_cpp/classes/camera3d.hpp>
+#include <godot_cpp/classes/editor_interface.hpp>
+#include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/sub_viewport.hpp>
+#include <godot_cpp/classes/viewport.hpp>
+#include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/math.hpp>
 
 namespace godot {
 
 static float cube_distance(const Vector3& a, const Vector3& b) {
     return Math::max(Math::max(Math::abs(a.x - b.x), Math::abs(a.y - b.y)), Math::abs(a.z - b.z));
+}
+
+void ChunkOctree::_bind_methods() {}
+
+void ChunkOctree::_ready() {
+    set_process(true);
+}
+
+void ChunkOctree::_process(double delta) {
+    (void)delta;
+
+    if (!is_inside_tree() || max_depth <= 0) {
+        return;
+    }
+
+    Camera3D* cam = nullptr;
+
+    Engine* engine = Engine::get_singleton();
+    if (engine && engine->is_editor_hint()) {
+        EditorInterface* editor = EditorInterface::get_singleton();
+        if (editor) {
+            SubViewport* viewport_3d = editor->get_editor_viewport_3d(0);
+            if (viewport_3d) {
+                cam = viewport_3d->get_camera_3d();
+            }
+        }
+    }
+
+    if (!cam) {
+        Viewport* vp = get_viewport();
+        if (vp) {
+            cam = vp->get_camera_3d();
+        }
+    }
+
+    if (!cam) {
+        return;
+    }
+
+    SemanticWorld* world = SemanticWorld::get_singleton();
+    if (!world) {
+        return;
+    }
+
+    update_lod_and_notify(
+        to_local(cam->get_global_position()),
+        [world](uint64_t shape_id, const std::vector<uint64_t>& chunk_ids) {
+            world->on_zone_changed(shape_id, chunk_ids);
+        }
+    );
 }
 
 void ChunkOctree::add_user(uint64_t shape_id) {
@@ -263,6 +319,7 @@ void ChunkOctree::clear() {
     leaf_chunks.clear();
     id_to_chunk.clear();
 
+    _users.clear();
     _prev_active_chunks.clear();
     _pending_users.clear();
 }

@@ -36,7 +36,6 @@ WorldMesh* WorldMesh::get_singleton() {
 }
 
 void WorldMesh::_ready() {
-    set_as_top_level(true);
     set_process(true);
 
     if (_max_concurrent_renders <= 0) {
@@ -124,14 +123,14 @@ bool WorldMesh::_start_render(const PendingRender& job) {
         return false;
     }
 
-    const Vector3 world_chunk_center = octree->position + chunk->center;
+    const Vector3 local_center = chunk->center;
 
     if (job.visual_generator.is_valid() && !request->mesh_instance) {
-        request->chunk_center = world_chunk_center;
+        request->chunk_center = local_center;
 
         MeshInstance3D* mesh_instance = memnew(MeshInstance3D);
-        add_child(mesh_instance);
-        mesh_instance->set_global_position(world_chunk_center);
+        octree->add_child(mesh_instance);
+        mesh_instance->set_position(local_center);
         mesh_instance->set_visible(false);
         request->mesh_instance = mesh_instance;
     }
@@ -141,8 +140,8 @@ bool WorldMesh::_start_render(const PendingRender& job) {
 
     if (!editor && job.collision_generator.is_valid() && !request->collision_body) {
         StaticBody3D* collision_body = memnew(StaticBody3D);
-        add_child(collision_body);
-        collision_body->set_global_position(world_chunk_center);
+        octree->add_child(collision_body);
+        collision_body->set_position(local_center);
 
         CollisionShape3D* collision_shape = memnew(CollisionShape3D);
         collision_shape->set_disabled(true);
@@ -154,8 +153,8 @@ bool WorldMesh::_start_render(const PendingRender& job) {
 
     if (job.area_generator.is_valid() && !request->area) {
         Area3D* area = memnew(Area3D);
-        add_child(area);
-        area->set_global_position(world_chunk_center);
+        octree->add_child(area);
+        area->set_position(local_center);
         area->set_meta("shape_id", (int64_t)job.shape_id);
         area->connect("area_entered", Callable(this, "_on_alchemy_area_entered").bind((int64_t)job.shape_id));
 
@@ -427,7 +426,7 @@ void WorldMesh::_on_alchemy_area_entered(Area3D* other, int64_t self_id) {
 
     const uint64_t self = (uint64_t)self_id;
     Ref<SemanticShape> self_shape = sw->get_shape(self);
-    if (self_shape.is_null() || other_shape.is_null()) return;
+    if (self_shape.is_null()) return;
 
     Ref<SemanticShape> proposed = self_shape->evaluate_alchemy((uint64_t)other_id);
     if (proposed.is_null()) return;

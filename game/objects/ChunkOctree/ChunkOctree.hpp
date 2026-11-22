@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Chunk.hpp"
+#include <ShapeSpatialManager/Chunk.hpp>
+#include <godot_cpp/classes/node3d.hpp>
 
 #include <unordered_map>
 #include <unordered_set>
@@ -11,14 +12,14 @@
 
 namespace godot {
 
-/// @brief Октодерево со своей позицией в мире.
+/// @brief Октодерево как узел Node3D внутри WorldMesh.
 ///
-/// Позиция берётся от фигуры-создателя при create_octree(). Все чанки, их AABB
-/// и SDF-координаты локальны относительно position: глобальная точка равна
-/// position + локальная точка. Наблюдатель для LOD тоже передаётся в локальных
-/// координатах; переход в глобальные выполняют WorldMesh и SpatialStreaming.
-class ChunkOctree {
-    
+/// Трансформация узла задаёт начало координат фигуры-создателя. Чанки, их AABB,
+/// SDF-координаты и дочерние рендер-ноды локальны относительно октодерева.
+/// Наблюдатель для LOD переводится в локальные координаты через to_local().
+class ChunkOctree : public Node3D {
+    GDCLASS(ChunkOctree, Node3D)
+
 private:
     std::unordered_map<uint64_t, Chunk*> roots;
     std::unordered_set<Chunk*> leaf_chunks;
@@ -42,13 +43,17 @@ public:
     /// @brief Уникальный ID дерева, выдаваемый ShapeSpatialManager.
     uint64_t id = 0;
 
-    /// @brief Позиция октодерева в мировых координатах.
-    Vector3 position;
-
     /// @brief Максимальная глубина детализации дерева. Задаётся только при создании (create_octree).
     int max_depth = 0;
 
-    ~ChunkOctree() { clear(); }
+    ~ChunkOctree() override { clear(); }
+
+protected:
+    static void _bind_methods();
+
+public:
+    void _ready() override;
+    void _process(double delta) override;
 
     /// @brief Добавляет фигуру в пользователи дерева и помечает её как нуждающуюся в текущих чанках.
     void add_user(uint64_t shape_id);

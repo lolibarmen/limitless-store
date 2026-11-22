@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ChunkOctree.hpp"
+#include <ChunkOctree/ChunkOctree.hpp>
 
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
@@ -11,7 +11,6 @@
 #include <atomic>
 #include <cstdint>
 #include <functional>
-#include <memory>
 #include <unordered_map>
 
 namespace godot {
@@ -23,7 +22,7 @@ class ShapeSpatialManager : public Object {
 
 private:
     /// Все октодеревья, которыми владеет менеджер. Ключ — уникальный ID дерева.
-    std::unordered_map<uint64_t, std::unique_ptr<ChunkOctree>> _octrees;
+    std::unordered_map<uint64_t, ChunkOctree*> _octrees;
 
     /// Пространственная привязка фигур. Ключ — ID фигуры, значение — ID используемого дерева.
     /// Отсутствие записи означает, что у фигуры нет октодерева.
@@ -94,10 +93,6 @@ public:
     /// @brief Возвращает чанк дерева фигуры по его ID.
     /// @details Нужен маленьким фигурам для проверки центра AABB внутри чанка.
     Chunk* get_chunk(uint64_t shape_id, uint64_t chunk_id) const;
-
-    /// @brief Итерация по всем живым октодеревьям.
-    /// @details Callback не должен уничтожать текущее дерево.
-    void for_each_octree(std::function<void(uint64_t octree_id, ChunkOctree* octree)> func);
 
     /// @brief Глобальный провайдер уникальных ID для всех чанков в сцене.
     uint64_t get_next_chunk_id() { return _next_chunk_id++; }
