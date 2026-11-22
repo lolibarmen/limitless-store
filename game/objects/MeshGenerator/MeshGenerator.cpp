@@ -1,5 +1,6 @@
 #include "MeshGenerator.hpp"
 #include "WorldMesh/WorldMesh.hpp"
+#include <SemanticWorld/SemanticWorld.hpp>
 #include "ShapeSpatialManager/ShapeSpatialManager.hpp"
 #include <godot_cpp/classes/mesh.hpp>
 #include <godot_cpp/variant/array.hpp>
@@ -54,21 +55,17 @@ MeshGenerator::MeshBuilder MeshGenerator::builder(uint64_t shape_id, uint64_t ch
     if (!octree) return b;
     Chunk* chunk = octree->find(chunk_id);
     if (!chunk) return b;
+
+    auto* world = SemanticWorld::get_singleton();
+    if (!world) return b;
+    const Ref<SemanticShape> shape = world->get_shape(shape_id);
+    if (shape.is_null()) return b;
+    const Vector3 shape_origin = shape->get_position();
+
     const AABB g = chunk->get_aabb();
-    b.box = AABB(-g.size * 0.5, g.size);
+    b.box = AABB(g.position - shape_origin, g.size);
     b.filter = true;
     return b;
-}
-
-bool MeshGenerator::get_chunk_origin(uint64_t shape_id, uint64_t chunk_id, Vector3& out_origin) const {
-    auto* mgr = ShapeSpatialManager::get_singleton();
-    if (!mgr) return false;
-    ChunkOctree* octree = mgr->get_octree(shape_id);
-    if (!octree) return false;
-    Chunk* chunk = octree->find(chunk_id);
-    if (!chunk) return false;
-    out_origin = chunk->center;
-    return true;
 }
 
 void MeshGenerator::submit(uint64_t shape_id, uint64_t chunk_id, const MeshBuilder& b) const {

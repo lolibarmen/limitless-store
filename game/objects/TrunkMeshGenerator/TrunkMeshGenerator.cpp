@@ -17,8 +17,7 @@ void TrunkMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
     TrunkShape* shape = Object::cast_to<TrunkShape>(base.ptr());
     if (!shape) return;
 
-    Vector3 origin;
-    if (!get_chunk_origin(shape_id, chunk_id, origin)) return;
+    const Vector3 origin = shape->get_position();
 
     MeshBuilder b = builder(shape_id, chunk_id, false);
 

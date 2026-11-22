@@ -84,19 +84,10 @@ MeshData godot::build_neochunk_mesh(const ChunkBuildInput& input) {
         }
         meanP = meanP / edge_points.size();
 
-        // Переводим индексную координату meanP в ЛОКАЛЬНЫЕ координаты меша.
-        // MeshInstance3D ставится WorldMesh ровно в chunk->center, поэтому
-        // local = world - center:
-        //   world = chunk_coord + meanP * cell_size  (чанки выровнены по решётке,
-        //   chunk_coord — целый минимум чанка), значит
-        //   local = (meanP - half) * cell_size, где half = grid_cells / 2.
-        // Никаких offset-костылей: сетка из grid_cells ячеек точно покрывает чанк.
-        const float half = cells * 0.5f;
-        voxel_vertices[{x,y,z}] = Vector3(
-            (meanP.x - half) * input.cell_size,
-            (meanP.y - half) * input.cell_size,
-            (meanP.z - half) * input.cell_size
-        );
+        // meanP — индекс решётки; chunk_coord + meanP * cell_size — octree-local,
+        // вычитание shape_origin даёт координаты фигуры.
+        const Vector3 shape_local_base = Vector3(input.chunk_coord) - input.shape_origin;
+        voxel_vertices[{x,y,z}] = shape_local_base + meanP * input.cell_size;
     }
     
     // Второй проход: строим квады между соседними вокселями

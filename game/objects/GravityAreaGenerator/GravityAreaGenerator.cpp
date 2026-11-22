@@ -24,9 +24,6 @@ void GravityAreaGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const 
     GravityShape* shape = Object::cast_to<GravityShape>(base.ptr());
     if (!shape) return;
 
-    Vector3 origin;
-    if (!get_chunk_origin(shape_id, chunk_id, origin)) return;
-
     MeshBuilder b = builder(shape_id, chunk_id, false);
 
     const float radius = Math::max(shape->get_area_radius(), 0.001f);
@@ -42,7 +39,7 @@ void GravityAreaGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const 
             const Vector3 local(std::cos(phi) * ring_radius, y, std::sin(phi) * ring_radius);
 
             Vertex v;
-            v.pos = local - origin;
+            v.pos = local;
             v.normal = local.normalized();
             v.uv = Vector2((float)j / (float)kSegments, (float)i / (float)kRings);
             rows[i][j] = v;

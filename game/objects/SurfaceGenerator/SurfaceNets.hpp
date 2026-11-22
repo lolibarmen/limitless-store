@@ -20,6 +20,8 @@ struct MeshData {
 struct ChunkBuildInput {
     // Целочисленный минимум чанка — узел решётки выборки SDF (чанки выровнены по целой решётке).
     Vector3 chunk_coord;
+    // _position фигуры в координатах октодерева; вершины строятся в координатах фигуры.
+    Vector3 shape_origin;
     float chunk_size;   // ребро чанка в мировых единицах (целое, кратно voxel_count)
     float voxel_count;  // число ячеек решётки вдоль ребра чанка (16)
     float cell_size;    // размер одной воксельной ячейки = chunk_size / voxel_count (float!)

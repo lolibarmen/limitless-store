@@ -93,10 +93,13 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
         return;
     }
 
+    const Vector3 shape_pos = shape->get_position();
+
     auto inp = std::make_shared<ChunkBuildInput>();
     inp->lod_level   = gen->_lod_level;
     inp->voxel_count = gen->_voxel_count;
     inp->chunk_size  = chunk_size;
+    inp->shape_origin = shape_pos;
 
     const int cells = Math::max(1, (int)Math::round(gen->_voxel_count));
     const Vector3 local_min = chunk_pos - Vector3(chunk_size, chunk_size, chunk_size) * 0.5f;
@@ -116,7 +119,7 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
     std::vector<Ref<SemanticShape>> shapes = {shape};
     VoxelBaker::bake(*(inp->cache), shapes);
 
-    const MeshData data = build_neochunk_mesh(*inp);
+    MeshData data = build_neochunk_mesh(*inp);
 
     if (wm && !wm->is_current(shape_id, chunk_id, token)) {
         finish_without_result();
@@ -136,7 +139,7 @@ void SurfaceGenerator::_build_mesh_task(uint64_t generator_id, uint64_t shape_id
         data.normals.ptr(),
         colors.ptrw(),
         data.vertices.size(),
-        chunk_pos
+        shape_pos
     );
 
     Array arrays;

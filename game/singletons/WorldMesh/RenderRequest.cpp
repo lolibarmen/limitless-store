@@ -57,7 +57,7 @@ bool RenderRequest::apply(uint64_t shape_id, uint64_t chunk_id, uint64_t p_token
     const bool has_surface = mesh.is_valid() && mesh->get_surface_count() > 0;
 
     if (mesh_instance && (targets & MESH_TARGET_VISUAL)) {
-        mesh_instance->set_position(chunk_center);
+        mesh_instance->set_position(shape_origin);
         mesh_instance->set_mesh(mesh);
         if (has_surface && material_generator.is_valid()) {
             Ref<Material> material = material_generator->generate(shape_id, chunk_id);
@@ -71,7 +71,7 @@ bool RenderRequest::apply(uint64_t shape_id, uint64_t chunk_id, uint64_t p_token
 
     if (collision_shape && (targets & MESH_TARGET_COLLISION)) {
         if (collision_body) {
-            collision_body->set_position(chunk_center);
+            collision_body->set_position(shape_origin);
         }
         if (has_surface) {
             Ref<ConcavePolygonShape3D> shape = mesh->create_trimesh_shape();
@@ -85,7 +85,7 @@ bool RenderRequest::apply(uint64_t shape_id, uint64_t chunk_id, uint64_t p_token
 
     if (area_shape && (targets & MESH_TARGET_AREA)) {
         if (area) {
-            area->set_position(chunk_center);
+            area->set_position(shape_origin);
         }
         if (has_surface) {
             Ref<ConcavePolygonShape3D> shape = mesh->create_trimesh_shape();

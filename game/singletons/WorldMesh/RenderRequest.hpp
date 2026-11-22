@@ -21,7 +21,7 @@ enum MeshTarget : uint32_t {
 class RenderRequest {
 public:
     uint64_t token = 0;
-    Vector3 chunk_center;
+    Vector3 shape_origin;
     MeshInstance3D* mesh_instance = nullptr;
     StaticBody3D* collision_body = nullptr;
     CollisionShape3D* collision_shape = nullptr;

@@ -14,12 +14,11 @@ void BranchMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
     BranchShape* shape = Object::cast_to<BranchShape>(base.ptr());
     if (!shape) return;
 
-    Vector3 origin;
-    if (!get_chunk_origin(shape_id, chunk_id, origin)) return;
+    const Vector3 origin = shape->get_position();
 
     MeshBuilder b = builder(shape_id, chunk_id, false);
 
-    const Vector3 pos = shape->get_position();
+    const Vector3 pos = origin;
     const Vector3 up = shape->up();
     const Vector3 side = shape->side();
     const float width = shape->card_width();

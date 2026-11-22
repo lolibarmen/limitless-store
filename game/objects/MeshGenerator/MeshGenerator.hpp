@@ -19,8 +19,8 @@ namespace godot {
 /// Дочерний класс описывает только форму.
 ///
 /// Источники информации. Дочерний черпает сведения о форме из двух и только двух:
-///  - фигура (shape_id) — размеры и свойства сущности;
-///  - чанк (chunk_id) — локальная система координат и границы отсечения.
+///  - фигура (shape_id) — размеры, свойства и origin рендер-ноды;
+///  - чанк (chunk_id) — область выборки/триггер обновления и границы отсечения.
 /// Доступ: фигура — SemanticWorld::get_shape(shape_id); чанк —
 /// ShapeSpatialManager::get_octree(shape_id)->find(chunk_id).
 ///
@@ -35,9 +35,8 @@ namespace godot {
 ///     builder(shape_id, chunk_id, false) для маленькой фигуры, которая НЕ режется
 ///     по чанкам: отсев выключен, меш эмитится целиком.
 ///  3. На каждый треугольник формы вызвать b.emit(v0, v1, v2); вершины
-///     Vertex{pos, normal, uv} — в локальных координатах чанка (центр = 0).
-///     Смещение из локальных координат октодерева: get_chunk_origin(shape_id, chunk_id, origin);
-///     pos = local - origin.
+///     Vertex{pos, normal, uv} — в локальных координатах фигуры: координаты
+///     октодерева минус shape->get_position().
 ///  4. Вызвать submit(shape_id, chunk_id, b).
 ///
 /// Запрещено дочернему: хранить параметры формы в полях класса; обращаться к полям
@@ -47,7 +46,7 @@ class MeshGenerator : public Resource {
     GDCLASS(MeshGenerator, Resource)
 
 public:
-    /// @brief Вершина треугольника: позиция + нормаль + uv (в локальных координатах чанка).
+    /// @brief Вершина треугольника: позиция + нормаль + uv (в локальных координатах фигуры).
     struct Vertex {
         Vector3 pos;
         Vector3 normal;
@@ -63,7 +62,7 @@ public:
         PackedVector2Array uvs;
         PackedInt32Array   idx;
         PackedInt32Array   marks;   // 1 = треугольник пересекает границу чанка (кандидат на резку)
-        AABB               box;     // локальный бокс чанка (центр = 0)
+        AABB               box;     // бокс чанка в локальных координатах фигуры
         bool               filter;  // false => бокс недоступен, фильтр выключен (эмитим всё)
         uint64_t           request_token = 0; // токен запроса на момент создания билдера
     public:
@@ -75,19 +74,14 @@ public:
 protected:
     static void _bind_methods();
 
-    /// @brief Создаёт билдер, один раз читая бокс чанка через ShapeSpatialManager.
-    /// При недоступности чанка возвращает билдер с выключенным фильтром (геометрия не теряется).
+    /// @brief Создаёт билдер, один раз читая бокс чанка через ShapeSpatialManager и origin фигуры.
+    /// При недоступности чанка или фигуры возвращает билдер с выключенным фильтром (геометрия не теряется).
     MeshBuilder builder(uint64_t shape_id, uint64_t chunk_id) const;
 
     /// @brief Создаёт билдер с явным режимом нарезки. slice=false — фильтр выключен
     /// (фигура маленькая и не режется по чанкам: эмитится весь меш), бокс чанка
     /// при этом не читается. При недоступности чанка фильтр выключен в любом случае.
     MeshBuilder builder(uint64_t shape_id, uint64_t chunk_id, bool slice) const;
-
-    /// @brief Центр чанка в локальных координатах октодерева (origin локальной системы чанка).
-    /// false — чанк недоступен; out не изменяется. Нужен для перевода локальных
-    /// координат формы в локальные координаты чанка: pos = local - origin.
-    bool get_chunk_origin(uint64_t shape_id, uint64_t chunk_id, Vector3& out_origin) const;
 
     /// @brief Доставка результата. НЕ ПЕРЕОПРЕДЕЛЯТЬ. Строит ArrayMesh из билдера,
     /// (TODO) режет по marks==1, вызывает WorldMesh::complete_mesh(). СЕЙЧАС резка NO-OP.

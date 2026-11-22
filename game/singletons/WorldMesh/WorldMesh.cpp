@@ -123,14 +123,19 @@ bool WorldMesh::_start_render(const PendingRender& job) {
         return false;
     }
 
-    const Vector3 local_center = chunk->center;
+    SemanticWorld* world = SemanticWorld::get_singleton();
+    if (!world) return false;
+
+    const Ref<SemanticShape> shape = world->get_shape(job.shape_id);
+    if (shape.is_null()) return false;
+
+    const Vector3 shape_origin = shape->get_position();
+    request->shape_origin = shape_origin;
 
     if (job.visual_generator.is_valid() && !request->mesh_instance) {
-        request->chunk_center = local_center;
-
         MeshInstance3D* mesh_instance = memnew(MeshInstance3D);
         octree->add_child(mesh_instance);
-        mesh_instance->set_position(local_center);
+        mesh_instance->set_position(shape_origin);
         mesh_instance->set_visible(false);
         request->mesh_instance = mesh_instance;
     }
@@ -141,7 +146,7 @@ bool WorldMesh::_start_render(const PendingRender& job) {
     if (!editor && job.collision_generator.is_valid() && !request->collision_body) {
         StaticBody3D* collision_body = memnew(StaticBody3D);
         octree->add_child(collision_body);
-        collision_body->set_position(local_center);
+        collision_body->set_position(shape_origin);
 
         CollisionShape3D* collision_shape = memnew(CollisionShape3D);
         collision_shape->set_disabled(true);
@@ -154,7 +159,7 @@ bool WorldMesh::_start_render(const PendingRender& job) {
     if (job.area_generator.is_valid() && !request->area) {
         Area3D* area = memnew(Area3D);
         octree->add_child(area);
-        area->set_position(local_center);
+        area->set_position(shape_origin);
         area->set_meta("shape_id", (int64_t)job.shape_id);
         area->connect("area_entered", Callable(this, "_on_alchemy_area_entered").bind((int64_t)job.shape_id));
 
