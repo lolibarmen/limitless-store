@@ -135,7 +135,7 @@ public:
         return nullptr;
     }
 
-    virtual Ref<SemanticShape> evaluate_alchemy(uint64_t other_id, Ref<SemanticShape> other_shape) const {
+    virtual Ref<SemanticShape> evaluate_alchemy(uint64_t other_id) const {
         return nullptr;
     }
 

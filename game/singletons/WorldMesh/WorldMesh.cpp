@@ -427,10 +427,9 @@ void WorldMesh::_on_alchemy_area_entered(Area3D* other, int64_t self_id) {
 
     const uint64_t self = (uint64_t)self_id;
     Ref<SemanticShape> self_shape = sw->get_shape(self);
-    Ref<SemanticShape> other_shape = sw->get_shape((uint64_t)other_id);
     if (self_shape.is_null() || other_shape.is_null()) return;
 
-    Ref<SemanticShape> proposed = self_shape->evaluate_alchemy((uint64_t)other_id, other_shape);
+    Ref<SemanticShape> proposed = self_shape->evaluate_alchemy((uint64_t)other_id);
     if (proposed.is_null()) return;
     if (proposed->get_shape_type() == StringName("shape")) return;
     if (proposed.ptr() == self_shape.ptr()) return;
