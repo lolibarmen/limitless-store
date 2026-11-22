@@ -70,9 +70,10 @@ public:
     /// Если у фигуры ещё нет дерева, создаёт новое.
     /// @return ID нового дерева.
     uint64_t rebuild_octree(uint64_t shape_id,
-                            const Vector3& position,
-                            float root_size,
-                            int max_depth);
+                             float root_size,
+                             int max_depth);
+
+    void set_octree_position(uint64_t shape_id, const Vector3& position);
 
     /// @brief Связывает фигуру с пространственной сеткой другой фигуры (ее регистрирует).
     /// @details Родительская фигура должна быть зарегистрирована раньше дочерней,
