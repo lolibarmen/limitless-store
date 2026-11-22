@@ -75,8 +75,8 @@ public:
     uint64_t get_id() const { return _id; }
 
     /// @brief Локальная позиция фигуры в пространстве её октодерева.
-    virtual void set_position(const Vector3& v) { _position = v; notify_shape_changed(); }
-    virtual Vector3 get_position() const { return _position; }
+    void set_position(const Vector3& v);
+    Vector3 get_position() const;
 
     AABB get_aabb();
     

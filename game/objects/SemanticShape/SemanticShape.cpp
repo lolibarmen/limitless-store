@@ -1,6 +1,7 @@
 #include "SemanticShape.hpp"
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <WorldMesh/WorldMesh.hpp>
+#include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/math.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -10,6 +11,34 @@ using namespace godot;
 SemanticShape::SemanticShape() {}
 
 SemanticShape::~SemanticShape() {
+}
+
+void SemanticShape::set_position(const Vector3& v) {
+    if (_id != 0) {
+        if (ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton()) {
+            if (ChunkOctree* octree = mgr->get_octree(_id)) {
+                if (octree->id == _id) {
+                    octree->set_position(v);
+                    return;
+                }
+            }
+        }
+    }
+    _position = v;
+    notify_shape_changed();
+}
+
+Vector3 SemanticShape::get_position() const {
+    if (_id != 0) {
+        if (ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton()) {
+            if (ChunkOctree* octree = mgr->get_octree(_id)) {
+                if (octree->id == _id) {
+                    return octree->get_position();
+                }
+            }
+        }
+    }
+    return _position;
 }
 
 void SemanticShape::_bind_methods() {

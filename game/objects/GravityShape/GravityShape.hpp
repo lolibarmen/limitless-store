@@ -24,7 +24,6 @@ public:
     void bind_planet(const Ref<PlanetShape>& planet);
     Ref<PlanetShape> get_planet() const { return _planet; }
 
-    void set_position(const Vector3& v) override;
     Vector3 get_up_at(const Vector3& local_pos) const;
     float get_area_radius() const;
 

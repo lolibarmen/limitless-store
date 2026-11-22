@@ -28,9 +28,6 @@ private:
     /// Отсутствие записи означает, что у фигуры нет октодерева.
     std::unordered_map<uint64_t, uint64_t> _shape_octree;
 
-    /// Счётчик уникальных ID октодеревьев.
-    std::atomic<uint64_t> _next_octree_id{1};
-
     /// Глобальный счётчик уникальных ID чанков.
     std::atomic<uint64_t> _next_chunk_id{1};
 
@@ -72,8 +69,6 @@ public:
     uint64_t rebuild_octree(uint64_t shape_id,
                              float root_size,
                              int max_depth);
-
-    void set_octree_position(uint64_t shape_id, const Vector3& position);
 
     /// @brief Связывает фигуру с пространственной сеткой другой фигуры (ее регистрирует).
     /// @details Родительская фигура должна быть зарегистрирована раньше дочерней,

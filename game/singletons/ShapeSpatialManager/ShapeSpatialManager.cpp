@@ -24,7 +24,7 @@ uint64_t ShapeSpatialManager::create_octree(
     // Перерегистрация: если у фигуры уже было дерево, отвязываем её от него.
     detach_shape(shape_id);
 
-    uint64_t octree_id = _next_octree_id++;
+    uint64_t octree_id = shape_id;
 
     ChunkOctree* octree = memnew(ChunkOctree);
     octree->id = octree_id;
@@ -77,20 +77,6 @@ uint64_t ShapeSpatialManager::rebuild_octree(
     }
 
     return new_octree_id;
-}
-
-void ShapeSpatialManager::set_octree_position(uint64_t shape_id, const Vector3& position) {
-    auto shape_it = _shape_octree.find(shape_id);
-    if (shape_it == _shape_octree.end()) {
-        return;
-    }
-
-    auto octree_it = _octrees.find(shape_it->second);
-    if (octree_it == _octrees.end()) {
-        return;
-    }
-
-    octree_it->second->set_position(position);
 }
 
 void ShapeSpatialManager::attach_shape(uint64_t shape_id, uint64_t octree_id) {

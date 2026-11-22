@@ -21,13 +21,6 @@ void GravityShape::bind_planet(const Ref<PlanetShape>& planet) {
     notify_shape_changed();
 }
 
-void GravityShape::set_position(const Vector3& v) {
-    (void)v;
-    if (_position != Vector3()) {
-        SemanticShape::set_position(Vector3());
-    }
-}
-
 Vector3 GravityShape::get_up_at(const Vector3& local_pos) const {
     const Vector3 d = local_pos - _position;
     const float len = d.length();

@@ -91,11 +91,6 @@ void TreeShape::bind_planet(const Ref<PlanetShape>& planet) {
     notify_shape_changed();
 }
 
-void TreeShape::set_position(const Vector3& v) {
-    _position = v;
-    notify_trunk_changed();
-}
-
 Vector3 TreeShape::get_up() const {
     if (_planet.is_valid()) {
         Ref<GravityShape> gravity = _planet->get_gravity();

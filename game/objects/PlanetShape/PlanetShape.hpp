@@ -35,9 +35,6 @@ public:
     void set_amplitude(float a) { _amplitude = a; notify_shape_changed(); }
     float get_amplitude() const { return _amplitude; }
 
-    void set_position(const Vector3& v) override;
-    Vector3 get_position() const override;
-
     Ref<GravityShape> get_gravity() const;
 
     StringName get_shape_type() const override { return "planet"; }

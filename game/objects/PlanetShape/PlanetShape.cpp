@@ -34,21 +34,6 @@ void PlanetShape::_bind_methods() {
 
 PlanetShape::PlanetShape() = default;
 
-void PlanetShape::set_position(const Vector3& v) {
-    if (ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton()) {
-        mgr->set_octree_position(get_id(), v);
-    }
-}
-
-Vector3 PlanetShape::get_position() const {
-    if (ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton()) {
-        if (ChunkOctree* octree = mgr->get_octree(get_id())) {
-            return octree->get_position();
-        }
-    }
-    return Vector3();
-}
-
 void PlanetShape::recompute_aabb() {
     const float r = _radius + _amplitude;
     _aabb = AABB(-Vector3(r, r, r), Vector3(r * 2.0f, r * 2.0f, r * 2.0f));

@@ -42,7 +42,7 @@ private:
     void evaluate_node(Chunk* node, const Vector3& viewer_pos, int max_depth);
     
 public:
-    /// @brief Уникальный ID дерева, выдаваемый ShapeSpatialManager.
+    /// @brief ID фигуры-владельца, запросившей создание дерева. Также является уникальным идентификатором дерева
     uint64_t id = 0;
 
     /// @brief Максимальная глубина детализации дерева. Задаётся только при создании (create_octree).
