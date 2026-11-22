@@ -2,7 +2,6 @@
 
 #include <MeshGenerator/MeshGenerator.hpp>
 #include <MaterialGenerator/MaterialGenerator.hpp>
-#include <godot_cpp/classes/area3d.hpp>
 #include <godot_cpp/classes/array_mesh.hpp>
 #include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
@@ -11,6 +10,8 @@
 #include <cstdint>
 
 namespace godot {
+
+class AlchemyArea3D;
 
 enum MeshTarget : uint32_t {
     MESH_TARGET_VISUAL = 1u << 0,
@@ -25,7 +26,7 @@ public:
     MeshInstance3D* mesh_instance = nullptr;
     StaticBody3D* collision_body = nullptr;
     CollisionShape3D* collision_shape = nullptr;
-    Area3D* area = nullptr;
+    AlchemyArea3D* area = nullptr;
     CollisionShape3D* area_shape = nullptr;
     Ref<MaterialGenerator> material_generator;
     bool active = true;

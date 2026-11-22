@@ -1,4 +1,5 @@
 #include "RenderRequest.hpp"
+#include <AlchemyArea3D/AlchemyArea3D.hpp>
 
 #include <godot_cpp/classes/concave_polygon_shape3d.hpp>
 #include <godot_cpp/classes/material.hpp>

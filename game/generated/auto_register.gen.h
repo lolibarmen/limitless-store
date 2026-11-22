@@ -15,6 +15,7 @@ using namespace godot;
 #include "SurfaceShape/SurfaceShape.hpp"
 #include "PlayerMovement/PlayerMovement.hpp"
 #include "BranchMaterialGenerator/BranchMaterialGenerator.hpp"
+#include "AlchemyArea3D/AlchemyArea3D.hpp"
 #include "BranchMeshGenerator/BranchMeshGenerator.hpp"
 #include "WorldShapeNode/WorldShapeNode.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
@@ -56,6 +57,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<GravityAreaGenerator>();
     ClassDB::register_class<PlayerMovement>();
     ClassDB::register_class<BranchMaterialGenerator>();
+    ClassDB::register_class<AlchemyArea3D>();
     ClassDB::register_class<BranchMeshGenerator>();
     ClassDB::register_class<WorldShapeNode>();
     ClassDB::register_class<TrunkShape>();

@@ -2,7 +2,6 @@
 
 #include <MaterialGenerator/MaterialGenerator.hpp>
 #include <MeshGenerator/MeshGenerator.hpp>
-#include <SemanticShape/SemanticShape.hpp>
 #include <godot_cpp/classes/array_mesh.hpp>
 #include <godot_cpp/classes/mesh_instance3d.hpp>
 #include <godot_cpp/classes/node3d.hpp>
@@ -15,7 +14,6 @@
 
 namespace godot {
 
-class Area3D;
 class Chunk;
 
 class WorldMesh : public Node3D {
@@ -45,15 +43,9 @@ private:
         int pending = 0;
     };
 
-    struct PendingAlchemy {
-        uint64_t self_id = 0;
-        Ref<SemanticShape> proposed;
-    };
-
     std::deque<PendingRender> _pending_renders;
     std::unordered_map<uint64_t, ActiveRender> _active_renders;
     std::unordered_map<uint64_t, std::unordered_map<uint64_t, uint64_t>> _pending_tokens;
-    std::vector<PendingAlchemy> _pending_alchemy;
 
     int _max_concurrent_renders = 0;
     bool _pumping_renders = false;
@@ -66,8 +58,6 @@ private:
     void _remove_mesh_from_chunk(Chunk* chunk, uint64_t shape_id);
     void _clear_shape_in_subtree(Chunk* node, uint64_t shape_id);
     void _flush_invalidations();
-    void _flush_alchemy();
-    void _on_alchemy_area_entered(Area3D* other, int64_t self_id);
 
 protected:
     static void _bind_methods();

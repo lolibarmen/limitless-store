@@ -1,10 +1,11 @@
 #include "WorldMesh.hpp"
 #include "RenderRequest.hpp"
+#include <AlchemyArea3D/AlchemyArea3D.hpp>
+#include <SemanticShape/SemanticShape.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <MeshGenerator/MeshGenerator.hpp>
 #include <MaterialGenerator/MaterialGenerator.hpp>
-#include <godot_cpp/classes/area3d.hpp>
 #include <godot_cpp/classes/collision_shape3d.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/os.hpp>
@@ -25,7 +26,6 @@ void WorldMesh::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::INT, "max_concurrent_renders"), "set_max_concurrent_renders", "get_max_concurrent_renders");
 
     ClassDB::bind_method(D_METHOD("_on_render_task_finished", "shape_id", "chunk_id", "token"), &WorldMesh::_on_render_task_finished);
-    ClassDB::bind_method(D_METHOD("_on_alchemy_area_entered", "area", "self_id"), &WorldMesh::_on_alchemy_area_entered);
 }
 
 WorldMesh* WorldMesh::get_singleton() {
@@ -46,8 +46,6 @@ void WorldMesh::_ready() {
 }
 
 void WorldMesh::_process(double delta) {
-    _flush_alchemy();
-
     if (!_dirty_shapes.empty()) {
         _dirty_timer += delta;
         if (_dirty_timer >= 0.15) {
@@ -157,11 +155,10 @@ bool WorldMesh::_start_render(const PendingRender& job) {
     }
 
     if (job.area_generator.is_valid() && !request->area) {
-        Area3D* area = memnew(Area3D);
+        AlchemyArea3D* area = memnew(AlchemyArea3D);
         octree->add_child(area);
         area->set_position(shape_origin);
-        area->set_meta("shape_id", (int64_t)job.shape_id);
-        area->connect("area_entered", Callable(this, "_on_alchemy_area_entered").bind((int64_t)job.shape_id));
+        area->set_shape_id(job.shape_id);
 
         CollisionShape3D* area_shape = memnew(CollisionShape3D);
         area_shape->set_disabled(true);
@@ -418,42 +415,4 @@ void WorldMesh::complete_mesh(uint64_t shape_id, uint64_t chunk_id, uint64_t tok
 
     _release_active(token);
     _pump_renders();
-}
-
-void WorldMesh::_on_alchemy_area_entered(Area3D* other, int64_t self_id) {
-    if (!other || self_id == 0) return;
-
-    const int64_t other_id = (int64_t)other->get_meta("shape_id");
-    if (other_id == 0 || other_id == self_id) return;
-
-    SemanticWorld* sw = SemanticWorld::get_singleton();
-    if (!sw) return;
-
-    const uint64_t self = (uint64_t)self_id;
-    Ref<SemanticShape> self_shape = sw->get_shape(self);
-    if (self_shape.is_null()) return;
-
-    Ref<SemanticShape> proposed = self_shape->evaluate_alchemy((uint64_t)other_id);
-    if (proposed.is_null()) return;
-    if (proposed->get_shape_type() == StringName("shape")) return;
-    if (proposed.ptr() == self_shape.ptr()) return;
-    if (sw->get_shape(self).ptr() != self_shape.ptr()) return;
-
-    _pending_alchemy.push_back({self, proposed});
-}
-
-void WorldMesh::_flush_alchemy() {
-    if (_pending_alchemy.empty()) return;
-
-    std::vector<PendingAlchemy> pending = std::move(_pending_alchemy);
-    _pending_alchemy.clear();
-
-    SemanticWorld* sw = SemanticWorld::get_singleton();
-    if (!sw) return;
-
-    for (const PendingAlchemy& item : pending) {
-        if (sw->get_shape(item.self_id).is_valid()) {
-            sw->propose_shape_change(item.self_id, item.proposed);
-        }
-    }
 }
