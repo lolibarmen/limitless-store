@@ -11,19 +11,25 @@ void PlayerMovement::_bind_methods() {}
 void PlayerMovement::update_movement(CharacterBody3D* player, double delta) {
     if (!player || Engine::get_singleton()->is_editor_hint()) return;
 
-    float speed = walk_speed;
+    const float speed = Input::get_singleton()->is_action_pressed("run") ? run_speed : walk_speed;
     Vector3 velocity = player->get_velocity();
+    Vector3 up = player->get_up_direction();
+    if (up.length_squared() < 0.0001f) {
+        up = Vector3(0.0f, 1.0f, 0.0f);
+    }
+    up.normalize();
+
+    const float vertical_speed = velocity.dot(up);
+    Vector3 planar_velocity = velocity - up * vertical_speed;
+    float new_vertical_speed = vertical_speed;
 
     if (!player->is_on_floor()) {
-        velocity.y -= gravity * (float)delta;
+        new_vertical_speed -= gravity * (float)delta;
     }
 
     Input* input = Input::get_singleton();
-    if (input->is_action_just_pressed("ui_accept")) {
-        velocity.y += 4.5f;
-    }
-    if (input->is_action_pressed("run")) {
-        speed = run_speed;
+    if (input->is_action_just_pressed("ui_accept") && player->is_on_floor()) {
+        new_vertical_speed = 4.5f;
     }
 
     Vector2 input_dir = Vector2(
@@ -33,19 +39,29 @@ void PlayerMovement::update_movement(CharacterBody3D* player, double delta) {
 
     Vector3 direction;
     if (input_dir != Vector2()) {
-        Transform3D transform = player->get_global_transform();
-        direction = (transform.basis.get_column(0) * input_dir.x
-                   - transform.basis.get_column(2) * input_dir.y).normalized();
+        Basis basis = player->get_global_basis().orthonormalized();
+        Vector3 right = basis.get_column(0);
+        Vector3 forward = -basis.get_column(2);
+        right -= up * right.dot(up);
+        forward -= up * forward.dot(up);
+        if (right.length_squared() > 0.0001f) right.normalize();
+        if (forward.length_squared() > 0.0001f) forward.normalize();
+        direction = (right * input_dir.x + forward * input_dir.y);
+        if (direction.length_squared() > 0.0001f) direction.normalize();
     }
 
     if (direction != Vector3()) {
-        velocity.x = direction.x * speed;
-        velocity.z = direction.z * speed;
+        planar_velocity = direction * speed;
     } else {
-        velocity.x = Math::move_toward(velocity.x, 0.0f, speed);
-        velocity.z = Math::move_toward(velocity.z, 0.0f, speed);
+        const float planar_speed = planar_velocity.length();
+        const float new_planar_speed = Math::move_toward(planar_speed, 0.0f, speed);
+        if (planar_speed > 0.0001f) {
+            planar_velocity = planar_velocity * (new_planar_speed / planar_speed);
+        } else {
+            planar_velocity = Vector3();
+        }
     }
 
-    player->set_velocity(velocity);
+    player->set_velocity(planar_velocity + up * new_vertical_speed);
     player->move_and_slide();
 }

@@ -32,7 +32,7 @@ void PlayerCamera::process_input(Node3D* parent, const Ref<InputEvent>& event) {
 
     if (mouse_motion && Input::get_singleton()->get_mouse_mode() == Input::MOUSE_MODE_CAPTURED) {
         if (parent) {
-            parent->rotate_y(-mouse_motion->get_relative().x * sensitivity);
+            parent->rotate_object_local(Vector3(0.0f, 1.0f, 0.0f), -mouse_motion->get_relative().x * sensitivity);
         }
 
         if (camera_pivot) {

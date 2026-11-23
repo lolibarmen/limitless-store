@@ -7,6 +7,7 @@
 #include <PlayerInteraction/PlayerInteraction.hpp>
 #include <ToolManager/ToolManager.hpp>
 #include <PlayerFieldShape/PlayerFieldShape.hpp>
+#include <GravityShape/GravityShape.hpp>
 
 namespace godot {
 
@@ -21,6 +22,10 @@ private:
     Ref<PlayerInteraction> interaction;
     ToolManager* tool_mgr = nullptr;
     Ref<PlayerFieldShape> _field_shape;
+    uint64_t _bound_gravity_id = 0;
+
+    Vector3 _resolve_gravity_up();
+    void _align_to_up(const Vector3& up);
 
 protected:
     static void _bind_methods() {}
