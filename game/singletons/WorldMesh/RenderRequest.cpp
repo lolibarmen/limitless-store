@@ -2,6 +2,7 @@
 #include <AlchemyArea3D/AlchemyArea3D.hpp>
 
 #include <godot_cpp/classes/concave_polygon_shape3d.hpp>
+#include <godot_cpp/classes/convex_polygon_shape3d.hpp>
 #include <godot_cpp/classes/material.hpp>
 #include <godot_cpp/classes/mesh.hpp>
 
@@ -89,7 +90,7 @@ bool RenderRequest::apply(uint64_t shape_id, uint64_t chunk_id, uint64_t p_token
             area->set_position(shape_origin);
         }
         if (has_surface) {
-            Ref<ConcavePolygonShape3D> shape = mesh->create_trimesh_shape();
+            Ref<ConvexPolygonShape3D> shape = mesh->create_convex_shape(true, false);
             area_shape->set_shape(shape);
             area_shape->set_disabled(shape.is_null());
         } else {
