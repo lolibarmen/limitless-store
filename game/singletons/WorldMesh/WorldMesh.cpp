@@ -127,7 +127,8 @@ bool WorldMesh::_start_render(const PendingRender& job) {
     const Ref<SemanticShape> shape = world->get_shape(job.shape_id);
     if (shape.is_null()) return false;
 
-    const Vector3 shape_origin = shape->get_position();
+    const bool owns_octree = octree->id == job.shape_id;
+    const Vector3 shape_origin = owns_octree ? Vector3() : shape->get_position();
     request->shape_origin = shape_origin;
 
     if (job.visual_generator.is_valid() && !request->mesh_instance) {

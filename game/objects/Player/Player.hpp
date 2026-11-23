@@ -6,6 +6,7 @@
 #include <PlayerCamera/PlayerCamera.hpp>
 #include <PlayerInteraction/PlayerInteraction.hpp>
 #include <ToolManager/ToolManager.hpp>
+#include <PlayerFieldShape/PlayerFieldShape.hpp>
 
 namespace godot {
 
@@ -19,6 +20,7 @@ private:
     Ref<PlayerCamera> camera_ctl;
     Ref<PlayerInteraction> interaction;
     ToolManager* tool_mgr = nullptr;
+    Ref<PlayerFieldShape> _field_shape;
 
 protected:
     static void _bind_methods() {}
@@ -27,6 +29,7 @@ public:
     Player() = default;
 
     void _ready() override;
+    void _exit_tree() override;
     void _physics_process(double delta) override;
     void _process(double delta) override;
     void _input(const Ref<InputEvent>& event) override;

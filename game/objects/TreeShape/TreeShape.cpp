@@ -95,13 +95,13 @@ Vector3 TreeShape::get_up() const {
     if (_planet.is_valid()) {
         Ref<GravityShape> gravity = _planet->get_gravity();
         if (gravity.is_valid()) {
-            return gravity->get_up_at(_position);
+            return gravity->get_up_at(get_position());
         }
     }
 
-    const float len = _position.length();
+    const float len = get_position().length();
     if (len > 0.0001f) {
-        return _position / len;
+        return get_position() / len;
     }
     return Vector3(0.0f, 1.0f, 0.0f);
 }
@@ -148,7 +148,7 @@ void TreeShape::_sync_children(bool trunk_changed) {
     if (trunk.is_null()) return;
 
     if (trunk_changed) {
-        trunk->set_position(_position);
+        trunk->set_position(get_position());
         trunk->set_up(get_up());
         trunk->set_height(_height);
         trunk->set_base_radius(_base_radius);
@@ -202,7 +202,7 @@ void TreeShape::_spawn_children() {
         Ref<TrunkShape> trunk;
         trunk.instantiate();
         trunk->bind_planet(_planet);
-        trunk->set_position(_position);
+        trunk->set_position(get_position());
         trunk->set_up(get_up());
         trunk->set_height(_height);
         trunk->set_base_radius(_base_radius);
@@ -302,7 +302,7 @@ void TreeShape::recompute_aabb() {
     }
 
     if (empty) {
-        box = AABB(_position, Vector3(0.01f, 0.01f, 0.01f));
+        box = AABB(get_position(), Vector3(0.01f, 0.01f, 0.01f));
     }
 
     _aabb = box;

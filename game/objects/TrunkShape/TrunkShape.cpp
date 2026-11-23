@@ -72,7 +72,7 @@ void TrunkShape::set_up(const Vector3& v) {
 Vector3 TrunkShape::centerline(float t) const {
     const float s = CLAMP(t, 0.0f, 1.0f);
     const float smooth = s * s * (3.0f - 2.0f * s);
-    return _position + _up * (_height * s) + _bend * smooth;
+    return get_position() + _up * (_height * s) + _bend * smooth;
 }
 
 Vector3 TrunkShape::centerline_tangent(float t) const {

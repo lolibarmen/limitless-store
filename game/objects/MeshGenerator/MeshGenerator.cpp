@@ -60,7 +60,7 @@ MeshGenerator::MeshBuilder MeshGenerator::builder(uint64_t shape_id, uint64_t ch
     if (!world) return b;
     const Ref<SemanticShape> shape = world->get_shape(shape_id);
     if (shape.is_null()) return b;
-    const Vector3 shape_origin = shape->get_position();
+    const Vector3 shape_origin = (octree->id == shape_id) ? Vector3() : shape->get_position();
 
     const AABB g = chunk->get_aabb();
     b.box = AABB(g.position - shape_origin, g.size);

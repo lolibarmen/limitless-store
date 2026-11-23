@@ -99,10 +99,10 @@ float BranchShape::card_width() const {
 
 void BranchShape::recompute_aabb() {
     const Vector3 s = side() * (card_width() * 0.5f);
-    const Vector3 tip = _position + up() * card_height();
+    const Vector3 tip = get_position() + up() * card_height();
 
-    AABB box(_position - s, Vector3());
-    box = box.expand(_position + s);
+    AABB box(get_position() - s, Vector3());
+    box = box.expand(get_position() + s);
     box = box.expand(tip - s);
     box = box.expand(tip + s);
 

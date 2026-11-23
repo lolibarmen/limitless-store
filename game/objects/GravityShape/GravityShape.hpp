@@ -1,6 +1,6 @@
 #pragma once
 
-#include <GravityAreaGenerator/GravityAreaGenerator.hpp>
+#include <SphereMeshGenerator/SphereMeshGenerator.hpp>
 #include <PlanetShape/PlanetShape.hpp>
 #include <SemanticShape/SemanticShape.hpp>
 #include <godot_cpp/classes/ref.hpp>
@@ -12,7 +12,7 @@ class GravityShape : public SemanticShape {
 
 private:
     Ref<PlanetShape> _planet;
-    Ref<GravityAreaGenerator> _area_generator;
+    Ref<SphereMeshGenerator> _area_generator;
 
 protected:
     static void _bind_methods();

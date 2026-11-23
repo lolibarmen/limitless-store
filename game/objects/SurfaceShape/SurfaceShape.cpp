@@ -50,7 +50,7 @@ int SurfaceShape::get_material_id(const Vector3& local_pos) const {
 
     // Используем направление от центра, как и в evaluate_sdf,
     // чтобы биомы не "плыли" по вертикали вместе с рельефом.
-    const Vector3 d = local_pos - _position;
+    const Vector3 d = local_pos - get_position();
     const float len = d.length();
     const Vector3 dir = len > 0.0f ? d / len : Vector3(0.0f, 1.0f, 0.0f);
 
@@ -69,7 +69,7 @@ float SurfaceShape::evaluate_sdf(const Vector3& local_pos) const {
         return 1e10f;
     }
 
-    const Vector3 d = local_pos - _position;
+    const Vector3 d = local_pos - get_position();
     // Шум берётся по направлению (нормализованный вектор), а не по полной точке:
     // иначе высота зависит от расстояния до центра и радиус «плывёт» вместе с удалением.
     const float len = d.length();

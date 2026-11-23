@@ -22,7 +22,7 @@ void GravityShape::bind_planet(const Ref<PlanetShape>& planet) {
 }
 
 Vector3 GravityShape::get_up_at(const Vector3& local_pos) const {
-    const Vector3 d = local_pos - _position;
+    const Vector3 d = local_pos - get_position();
     const float len = d.length();
     if (len > 0.0001f) {
         return d / len;

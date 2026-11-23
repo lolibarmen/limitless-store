@@ -227,9 +227,6 @@ branch_width = 0.12
 planet = SubResource("PlanetShape_m685e")
 position = Vector3(0, 89.4, 0)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_jaeev"]
-size = Vector3(6, 1, 8)
-
 [node name="Node3D" type="Node3D" unique_id=1806351155]
 
 [node name="WorldCoordinator" type="WorldCoordinator" parent="." unique_id=1276718905]
@@ -308,11 +305,4 @@ directional_shadow_mode = 0
 environment = ExtResource("1_u80x2")
 
 [node name="Player" type="Player" parent="." unique_id=1082855381]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7, 0)
-
-[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=258519968]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 44, 2)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=219904302]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0, 1.5)
-shape = SubResource("BoxShape3D_jaeev")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 118, 0)
