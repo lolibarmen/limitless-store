@@ -55,10 +55,10 @@ class SemanticShape : public Resource {
     GDCLASS(SemanticShape, Resource)
 
 private:
+    Vector3 _position;
 
 protected:
     uint64_t _id = 0;
-    Vector3 _position;
     godot::PackedInt64Array _owned_shape_ids;
 
     AABB _aabb;
