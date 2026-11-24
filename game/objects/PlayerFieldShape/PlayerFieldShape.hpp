@@ -13,7 +13,7 @@ private:
     float _area_radius = 2.0f;
     Ref<SphereMeshGenerator> _area_generator;
     mutable uint64_t _pending_gravity_id = 0;
-    uint64_t _bound_gravity_id = 0;
+    mutable uint64_t _bound_gravity_id = 0;
 
 protected:
     static void _bind_methods();
@@ -33,7 +33,6 @@ public:
     void on_register() override;
     void on_zone_changed(uint64_t chunk_id) override;
     Ref<SemanticShape> evaluate_alchemy(uint64_t other_id) const override;
-    void on_alchemy_separation(uint64_t other_id) override;
 };
 
 } // namespace godot

@@ -12,9 +12,7 @@ private:
     uint64_t _shape_id = 0;
 
     void _on_area_entered(Area3D* other);
-    void _on_area_exited(Area3D* other);
     void _commit_alchemy(int64_t self_id, int64_t other_id);
-    void _commit_alchemy_separation(int64_t self_id, int64_t other_id);
 
 protected:
     static void _bind_methods();

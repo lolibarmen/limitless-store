@@ -133,11 +133,8 @@ void PlanetShape::on_register() {
     forest.instantiate();
     forest->bind_planet(Ref<PlanetShape>(this));
     forest->set_tree_shape(tree_shape);
+    forest->set_radius(_radius + _amplitude);
     sw->register_shape(forest);
-
-    if (forest->get_id() != 0) {
-        mgr->bind_spatially(forest->get_id(), get_id());
-    }
 
     _forest_id = forest->get_id();
     add_owned_shape(_forest_id);

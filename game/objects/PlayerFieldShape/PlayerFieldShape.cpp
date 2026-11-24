@@ -58,6 +58,10 @@ Ref<SemanticShape> PlayerFieldShape::evaluate_alchemy(uint64_t other_id) const {
     Ref<SemanticShape> other = sw->get_shape(other_id);
     if (Object::cast_to<GravityShape>(other.ptr())) {
         _pending_gravity_id = other_id;
+        _bound_gravity_id = other_id;
+    } else {
+        _pending_gravity_id = 0;
+        _bound_gravity_id = 0;
     }
     return nullptr;
 }
@@ -77,11 +81,3 @@ uint64_t PlayerFieldShape::consume_pending_gravity_id() {
     return _bound_gravity_id;
 }
 
-void PlayerFieldShape::on_alchemy_separation(uint64_t other_id) {
-    if (_pending_gravity_id == other_id) {
-        _pending_gravity_id = 0;
-    }
-    if (_bound_gravity_id == other_id) {
-        _bound_gravity_id = 0;
-    }
-}

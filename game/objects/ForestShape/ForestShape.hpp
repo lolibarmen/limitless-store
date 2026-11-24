@@ -22,7 +22,6 @@ private:
     float _radius = 8.0f;
     int _tree_count = 12;
 
-    mutable uint64_t _pending_surface_id = 0;
     uint64_t _planted_surface_id = 0;
     std::unordered_set<uint64_t> _planted_surfaces;
 
@@ -57,9 +56,6 @@ public:
     void on_zone_changed(uint64_t chunk_id) override;
 
     Ref<SemanticShape> evaluate_alchemy(uint64_t other_id) const override;
-    void on_alchemy_separation(uint64_t other_id) override;
-
-    void consume_pending_surface();
 };
 
 } // namespace godot

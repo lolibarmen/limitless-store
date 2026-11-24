@@ -1,4 +1,5 @@
 #include "ForestShape.hpp"
+#include <GravityShape/GravityShape.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <SurfaceShape/SurfaceShape.hpp>
@@ -82,7 +83,6 @@ void ForestShape::on_register() {
 
 void ForestShape::on_unregister() {
     _clear_trees();
-    _pending_surface_id = 0;
     _planted_surface_id = 0;
     _planted_surfaces.clear();
 }
@@ -104,39 +104,16 @@ Ref<SemanticShape> ForestShape::evaluate_alchemy(uint64_t other_id) const {
     if (!sw) return nullptr;
 
     Ref<SemanticShape> other = sw->get_shape(other_id);
-    if (Object::cast_to<SurfaceShape>(other.ptr())) {
-        _pending_surface_id = other_id;
+    SurfaceShape* surface = Object::cast_to<SurfaceShape>(other.ptr());
+    if (!surface || _planted_surfaces.find(other_id) != _planted_surfaces.end()) {
+        return nullptr;
+    }
+
+    const_cast<ForestShape*>(this)->_plant_trees(surface);
+    if (_planted_surface_id != 0) {
+        const_cast<ForestShape*>(this)->_planted_surfaces.insert(other_id);
     }
     return nullptr;
-}
-
-void ForestShape::on_alchemy_separation(uint64_t other_id) {
-    if (_pending_surface_id == other_id) {
-        _pending_surface_id = 0;
-    }
-}
-
-void ForestShape::consume_pending_surface() {
-    if (_pending_surface_id == 0 || get_id() == 0) {
-        _pending_surface_id = 0;
-        return;
-    }
-
-    SemanticWorld* sw = SemanticWorld::get_singleton();
-    if (!sw) return;
-
-    const uint64_t surface_id = _pending_surface_id;
-    _pending_surface_id = 0;
-
-    Ref<SemanticShape> other = sw->get_shape(surface_id);
-    SurfaceShape* surface = Object::cast_to<SurfaceShape>(other.ptr());
-    if (!surface || _tree_template.is_null()) return;
-    if (_planted_surfaces.find(surface_id) != _planted_surfaces.end()) return;
-
-    _plant_trees(surface);
-    if (_planted_surface_id != 0) {
-        _planted_surfaces.insert(surface_id);
-    }
 }
 
 void ForestShape::_plant_trees(SurfaceShape* surface) {
@@ -144,20 +121,27 @@ void ForestShape::_plant_trees(SurfaceShape* surface) {
     if (!sw || _tree_template.is_null() || get_id() == 0) return;
 
     const Vector3 origin = surface->get_position();
-    const Vector3 center_offset = get_position() - origin;
-    const float center_len = center_offset.length();
-    const Vector3 radial = center_len > 0.0001f ? center_offset / center_len : Vector3(0.0f, 1.0f, 0.0f);
+    Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
+    if (_planet.is_valid()) {
+        Ref<GravityShape> gravity = _planet->get_gravity();
+        if (gravity.is_valid()) {
+            up = gravity->get_up_at(get_position());
+        }
+    }
 
-    const Vector3 helper = Math::abs(radial.y) < 0.99f ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(1.0f, 0.0f, 0.0f);
-    const Vector3 right = radial.cross(helper).normalized();
-    const Vector3 forward = right.cross(radial).normalized();
+    const float surface_radius = _planet.is_valid() ? _planet->get_radius() : 0.0f;
+    const Vector3 disk_center = origin + up * surface_radius;
+
+    const Vector3 helper = Math::abs(up.y) < 0.99f ? Vector3(0.0f, 1.0f, 0.0f) : Vector3(1.0f, 0.0f, 0.0f);
+    const Vector3 right = up.cross(helper).normalized();
+    const Vector3 forward = right.cross(up).normalized();
 
     for (int i = 0; i < _tree_count; ++i) {
         const float angle = 2.0f * (float)Math_PI * (float)Random::randf01(_id, 2 * i);
         const float distance = _radius * Math::sqrt((float)Random::randf01(_id, 2 * i + 1));
 
-        Vector3 p = get_position() + right * (Math::cos(angle) * distance)
-                                  + forward * (Math::sin(angle) * distance);
+        Vector3 p = disk_center + right * (Math::cos(angle) * distance)
+                                + forward * (Math::sin(angle) * distance);
 
         for (int k = 0; k < 4; ++k) {
             const float sdf = surface->evaluate_sdf(p);
@@ -166,7 +150,7 @@ void ForestShape::_plant_trees(SurfaceShape* surface) {
             }
             const Vector3 d = p - origin;
             const float len = d.length();
-            const Vector3 dir = len > 0.0001f ? d / len : radial;
+            const Vector3 dir = len > 0.0001f ? d / len : up;
             p -= dir * sdf;
         }
 

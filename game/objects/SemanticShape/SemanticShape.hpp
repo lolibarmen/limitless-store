@@ -143,8 +143,6 @@ public:
         return nullptr;
     }
 
-    virtual void on_alchemy_separation(uint64_t other_id) {}
-
     void add_owned_shape(uint64_t id);
     void remove_owned_shape(uint64_t id);
     bool has_owned_shape(uint64_t id) const;

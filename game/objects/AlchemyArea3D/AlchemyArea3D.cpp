@@ -8,12 +8,10 @@ using namespace godot;
 
 void AlchemyArea3D::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_commit_alchemy", "self_id", "other_id"), &AlchemyArea3D::_commit_alchemy);
-    ClassDB::bind_method(D_METHOD("_commit_alchemy_separation", "self_id", "other_id"), &AlchemyArea3D::_commit_alchemy_separation);
 }
 
 AlchemyArea3D::AlchemyArea3D() {
     connect("area_entered", callable_mp(this, &AlchemyArea3D::_on_area_entered));
-    connect("area_exited", callable_mp(this, &AlchemyArea3D::_on_area_exited));
 }
 
 void AlchemyArea3D::_on_area_entered(Area3D* other) {
@@ -26,18 +24,6 @@ void AlchemyArea3D::_on_area_entered(Area3D* other) {
     if (other_id == 0 || other_id == _shape_id) return;
 
     call_deferred("_commit_alchemy", (int64_t)_shape_id, (int64_t)other_id);
-}
-
-void AlchemyArea3D::_on_area_exited(Area3D* other) {
-    if (!other || _shape_id == 0) return;
-
-    AlchemyArea3D* other_area = Object::cast_to<AlchemyArea3D>(other);
-    if (!other_area) return;
-
-    const uint64_t other_id = other_area->get_shape_id();
-    if (other_id == 0 || other_id == _shape_id) return;
-
-    call_deferred("_commit_alchemy_separation", (int64_t)_shape_id, (int64_t)other_id);
 }
 
 void AlchemyArea3D::_commit_alchemy(int64_t self_id, int64_t other_id) {
@@ -55,17 +41,4 @@ void AlchemyArea3D::_commit_alchemy(int64_t self_id, int64_t other_id) {
     if (sw->get_shape(self).ptr() != self_shape.ptr()) return;
 
     sw->propose_shape_change(self, proposed);
-}
-
-void AlchemyArea3D::_commit_alchemy_separation(int64_t self_id, int64_t other_id) {
-    SemanticWorld* sw = SemanticWorld::get_singleton();
-    if (!sw) return;
-
-    Ref<SemanticShape> self_shape = sw->get_shape((uint64_t)self_id);
-    if (self_shape.is_null()) return;
-
-    self_shape->on_alchemy_separation((uint64_t)other_id);
-    if (Ref<SemanticShape> other_shape = sw->get_shape((uint64_t)other_id); other_shape.is_valid()) {
-        other_shape->on_alchemy_separation((uint64_t)self_id);
-    }
 }
