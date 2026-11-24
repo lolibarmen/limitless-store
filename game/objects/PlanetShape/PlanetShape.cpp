@@ -1,7 +1,9 @@
 #include "PlanetShape.hpp"
 #include "godot_cpp/variant/vector3.hpp"
+#include <ForestShape/ForestShape.hpp>
 #include <GravityShape/GravityShape.hpp>
 #include <SurfaceShape/SurfaceShape.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -79,10 +81,14 @@ void PlanetShape::on_unregister() {
         if (_surface_id != 0 && sw->get_shape(_surface_id).is_valid()) {
             sw->unregister_shape_with_owned(_surface_id);
         }
+        if (_forest_id != 0 && sw->get_shape(_forest_id).is_valid()) {
+            sw->unregister_shape_with_owned(_forest_id);
+        }
     }
 
     _surface_id = 0;
     _gravity_id = 0;
+    _forest_id = 0;
     set_owned_shapes(PackedInt64Array());
 }
 
@@ -106,17 +112,33 @@ void PlanetShape::on_register() {
         add_owned_shape(_gravity_id);
     }
 
-    if (_surface_id != 0) {
+    if (_surface_id == 0) {
+        Ref<SurfaceShape> surface;
+        surface.instantiate();
+        surface->bind_planet(Ref<PlanetShape>(this));
+        sw->register_shape(surface);
+
+        _surface_id = surface->get_id();
+        add_owned_shape(_surface_id);
+    }
+
+    if (_forest_id != 0) {
         return;
     }
 
-    // Поверхность — дочерняя фигура планеты. Параметры она читает у планеты,
-    // а рендерится в общем октодереве через bind_spatially() в своём on_register().
-    Ref<SurfaceShape> surface;
-    surface.instantiate();
-    surface->bind_planet(Ref<PlanetShape>(this));
-    sw->register_shape(surface);
+    Ref<Resource> preset = ResourceLoader::get_singleton()->load("res://objects/world/tree_test.tres");
+    Ref<SemanticShape> tree_shape(Object::cast_to<SemanticShape>(preset.ptr()));
 
-    _surface_id = surface->get_id();
-    add_owned_shape(_surface_id);
+    Ref<ForestShape> forest;
+    forest.instantiate();
+    forest->bind_planet(Ref<PlanetShape>(this));
+    forest->set_tree_shape(tree_shape);
+    sw->register_shape(forest);
+
+    if (forest->get_id() != 0) {
+        mgr->bind_spatially(forest->get_id(), get_id());
+    }
+
+    _forest_id = forest->get_id();
+    add_owned_shape(_forest_id);
 }

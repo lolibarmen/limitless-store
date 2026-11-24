@@ -19,6 +19,7 @@ using namespace godot;
 #include "AlchemyArea3D/AlchemyArea3D.hpp"
 #include "BranchMeshGenerator/BranchMeshGenerator.hpp"
 #include "WorldShapeNode/WorldShapeNode.hpp"
+#include "ForestShape/ForestShape.hpp"
 #include "MeshGenerator/MeshGenerator.hpp"
 #include "TrunkShape/TrunkShape.hpp"
 #include "TrunkMeshGenerator/TrunkMeshGenerator.hpp"
@@ -62,6 +63,7 @@ inline void auto_register_classes() {
     ClassDB::register_class<AlchemyArea3D>();
     ClassDB::register_class<BranchMeshGenerator>();
     ClassDB::register_class<WorldShapeNode>();
+    ClassDB::register_class<ForestShape>();
     ClassDB::register_class<TrunkShape>();
     ClassDB::register_class<TrunkMeshGenerator>();
     ClassDB::register_class<PlanetShape>();

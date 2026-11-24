@@ -21,6 +21,7 @@ private:
 
     uint64_t _surface_id = 0;
     uint64_t _gravity_id = 0;
+    uint64_t _forest_id = 0;
 
 protected:
     static void _bind_methods();

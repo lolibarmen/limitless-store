@@ -5,6 +5,7 @@
 #include <SemanticWorld/SemanticWorld.hpp>
 #include <ShapeSpatialManager/ShapeSpatialManager.hpp>
 #include <WorldMesh/WorldMesh.hpp>
+#include <ForestShape/ForestShape.hpp>
 #include <PlanetShape/PlanetShape.hpp>
 #include <WorldShapeNode/WorldShapeNode.hpp>
 
@@ -144,8 +145,18 @@ void WorldCoordinator::_detach_render_nodes() {
     detach(WorldMesh::get_singleton());
 }
 
+void WorldCoordinator::_process(double delta) {
+    for (int i = 0; i < _effective_shapes.size(); ++i) {
+        Ref<SemanticShape> shape = _effective_shapes[i];
+        if (ForestShape* forest = Object::cast_to<ForestShape>(shape.ptr())) {
+            forest->consume_pending_surface();
+        }
+    }
+}
+
 void WorldCoordinator::_enter_tree() {
     _exiting = false;
+    set_process(true);
     _attach_render_nodes();
     _effective_shapes = _collect_effective_shapes();
     _register_shapes();

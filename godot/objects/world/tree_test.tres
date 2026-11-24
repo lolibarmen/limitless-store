@@ -1,0 +1,18 @@
+[gd_resource type="TreeShape" format=3 uid="uid://dp370r3rwe3ju"]
+
+[sub_resource type="PlanetShape" id="PlanetShape_m685e"]
+
+[resource]
+height = 5.0
+base_radius = 0.1
+top_radius = 0.0
+radial_segments = 6
+height_segments = 1
+ring_variation = 0.1
+branch_count = 20
+branch_start = 0.3
+branch_length = 3.0
+branch_width = 0.06
+branch_fork_count = 5
+planet = SubResource("PlanetShape_m685e")
+position = Vector3(12, 88, 0)

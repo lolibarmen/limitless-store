@@ -19,6 +19,7 @@ SurfaceShape::SurfaceShape() {
 
     _mesh_generator.instantiate();
     _material_generator.instantiate();
+    _area_generator.instantiate();
 }
 
 void SurfaceShape::bind_planet(const Ref<PlanetShape>& planet) {
@@ -41,6 +42,13 @@ void SurfaceShape::_sync_from_planet() {
     const float frequency = _planet->get_radius() / 100.0f;
     _noise->set_frequency(frequency);
     _shared_voronoi->set_frequency(frequency);
+}
+
+float SurfaceShape::get_area_radius() const {
+    if (_planet.is_null()) {
+        return 1.0f;
+    }
+    return _planet->get_radius() + _planet->get_amplitude();
 }
 
 int SurfaceShape::get_material_id(const Vector3& local_pos) const {
@@ -107,8 +115,16 @@ void SurfaceShape::on_register() {
 
 void SurfaceShape::on_zone_changed(uint64_t chunk_id) {
     WorldMesh* wm = WorldMesh::get_singleton();
-    if (wm) {
-        wm->request_render(get_id(), chunk_id, _mesh_generator, _mesh_generator,
-                           Ref<MeshGenerator>(), _material_generator);
+    if (!wm) return;
+
+    ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
+    Chunk* chunk = mgr ? mgr->get_chunk(get_id(), chunk_id) : nullptr;
+
+    Ref<MeshGenerator> area;
+    if (chunk && chunk->get_aabb().has_point(get_aabb().get_center())) {
+        area = _area_generator;
     }
+
+    wm->request_render(get_id(), chunk_id, _mesh_generator, _mesh_generator,
+                       area, _material_generator);
 }

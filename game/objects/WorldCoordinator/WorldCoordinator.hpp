@@ -33,6 +33,7 @@ public:
 
     void _enter_tree() override;
     void _exit_tree() override;
+    void _process(double delta) override;
 };
 
 } // namespace godot

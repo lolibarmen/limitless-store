@@ -4,6 +4,7 @@
 #include <SurfaceGenerator/SurfaceGenerator.hpp>
 #include <PlanetMaterialGenerator/PlanetMaterialGenerator.hpp>
 #include <PlanetShape/PlanetShape.hpp>
+#include <SphereMeshGenerator/SphereMeshGenerator.hpp>
 #include <godot_cpp/classes/fast_noise_lite.hpp>
 #include <godot_cpp/classes/ref.hpp>
 
@@ -21,6 +22,7 @@ private:
 
     Ref<SurfaceGenerator> _mesh_generator;
     Ref<PlanetMaterialGenerator> _material_generator;
+    Ref<SphereMeshGenerator> _area_generator;
 
     Ref<FastNoiseLite> _noise;
     Ref<FastNoiseLite> _shared_voronoi;
@@ -38,6 +40,8 @@ public:
 
     /// @brief Возвращает ID материала (0-7) в заданной точке на поверхности планеты.
     int get_material_id(const Vector3& local_pos) const;
+
+    float get_area_radius() const;
 
     StringName get_shape_type() const override { return "surface"; }
     void notify_shape_changed() override;

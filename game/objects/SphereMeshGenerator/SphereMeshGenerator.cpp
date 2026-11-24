@@ -1,7 +1,9 @@
 #include "SphereMeshGenerator.hpp"
+#include <ForestShape/ForestShape.hpp>
 #include <GravityShape/GravityShape.hpp>
 #include <PlayerFieldShape/PlayerFieldShape.hpp>
 #include <SemanticWorld/SemanticWorld.hpp>
+#include <SurfaceShape/SurfaceShape.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/math.hpp>
 
@@ -28,6 +30,10 @@ void SphereMeshGenerator::generate(uint64_t shape_id, uint64_t chunk_id) const {
         radius = gravity->get_area_radius();
     } else if (PlayerFieldShape* field = Object::cast_to<PlayerFieldShape>(base.ptr())) {
         radius = field->get_area_radius();
+    } else if (SurfaceShape* surface = Object::cast_to<SurfaceShape>(base.ptr())) {
+        radius = surface->get_area_radius();
+    } else if (ForestShape* forest = Object::cast_to<ForestShape>(base.ptr())) {
+        radius = forest->get_area_radius();
     } else {
         return;
     }
