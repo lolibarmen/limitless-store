@@ -23,9 +23,7 @@ void PlayerMovement::update_movement(CharacterBody3D* player, double delta) {
     Vector3 planar_velocity = velocity - up * vertical_speed;
     float new_vertical_speed = vertical_speed;
 
-    if (!player->is_on_floor()) {
-        new_vertical_speed -= gravity * (float)delta;
-    }
+    new_vertical_speed -= gravity * (float)delta;
 
     Input* input = Input::get_singleton();
     if (input->is_action_just_pressed("ui_accept") && player->is_on_floor()) {

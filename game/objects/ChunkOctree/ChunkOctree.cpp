@@ -24,7 +24,7 @@ void ChunkOctree::_ready() {
 void ChunkOctree::_process(double delta) {
     (void)delta;
 
-    if (!is_inside_tree() || max_depth <= 0) {
+    if (!is_inside_tree()) {
         return;
     }
 

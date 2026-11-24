@@ -25,7 +25,7 @@ private:
     uint64_t _bound_gravity_id = 0;
 
     Vector3 _resolve_gravity_up();
-    void _align_to_up(const Vector3& up);
+    void _align_to_up(const Vector3& up, double delta);
 
 protected:
     static void _bind_methods() {}

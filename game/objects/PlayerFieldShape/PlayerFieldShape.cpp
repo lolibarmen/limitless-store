@@ -42,6 +42,11 @@ void PlayerFieldShape::on_zone_changed(uint64_t chunk_id) {
     WorldMesh* wm = WorldMesh::get_singleton();
     if (!wm) return;
 
+    ShapeSpatialManager* mgr = ShapeSpatialManager::get_singleton();
+    Chunk* chunk = mgr ? mgr->get_chunk(get_id(), chunk_id) : nullptr;
+    if (!chunk) return;
+    if (!chunk->get_aabb().has_point(get_aabb().get_center())) return;
+
     wm->request_render(get_id(), chunk_id, Ref<MeshGenerator>(), Ref<MeshGenerator>(),
                        _area_generator, Ref<MaterialGenerator>());
 }

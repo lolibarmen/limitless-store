@@ -65,4 +65,7 @@ void AlchemyArea3D::_commit_alchemy_separation(int64_t self_id, int64_t other_id
     if (self_shape.is_null()) return;
 
     self_shape->on_alchemy_separation((uint64_t)other_id);
+    if (Ref<SemanticShape> other_shape = sw->get_shape((uint64_t)other_id); other_shape.is_valid()) {
+        other_shape->on_alchemy_separation((uint64_t)self_id);
+    }
 }
