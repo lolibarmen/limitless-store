@@ -19,7 +19,7 @@ Dictionary PlayerInteraction::perform_raycast(Camera3D* camera, Node* parent, fl
 
     Ref<PhysicsRayQueryParameters3D> query = PhysicsRayQueryParameters3D::create(ray_origin, ray_end);
     query->set_collide_with_bodies(true);
-    query->set_collide_with_areas(true);
+    query->set_collide_with_areas(false);
     // query->set_exclude({ get_rid() }); // исключить самого персонажа, если нужно
 
     PhysicsDirectSpaceState3D *space_state = camera->get_world_3d()->get_direct_space_state();
