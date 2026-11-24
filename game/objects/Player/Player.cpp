@@ -65,9 +65,9 @@ void Player::_align_to_up(const Vector3& up, double delta) {
     }
 
     forward.normalize();
-    const Vector3 right = up.cross(forward).normalized();
-    const Vector3 aligned_forward = right.cross(up).normalized();
-    const Basis target_basis(right, up, aligned_forward);
+    const Vector3 right = forward.cross(up).normalized();
+    const Vector3 backward = right.cross(up).normalized();
+    const Basis target_basis(right, up, backward);
 
     const float weight = 1.0f - Math::exp(-12.0f * static_cast<float>(delta));
     const Quaternion aligned = current_basis.get_quaternion().slerp(target_basis.get_quaternion(), weight);
